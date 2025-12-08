@@ -1,5 +1,6 @@
 import { db, testDB } from "./db/client";
 import { User } from "./db/schema";
+import { routes } from "./routes";
 import { createUser, createIssue, createProject } from "./db/queries";
 
 const DEV = process.argv.find((arg) => ["--dev", "--developer", "-d"].includes(arg.toLowerCase())) != null;
@@ -30,6 +31,7 @@ const main = async () => {
         port: Number(PORT),
         routes: {
             "/": () => new Response(`title: eussi\ndev-mode: ${DEV}\nport: ${PORT}`),
+            "/issues/:projectId": routes.issues,
         },
     });
 
