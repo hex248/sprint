@@ -11,6 +11,7 @@ const main = async () => {
         port: Number(PORT),
         routes: {
             "/": () => new Response(`title: eussi\ndev-mode: ${DEV}\nport: ${PORT}`),
+            "/issue/create": routes.issueCreate,
             "/issues/:projectId": routes.issues,
         },
     });
