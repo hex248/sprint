@@ -72,16 +72,8 @@ export async function deleteIssue(projectId: number, number: number) {
     return await db.delete(Issue).where(and(eq(Issue.projectId, projectId), eq(Issue.number, number)));
 }
 
-export async function updateIssue(
-    projectId: number,
-    number: number,
-    updates: { title?: string; description?: string },
-) {
-    return await db
-        .update(Issue)
-        .set(updates)
-        .where(and(eq(Issue.projectId, projectId), eq(Issue.number, number)))
-        .returning();
+export async function updateIssue(id: number, updates: { title?: string; description?: string }) {
+    return await db.update(Issue).set(updates).where(eq(Issue.id, id)).returning();
 }
 
 export async function getIssuesByProject(projectId: number) {
