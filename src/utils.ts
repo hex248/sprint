@@ -8,7 +8,10 @@ export const createDemoData = async () => {
 
     const projectNames = ["PROJ", "TEST", "SAMPLE"];
     for (const name of projectNames) {
-        const project = await createProject(name.slice(0, 4), name, user);
+        const project = await createProject(name.slice(0, 4), name, user.id);
+        if (!project) {
+            throw new Error(`failed to create demo project: ${name}`);
+        }
 
         for (let i = 1; i <= 5; i++) {
             await createIssue(

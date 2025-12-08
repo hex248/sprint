@@ -16,6 +16,10 @@ const main = async () => {
             "/issue/delete": routes.issueDelete,
             "/issues/:projectBlob": routes.issuesInProject,
             "/issues/all": routes.issues,
+
+            "/project/create": routes.projectCreate,
+            "/project/update": routes.projectUpdate,
+            "/project/delete": routes.projectDelete,
         },
     });
 
