@@ -1,17 +1,19 @@
 {
-	"name": "issue-monorepo",
-	"private": true,
-	"version": "1.0.0",
-	"devDependencies": {
-		"typescript": "~5.8.3",
-		"concurrently": "^9.1.0"
-	},
-	"scripts": {
-		"dev:frontend": "pnpm --filter @issue/frontend dev",
-		"dev:frontend:tauri": "pnpm --filter @issue/frontend tauri",
-		"dev:backend": "pnpm --filter @issue/backend dev",
-		"dev": "concurrently -n FRONTEND,BACKEND -c blue,green \"pnpm dev:frontend\" \"pnpm dev:backend\"",
-		"dev:desktop": "concurrently -n TAURI,BACKEND -c magenta,green \"pnpm dev:frontend:tauri\" \"pnpm dev:backend\"",
-		"build": "pnpm run -r build"
-	}
+    "name": "issue-monorepo",
+    "private": true,
+    "version": "1.0.0",
+    "workspaces": [
+        "packages/*"
+    ],
+    "devDependencies": {
+        "typescript": "~5.8.3",
+        "concurrently": "^9.1.0"
+    },
+    "scripts": {
+        "dev:frontend": "bun --filter @issue/frontend dev",
+        "dev:frontend:tauri": "bun --filter @issue/frontend tauri",
+        "dev:backend": "bun --filter @issue/backend dev",
+        "dev": "concurrently -n FRONTEND,BACKEND -c blue,green \"bun dev:frontend\" \"bun dev:backend\"",
+        "dev:desktop": "concurrently -n TAURI,BACKEND -c magenta,green \"bun dev:frontend:tauri\" \"bun dev:backend\""
+    }
 }
