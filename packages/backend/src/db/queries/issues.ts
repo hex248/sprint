@@ -1,6 +1,6 @@
 import { eq, sql, and } from "drizzle-orm";
 import { db } from "../client";
-import { Issue } from "../schema";
+import { Issue } from "@issue/shared";
 
 export async function createIssue(projectId: number, title: string, description: string) {
     // prevents two issues with the same unique number

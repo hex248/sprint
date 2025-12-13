@@ -1,17 +1,18 @@
 import { CloudSync, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { IssueRecord } from "@issue/shared";
 
-function Issue({ issue }: { issue: any }) {
+function Issue({ issue }: { issue: IssueRecord }) {
     return (
         <div className="w-sm p-4 border">
-            import {Button} from "@/components/ui/button"; [{issue.id}] {issue.title}
+            [{issue.id}] {issue.title}
         </div>
     );
 }
 
 function Index() {
-    const [issues, setIssues] = useState([]);
+    const [issues, setIssues] = useState<IssueRecord[]>([]);
 
     const serverURL = import.meta.env.SERVER_URL?.trim() || "http://localhost:3000";
 
@@ -45,14 +46,9 @@ function Index() {
             </div>
 
             {issues.length > 0 && (
-                <>
-                    {issues.map((issue: any) => (
-                        <Issue key={issue.id} issue={issue} />
-                    ))}
-                    <pre className="w-2xl max-h-96 overflow-auto p-4 border bg-">
-                        {JSON.stringify(issues, null, 2)}
-                    </pre>
-                </>
+                <pre className="w-2xl max-h-96 overflow-auto p-4 border bg-">
+                    {JSON.stringify(issues, null, 2)}
+                </pre>
             )}
         </main>
     );

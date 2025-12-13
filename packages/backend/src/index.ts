@@ -1,5 +1,5 @@
 import { db, testDB } from "./db/client";
-import { User } from "./db/schema";
+import { User } from "@issue/shared";
 import { routes } from "./routes";
 import { createDemoData } from "./utils";
 

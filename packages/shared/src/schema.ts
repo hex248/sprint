@@ -1,4 +1,6 @@
 import { integer, pgTable, uniqueIndex, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const User = pgTable("User", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -34,3 +36,23 @@ export const Issue = pgTable(
         uniqueIndex("unique_project_issue_number").on(t.projectId, t.number),
     ],
 );
+
+// Zod schemas
+export const UserSelectSchema = createSelectSchema(User);
+export const UserInsertSchema = createInsertSchema(User);
+
+export const ProjectSelectSchema = createSelectSchema(Project);
+export const ProjectInsertSchema = createInsertSchema(Project);
+
+export const IssueSelectSchema = createSelectSchema(Issue);
+export const IssueInsertSchema = createInsertSchema(Issue);
+
+// Types
+export type UserRecord = z.infer<typeof UserSelectSchema>;
+export type UserInsert = z.infer<typeof UserInsertSchema>;
+
+export type ProjectRecord = z.infer<typeof ProjectSelectSchema>;
+export type ProjectInsert = z.infer<typeof ProjectInsertSchema>;
+
+export type IssueRecord = z.infer<typeof IssueSelectSchema>;
+export type IssueInsert = z.infer<typeof IssueInsertSchema>;

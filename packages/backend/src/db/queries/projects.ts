@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../client";
-import { Issue, Project, User } from "../schema";
+import { Issue, Project, User } from "@issue/shared";
 
 export async function createProject(blob: string, name: string, ownerId: number) {
     const [project] = await db

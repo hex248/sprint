@@ -1,13 +1,24 @@
 {
-	"name": "@issue/shared",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"packageManager": "pnpm@10.17.1"
+    "name": "@issue/shared",
+    "version": "1.0.0",
+    "description": "Shared schemas and types for the issue monorepo",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "packageManager": "pnpm@10.17.1",
+    "devDependencies": {
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "drizzle-orm": "^0.45.0",
+        "drizzle-zod": "^0.5.1",
+        "zod": "^3.23.8"
+    }
 }
