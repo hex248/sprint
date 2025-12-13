@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudSync, RefreshCw } from "lucide-react";
 
 function Issue({ issue }: { issue: any }) {
     return (
@@ -11,7 +12,8 @@ function Issue({ issue }: { issue: any }) {
 
 function Home() {
     const [issues, setIssues] = useState([]);
-    const [serverURL, setServerURL] = useState("http://localhost:3000");
+
+    const serverURL = import.meta.env.SERVER_URL?.trim() || "http://localhost:3000";
 
     async function getIssues() {
         const res = await fetch(`${serverURL}/issues/all`);
@@ -23,7 +25,17 @@ function Home() {
         <main className="w-full h-[100vh] flex flex-col items-center justify-center gap-4 p-4">
             <h1>Issue Project Manager</h1>
             <Button onClick={getIssues} className={""}>
-                {issues.length > 0 ? "re-fetch issues" : "fetch issues"}
+                {issues.length > 0 ? (
+                    <>
+                        re-fetch issues
+                        <RefreshCw />
+                    </>
+                ) : (
+                    <>
+                        fetch issues
+                        <CloudSync />
+                    </>
+                )}
             </Button>
 
             {issues.length > 0 && (
