@@ -1,6 +1,6 @@
 import type { IssueRecord } from "@issue/shared";
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function IssueDetailPane({ issue, close }: { issue: IssueRecord; close: () => void }) {
     return (

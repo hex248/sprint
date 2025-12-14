@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { IssuesTable } from "@/components/issues-table";
 import type { IssueRecord, ProjectRecord } from "@issue/shared";
+import { useEffect, useRef, useState } from "react";
+import { IssuesTable } from "@/components/issues-table";
+import { IssueDetailPane } from "./components/issue-detail-pane";
 
 function Index() {
     const [projects, setProjects] = useState<ProjectRecord[]>([]);
@@ -22,6 +22,7 @@ function Index() {
             });
     }, []);
 
+    const [selectedIssue, setSelectedIssue] = useState<IssueRecord | null>(null);
     const [issues, setIssues] = useState<IssueRecord[]>([]);
     const issuesRef = useRef(false);
 
@@ -43,9 +44,28 @@ function Index() {
     }, []);
 
     return (
-        <main className="w-full h-[100vh] flex flex-col items-start justify-start">
-            <div id={"issues-table"} className="w-[75%] border">
-                <IssuesTable issues={issues} columns={{ description: false }} />
+        <main className="w-full h-full p-2">
+            {/* header area */}
+            <div className="flex gap-2">
+                <span className="border-1 px-2 py-1">project selection</span>
+                <span className="border-1 px-2 py-1">filters</span>
+            </div>
+            {/* main body */}
+            <div className="w-full h-full flex items-start justify-between pt-2 gap-2">
+                {/* issues list (table) */}
+                <div id={"issues-table"} className="border w-full flex-shrink">
+                    <IssuesTable
+                        issues={issues}
+                        columns={{ description: false }}
+                        issueSelectAction={setSelectedIssue}
+                    />
+                </div>
+                {/* issue detail pane */}
+                {selectedIssue && (
+                    <div className="border w-2xl">
+                        <IssueDetailPane issue={selectedIssue} close={() => setSelectedIssue(null)} />
+                    </div>
+                )}
             </div>
         </main>
     );
