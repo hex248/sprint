@@ -44,8 +44,8 @@ function Index() {
 
     return (
         <main className="w-full h-[100vh] flex flex-col items-start justify-start">
-            <div id={"issues-table"} className="w-[80%] border">
-                <IssuesTable issues={issues} />
+            <div id={"issues-table"} className="w-[75%] border">
+                <IssuesTable issues={issues} columns={{ description: false }} />
             </div>
         </main>
     );
