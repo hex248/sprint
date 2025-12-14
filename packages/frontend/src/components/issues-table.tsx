@@ -11,9 +11,9 @@ export function IssuesTable({
     return (
         <Table>
             <TableHeader>
-                <TableRow>
+                <TableRow hoverEffect={false}>
                     {(columns.id == null || columns.id === true) && (
-                        <TableHead className="w-[0px] border-r">ID</TableHead>
+                        <TableHead className="w-[1px] border-r">ID</TableHead>
                     )}
                     {(columns.title == null || columns.title === true) && <TableHead>Title</TableHead>}
                     {(columns.description == null || columns.description === true) && (
