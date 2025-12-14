@@ -1,25 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { IssuesTable } from "@/components/issues-table";
 import type { IssueRecord, ProjectRecord } from "@issue/shared";
-import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-
-function IssueRow({ issue }: { issue: IssueRecord }) {
-    return (
-        <TableRow key={issue.id}>
-            <TableCell className="font-medium">{issue.id}</TableCell>
-            <TableCell>{issue.title}</TableCell>
-            <TableCell>{issue.description}</TableCell>
-        </TableRow>
-    );
-}
 
 function Index() {
     const [projects, setProjects] = useState<ProjectRecord[]>([]);
@@ -63,22 +45,7 @@ function Index() {
     return (
         <main className="w-full h-[100vh] flex flex-col items-start justify-start">
             <div id={"issues-table"} className="w-[80%] border">
-                <Table>
-                    <TableCaption>All Issues</TableCaption>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[100px]">a</TableHead>
-                            <TableHead>a</TableHead>
-                            <TableHead>a</TableHead>
-                            <TableHead className="text-right">a</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {issues.map((issue) => (
-                            <IssueRow key={issue.id} issue={issue} />
-                        ))}
-                    </TableBody>
-                </Table>
+                <IssuesTable issues={issues} />
             </div>
         </main>
     );
