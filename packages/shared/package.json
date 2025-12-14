@@ -1,17 +1,11 @@
 {
     "name": "@issue/shared",
-    "version": "1.0.0",
-    "description": "Shared schemas and types for the issue monorepo",
+    "version": "0.1.0",
     "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "scripts": {
-        "build": "tsc",
-        "dev": "tsc --watch"
+    "main": "./src/index.ts",
+    "exports": {
+        ".": "./src/index.ts"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
     "devDependencies": {
         "typescript": "^5.8.3"
     },

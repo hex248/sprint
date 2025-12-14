@@ -1,31 +1,31 @@
 {
-	"name": "@issue/backend",
-	"version": "0.1.0",
-	"type": "module",
-	"scripts": {
-		"dev": "bun --watch src/index.ts --dev --PORT=3000",
-		"start": "bun src/index.ts --PORT=3000",
-		"db:start": "docker compose up -d",
-		"db:stop": "docker compose down",
-		"db:migrate": "npx drizzle-kit generate && npx drizzle-kit migrate",
-		"db:push": "npx drizzle-kit push"
-	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"@types/pg": "^8.15.6",
-		"drizzle-kit": "^0.31.8",
-		"tsx": "^4.21.0"
-	},
-	"peerDependencies": {
-		"typescript": "^5"
-	},
-	"dependencies": {
-		"@issue/shared": "workspace:*",
-		"dotenv": "^17.2.3",
-		"drizzle-orm": "^0.45.0",
-		"pg": "^8.16.3"
-	},
-	"engines": {
-		"bun": ">=1.0.0"
-	}
+    "name": "@issue/backend",
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "bun --watch src/index.ts --dev --PORT=3000",
+        "start": "bun src/index.ts --PORT=3000",
+        "db:start": "docker compose up -d",
+        "db:stop": "docker compose down",
+        "db:migrate": "npx drizzle-kit generate && npx drizzle-kit migrate",
+        "db:push": "npx drizzle-kit push"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@types/pg": "^8.15.6",
+        "drizzle-kit": "^0.31.8",
+        "tsx": "^4.21.0"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "@issue/shared": "workspace:*",
+        "dotenv": "^17.2.3",
+        "drizzle-orm": "^0.45.0",
+        "pg": "^8.16.3"
+    },
+    "engines": {
+        "bun": ">=1.0.0"
+    }
 }
