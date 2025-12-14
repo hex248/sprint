@@ -29,6 +29,8 @@ export const Issue = pgTable(
 
         title: varchar({ length: 256 }).notNull(),
         description: varchar({ length: 2048 }).notNull(),
+
+        assigneeId: integer().references(() => User.id),
     },
     (t) => [
         // ensures unique numbers per project

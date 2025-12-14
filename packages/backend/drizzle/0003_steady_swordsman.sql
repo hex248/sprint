@@ -1,0 +1,2 @@
+ALTER TABLE "Issue" ADD COLUMN "assigneeId" integer;--> statement-breakpoint
+ALTER TABLE "Issue" ADD CONSTRAINT "Issue_assigneeId_User_id_fk" FOREIGN KEY ("assigneeId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;
