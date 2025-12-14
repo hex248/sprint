@@ -13,7 +13,7 @@ export function IssuesTable({
             <TableHeader>
                 <TableRow>
                     {(columns.id == null || columns.id === true) && (
-                        <TableHead className="w-[50px] border-r">ID</TableHead>
+                        <TableHead className="w-[0px] border-r">ID</TableHead>
                     )}
                     {(columns.title == null || columns.title === true) && <TableHead>Title</TableHead>}
                     {(columns.description == null || columns.description === true) && (
