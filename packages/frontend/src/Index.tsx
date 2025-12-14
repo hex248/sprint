@@ -1,9 +1,11 @@
 import type { IssueRecord, ProjectRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
+import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssuesTable } from "@/components/issues-table";
-import { IssueDetailPane } from "./components/issue-detail-pane";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function Index() {
+    const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null);
     const [projects, setProjects] = useState<ProjectRecord[]>([]);
     const projectsRef = useRef(false);
 
@@ -15,7 +17,6 @@ function Index() {
             .then((res) => res.json())
             .then((data: ProjectRecord[]) => {
                 setProjects(data);
-                console.log("fetched projects:", data);
             })
             .catch((err) => {
                 console.error("error fetching projects:", err);
@@ -24,42 +25,66 @@ function Index() {
 
     const [selectedIssue, setSelectedIssue] = useState<IssueRecord | null>(null);
     const [issues, setIssues] = useState<IssueRecord[]>([]);
-    const issuesRef = useRef(false);
 
     const serverURL = import.meta.env.SERVER_URL?.trim() || "http://localhost:3000";
 
     useEffect(() => {
-        if (issuesRef.current) return;
-        issuesRef.current = true;
+        if (!selectedProject) return;
 
-        fetch(`${serverURL}/issues/all`)
+        fetch(`${serverURL}/issues/${selectedProject.blob}`)
             .then((res) => res.json())
             .then((data: IssueRecord[]) => {
                 setIssues(data);
-                console.log("fetched issues:", data);
             })
             .catch((err) => {
                 console.error("error fetching issues:", err);
             });
-    }, []);
+    }, [selectedProject]);
 
     return (
         <main className="w-full h-full p-2">
             {/* header area */}
             <div className="flex gap-2">
-                <span className="border-1 px-2 py-1">project selection</span>
-                <span className="border-1 px-2 py-1">filters</span>
+                <Select
+                    onValueChange={(value) => {
+                        if (value === "NONE") {
+                            setSelectedProject(null);
+                            setSelectedIssue(null);
+                            setIssues([]);
+                        }
+                        const project = projects.find((p) => p.id === Number(value));
+                        if (!project) {
+                            // TODO: toast here
+                            console.error(`NO PROJECT FOUND FOR ID: ${value}`);
+                            return;
+                        }
+                        setSelectedProject(project);
+                        setSelectedIssue(null);
+                    }}
+                >
+                    <SelectTrigger className="h-8 lg:flex">
+                        <SelectValue
+                            placeholder={selectedProject ? `P: ${selectedProject.name}` : "Select Project"}
+                        />
+                    </SelectTrigger>
+                    <SelectContent side="bottom" position="popper">
+                        {projects.map((project) => (
+                            <SelectItem key={project.id} value={`${project.id}`}>
+                                {project.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
             {/* main body */}
             <div className="w-full h-full flex items-start justify-between pt-2 gap-2">
                 {/* issues list (table) */}
-                <div id={"issues-table"} className="border w-full flex-shrink">
-                    <IssuesTable
-                        issues={issues}
-                        columns={{ description: false }}
-                        issueSelectAction={setSelectedIssue}
-                    />
-                </div>
+                <IssuesTable
+                    issues={issues}
+                    columns={{ description: false }}
+                    issueSelectAction={setSelectedIssue}
+                    className="border w-full flex-shrink"
+                />
                 {/* issue detail pane */}
                 {selectedIssue && (
                     <div className="border w-2xl">
