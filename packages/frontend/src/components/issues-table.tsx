@@ -1,18 +1,21 @@
 import type { IssueRecord } from "@issue/shared";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 export function IssuesTable({
     issues,
     columns = {},
     issueSelectAction,
+    className,
 }: {
     issues: IssueRecord[];
     columns?: { id?: boolean; title?: boolean; description?: boolean; assignee?: boolean };
     issueSelectAction?: (issue: IssueRecord) => void;
+    className: string;
 }) {
     if (issues.length === 0) return;
     return (
-        <Table>
+        <Table className={cn(className)}>
             <TableHeader>
                 <TableRow hoverEffect={false}>
                     {(columns.id == null || columns.id === true) && (
