@@ -13,19 +13,19 @@ const main = async () => {
         routes: {
             "/": withCors(() => new Response(`title: eussi\ndev-mode: ${DEV}\nport: ${PORT}`)),
 
-            "/issue/create": withCors(routes.issueCreate),
-            "/issue/update": withCors(routes.issueUpdate),
-            "/issue/delete": withCors(routes.issueDelete),
-            "/issues/:projectBlob": withCors(routes.issuesInProject),
-            "/issues/all": withCors(routes.issues),
+            "/issue/create": withCors(withAuth(routes.issueCreate)),
+            "/issue/update": withCors(withAuth(routes.issueUpdate)),
+            "/issue/delete": withCors(withAuth(routes.issueDelete)),
+            "/issues/:projectBlob": withCors(withAuth(routes.issuesInProject)),
+            "/issues/all": withCors(withAuth(routes.issues)),
 
-            "/project/create": withCors(routes.projectCreate),
-            "/project/update": withCors(routes.projectUpdate),
-            "/project/delete": withCors(routes.projectDelete),
-            "/projects/by-owner": withCors(routes.projectsByOwner),
-            "/projects/all": withCors(routes.projectsAll),
-            "/projects/with-owners": withCors(routes.projectsWithOwners),
-            "/project/with-owner": withCors(routes.projectWithOwner),
+            "/project/create": withCors(withAuth(routes.projectCreate)),
+            "/project/update": withCors(withAuth(routes.projectUpdate)),
+            "/project/delete": withCors(withAuth(routes.projectDelete)),
+            "/projects/by-owner": withCors(withAuth(routes.projectsByOwner)),
+            "/projects/all": withCors(withAuth(routes.projectsAll)),
+            "/projects/with-owners": withCors(withAuth(routes.projectsWithOwners)),
+            "/project/with-owner": withCors(withAuth(routes.projectWithOwner)),
         },
     });
 
