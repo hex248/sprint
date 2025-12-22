@@ -27,12 +27,12 @@ export default async function register(req: BunRequest) {
         return new Response("name, username, and password are required", { status: 400 });
     }
 
-    if (username.length < 3 || username.length > 32) {
-        return new Response("username must be 3-32 characters", { status: 400 });
+    if (username.length < 1 || username.length > 32) {
+        return new Response("username must be 1-32 characters", { status: 400 });
     }
 
-    if (password.length < 8) {
-        return new Response("password must be at least 8 characters", { status: 400 });
+    if (password.length < 1) {
+        return new Response("password must be at least 1 character", { status: 400 });
     }
 
     const existing = await getUserByUsername(username);
@@ -49,7 +49,7 @@ export default async function register(req: BunRequest) {
     const token = generateToken(user.id);
 
     return Response.json({
-        user: { id: user.id, name: user.name, username: user.username },
         token,
+        user,
     });
 }

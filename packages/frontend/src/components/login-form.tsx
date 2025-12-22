@@ -2,7 +2,7 @@ import { type ChangeEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn, getAuthHeaders } from "@/lib/utils";
+import { capitalise, cn, getAuthHeaders } from "@/lib/utils";
 
 function Field({
     label = "label",
@@ -40,6 +40,10 @@ function Field({
 export default function LogInForm() {
     const serverURL = import.meta.env.SERVER_URL?.trim() || "http://localhost:3000";
 
+    const [mode, setMode] = useState<"login" | "register">("login");
+
+    const [name, setName] = useState("");
+    const [nameInvalid, setNameInvalid] = useState("");
     const [username, setUsername] = useState("");
     const [usernameInvalid, setUsernameInvalid] = useState("");
     const [password, setPassword] = useState("");
@@ -84,14 +88,75 @@ export default function LogInForm() {
             });
     };
 
+    const register = () => {
+        if (name === "" || username === "" || password === "") {
+            if (name === "") {
+                setNameInvalid("Cannot be empty");
+            }
+            if (username === "") {
+                setUsernameInvalid("Cannot be empty");
+            }
+            if (password === "") {
+                setPasswordInvalid("Cannot be empty");
+            }
+            return;
+        }
+
+        fetch(`${serverURL}/auth/register`, {
+            method: "POST",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+                name,
+                username,
+                password,
+            }),
+        })
+            .then(async (res) => {
+                if (res.status === 200) {
+                    setError("");
+                    const data = await res.json();
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("user", data.user);
+                    window.location.href = "";
+                }
+                // bad request (probably a bad user input)
+                else if (res.status === 400) {
+                    setError(await res.text());
+                } else {
+                    setError("An unknown error occured.");
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+                setError(`${err.statusText}`);
+            });
+    };
+
+    const resetForm = () => {
+        setError("");
+    };
+
     return (
         <div>
             <div
                 className={cn(
-                    "flex flex-col gap-2 items-center border p-8",
+                    "flex flex-col gap-2 items-center border p-6 pb-4",
                     error !== "" && "border-destructive",
                 )}
             >
+                <span className="text-xl mb-2">{capitalise(mode)}</span>
+
+                {mode === "register" && (
+                    <Field
+                        label="Full Name"
+                        onChange={(e) => {
+                            if (e.target.value !== "") setNameInvalid("");
+                            else setNameInvalid("Cannot be empty");
+                            setName(e.target.value);
+                        }}
+                        invalidMessage={nameInvalid}
+                    />
+                )}
                 <Field
                     label="Username"
                     onChange={(e) => {
@@ -111,9 +176,40 @@ export default function LogInForm() {
                     invalidMessage={passwordInvalid}
                     hidden={true}
                 />
-                <Button variant={"outline"} onClick={logIn} className={"mt-4"} type={"submit"}>
-                    Log in
-                </Button>
+
+                {mode === "login" ? (
+                    <>
+                        <Button variant={"outline"} onClick={logIn} type={"submit"}>
+                            Log in
+                        </Button>
+                        <Button
+                            className="text-xs hover:underline p-0"
+                            variant={"dummy"}
+                            onClick={() => {
+                                setMode("register");
+                                resetForm();
+                            }}
+                        >
+                            I don't have an account
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        <Button variant={"outline"} onClick={register} type={"submit"}>
+                            Register
+                        </Button>
+                        <Button
+                            className="text-xs hover:underline p-0"
+                            variant={"dummy"}
+                            onClick={() => {
+                                setMode("login");
+                                resetForm();
+                            }}
+                        >
+                            I already have an account
+                        </Button>
+                    </>
+                )}
             </div>
             <div className="flex items-end justify-end w-full text-xs -mb-4">
                 {error !== "" ? (
