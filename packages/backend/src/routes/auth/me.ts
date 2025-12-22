@@ -1,3 +1,4 @@
+import type { UserRecord } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getUserById } from "../../db/queries";
 
@@ -7,5 +8,5 @@ export default async function me(req: AuthedRequest) {
         return new Response("user not found", { status: 404 });
     }
 
-    return Response.json({ id: user.id, name: user.name, username: user.username });
+    return Response.json(user as UserRecord);
 }
