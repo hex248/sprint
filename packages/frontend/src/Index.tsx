@@ -8,7 +8,7 @@ import { getAuthHeaders } from "@/lib/utils";
 import LogOutButton from "./components/log-out-button";
 
 function Index() {
-    const serverURL = import.meta.env.SERVER_URL?.trim() || "http://localhost:3000";
+    const serverURL = import.meta.env.VITE_SERVER_URL?.trim() || "http://localhost:3000";
 
     const user = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
 

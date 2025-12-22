@@ -9,7 +9,7 @@ type AuthProviderProps = {
 };
 
 export function Auth({ children }: AuthProviderProps) {
-    const serverURL = import.meta.env.SERVER_URL?.trim() || "http://localhost:3000";
+    const serverURL = import.meta.env.VITE_SERVER_URL?.trim() || "http://localhost:3000";
 
     const [loggedIn, setLoggedIn] = useState<boolean>();
     const fetched = useRef(false);

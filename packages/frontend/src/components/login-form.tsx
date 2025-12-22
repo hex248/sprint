@@ -38,7 +38,7 @@ function Field({
 }
 
 export default function LogInForm() {
-    const serverURL = import.meta.env.SERVER_URL?.trim() || "http://localhost:3000";
+    const serverURL = import.meta.env.VITE_SERVER_URL?.trim() || "http://localhost:3000";
 
     const [mode, setMode] = useState<"login" | "register">("login");
 
