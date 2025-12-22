@@ -1,9 +1,9 @@
+import { User } from "@issue/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
-import { User } from "@issue/shared";
 
-export async function createUser(name: string, username: string) {
-    const [user] = await db.insert(User).values({ name, username }).returning();
+export async function createUser(name: string, username: string, passwordHash: string) {
+    const [user] = await db.insert(User).values({ name, username, passwordHash }).returning();
     return user;
 }
 
