@@ -60,7 +60,6 @@ function Index() {
                             }
                             const project = projects.find((p) => p.Project.id === Number(value));
                             if (!project) {
-                                // TODO: toast here
                                 console.error(`NO PROJECT FOUND FOR ID: ${value}`);
                                 return;
                             }
@@ -81,6 +80,7 @@ function Index() {
                                     {project.Project.name}
                                 </SelectItem>
                             ))}
+                            {/* {projects.length === 0 && <>No projects</>} */}
                         </SelectContent>
                     </Select>
                     {selectedProject && (

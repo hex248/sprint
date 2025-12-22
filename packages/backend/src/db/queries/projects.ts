@@ -1,6 +1,6 @@
+import { Issue, Project, User } from "@issue/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
-import { Issue, Project, User } from "@issue/shared";
 
 export async function createProject(blob: string, name: string, ownerId: number) {
     const [project] = await db
@@ -40,8 +40,12 @@ export async function getProjectByBlob(projectBlob: string) {
 }
 
 export async function getProjectsByOwnerID(ownerId: number) {
-    const projects = await db.select().from(Project).where(eq(Project.ownerId, ownerId));
-    return projects;
+    const projectsWithOwners = await db
+        .select()
+        .from(Project)
+        .where(eq(Project.ownerId, ownerId))
+        .leftJoin(User, eq(Project.ownerId, User.id));
+    return projectsWithOwners;
 }
 
 export async function getAllProjects() {
