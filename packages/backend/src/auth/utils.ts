@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 
 const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN ?? "7d") as jwt.SignOptions["expiresIn"];
@@ -9,6 +10,10 @@ const requireJwtSecret = () => {
     }
     return secret;
 };
+
+export const hashPassword = (password: string) => bcrypt.hash(password, 10);
+
+export const verifyPassword = (password: string, hash: string) => bcrypt.compare(password, hash);
 
 export const generateToken = (userId: number) => {
     const secret = requireJwtSecret();
