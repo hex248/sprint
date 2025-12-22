@@ -24,18 +24,20 @@ export function Auth({ children }: AuthProviderProps) {
         fetch(`${serverURL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
         })
-            .then((res) => res.json())
-            .then((data: UserRecord) => {
-                if (data) {
-                    setLoggedIn(true);
-                    localStorage.setItem("user", JSON.stringify(data));
+            .then(async (res) => {
+                if (!res.ok) {
+                    throw new Error(`auth check failed: ${res.status}`);
                 }
+                return (await res.json()) as UserRecord;
             })
-            .catch((err) => {
+            .then((data) => {
+                setLoggedIn(true);
+                localStorage.setItem("user", JSON.stringify(data));
+            })
+            .catch(() => {
                 setLoggedIn(false);
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
-                console.error("user not logged in:", err);
             });
     }, []);
 
