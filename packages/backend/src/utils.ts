@@ -1,7 +1,9 @@
+import { hashPassword } from "./auth/utils";
 import { createIssue, createProject, createUser } from "./db/queries";
 
 export const createDemoData = async () => {
-    const user = await createUser("Demo User", "demo_user");
+    const passwordHash = await hashPassword("changeme");
+    const user = await createUser("Demo User", "demo_user", passwordHash);
     if (!user) {
         throw new Error("failed to create demo user");
     }
