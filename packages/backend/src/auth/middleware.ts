@@ -39,3 +39,68 @@ export const withAuth = <T extends BunRequest>(handler: AuthedRouteHandler<T>): 
     };
 };
 
+const CORS_ALLOWED_ORIGINS = (process.env.CORS_ORIGIN ?? "http://localhost:1420")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const CORS_ALLOW_METHODS = process.env.CORS_ALLOW_METHODS ?? "GET,POST,PUT,PATCH,DELETE,OPTIONS";
+const CORS_ALLOW_HEADERS_DEFAULT = process.env.CORS_ALLOW_HEADERS ?? "Content-Type, Authorization";
+const CORS_MAX_AGE = process.env.CORS_MAX_AGE ?? "86400";
+
+const getCorsAllowOrigin = (req: Request) => {
+    const requestOrigin = req.headers.get("Origin");
+    if (!requestOrigin) {
+        return "*";
+    }
+
+    if (CORS_ALLOWED_ORIGINS.includes("*")) {
+        return "*";
+    }
+
+    if (CORS_ALLOWED_ORIGINS.includes(requestOrigin)) {
+        return requestOrigin;
+    }
+
+    return null;
+};
+
+const buildCorsHeaders = (req: Request) => {
+    const headers = new Headers();
+
+    const allowOrigin = getCorsAllowOrigin(req);
+    if (allowOrigin) {
+        headers.set("Access-Control-Allow-Origin", allowOrigin);
+        if (allowOrigin !== "*") {
+            headers.set("Vary", "Origin");
+        }
+    }
+
+    headers.set("Access-Control-Allow-Methods", CORS_ALLOW_METHODS);
+
+    const requestedHeaders = req.headers.get("Access-Control-Request-Headers");
+    headers.set("Access-Control-Allow-Headers", requestedHeaders || CORS_ALLOW_HEADERS_DEFAULT);
+
+    headers.set("Access-Control-Max-Age", CORS_MAX_AGE);
+
+    return headers;
+};
+
+export const withCors = <T extends BunRequest>(handler: RouteHandler<T>): RouteHandler<T> => {
+    return async (req: T) => {
+        const corsHeaders = buildCorsHeaders(req);
+
+        if (req.method === "OPTIONS") {
+            return new Response(null, { status: 204, headers: corsHeaders });
+        }
+
+        const res = await handler(req);
+        const wrapped = new Response(res.body, res);
+
+        corsHeaders.forEach((value, key) => {
+            wrapped.headers.set(key, value);
+        });
+
+        return wrapped;
+    };
+};
