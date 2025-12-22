@@ -13,6 +13,10 @@ const main = async () => {
         routes: {
             "/": withCors(() => new Response(`title: eussi\ndev-mode: ${DEV}\nport: ${PORT}`)),
 
+            "/auth/register": withCors(routes.authRegister),
+            "/auth/login": withCors(routes.authLogin),
+            "/auth/me": withCors(withAuth(routes.authMe)),
+
             "/issue/create": withCors(withAuth(routes.issueCreate)),
             "/issue/update": withCors(withAuth(routes.issueUpdate)),
             "/issue/delete": withCors(withAuth(routes.issueDelete)),

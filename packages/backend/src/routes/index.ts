@@ -1,16 +1,18 @@
+import authLogin from "./auth/login";
+import authMe from "./auth/me";
+import authRegister from "./auth/register";
 import issueCreate from "./issue/create";
 import issueDelete from "./issue/delete";
 import issueUpdate from "./issue/update";
 import issuesInProject from "./issues/[projectBlob]";
 import issues from "./issues/all";
-
-import projectCreate from "./project/create";
-import projectUpdate from "./project/update";
-import projectDelete from "./project/delete";
-import projectsByOwner from "./project/by-owner";
 import projectsAll from "./project/all";
-import projectsWithOwners from "./project/with-owners";
+import projectsByOwner from "./project/by-owner";
+import projectCreate from "./project/create";
+import projectDelete from "./project/delete";
+import projectUpdate from "./project/update";
 import projectWithOwner from "./project/with-owner";
+import projectsWithOwners from "./project/with-owners";
 
 export const routes = {
     issueCreate,
@@ -27,4 +29,8 @@ export const routes = {
     projectsAll,
     projectsWithOwners,
     projectWithOwner,
+
+    authRegister,
+    authLogin,
+    authMe,
 };
