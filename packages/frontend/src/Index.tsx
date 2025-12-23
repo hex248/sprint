@@ -32,6 +32,7 @@ function Index() {
             .then((res) => res.json())
             .then((data: Array<OrganisationResponse>) => {
                 setOrganisations(data);
+                setSelectedOrganisation(data[0] || null);
             })
             .catch((err) => {
                 console.error("error fetching organisations:", err);
@@ -77,6 +78,12 @@ function Index() {
                 console.error("error fetching issues:", err);
             });
     }, [selectedProject]);
+
+    useEffect(() => {
+        if (projects.length > 0) {
+            setSelectedProject(projects[0]);
+        }
+    }, [projects]);
 
     return (
         <main className="w-full h-full p-1">
