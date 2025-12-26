@@ -1,8 +1,8 @@
 import type { IssueResponse, ProjectResponse } from "@issue/shared";
 import { X } from "lucide-react";
+import SmallUserDisplay from "@/components/small-user-display";
 import { Button } from "@/components/ui/button";
 import { issueID } from "@/lib/utils";
-import SmallUserDisplay from "./small-user-display";
 
 export function IssueDetailPane({
     project,

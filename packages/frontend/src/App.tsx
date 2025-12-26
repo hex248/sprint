@@ -1,8 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Auth } from "@/components/auth-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import Index from "./Index";
-import Test from "./Test";
+import Index from "@/Index";
+import Test from "@/Test";
 
 function App() {
     return (

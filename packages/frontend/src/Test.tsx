@@ -1,5 +1,5 @@
+import LogOutButton from "@/components/log-out-button";
 import { Button } from "@/components/ui/button";
-import LogOutButton from "./components/log-out-button";
 
 function Test() {
     return (
