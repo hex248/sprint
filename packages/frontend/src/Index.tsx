@@ -1,11 +1,17 @@
 import type { IssueResponse, OrganisationResponse, ProjectResponse, UserRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssuesTable } from "@/components/issues-table";
 import SmallUserDisplay from "@/components/small-user-display";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAuthHeaders } from "@/lib/utils";
-import LogOutButton from "./components/log-out-button";
 
 function Index() {
     const serverURL = import.meta.env.VITE_SERVER_URL?.trim() || "http://localhost:3000";
@@ -109,7 +115,7 @@ function Index() {
                         }}
                         onOpenChange={setOrganisationSelectOpen}
                     >
-                        <SelectTrigger className="h-8 lg:flex" isOpen={organisationSelectOpen}>
+                        <SelectTrigger className="text-sm" isOpen={organisationSelectOpen}>
                             <SelectValue
                                 placeholder={
                                     selectedOrganisation
@@ -152,7 +158,7 @@ function Index() {
                             }}
                             onOpenChange={setProjectSelectOpen}
                         >
-                            <SelectTrigger className="h-8 lg:flex" isOpen={projectSelectOpen}>
+                            <SelectTrigger className="text-sm" isOpen={projectSelectOpen}>
                                 <SelectValue
                                     placeholder={
                                         selectedProject
@@ -161,7 +167,7 @@ function Index() {
                                     }
                                 />
                             </SelectTrigger>
-                            <SelectContent side="bottom" position="popper">
+                            <SelectContent side="bottom" position="popper" align={"start"}>
                                 {projects.map((project) => (
                                     <SelectItem key={project.Project.id} value={`${project.Project.id}`}>
                                         {project.Project.name}
@@ -173,12 +179,28 @@ function Index() {
                     )}
                 </div>
 
-                {user && (
-                    <div className="flex items-center gap-2">
-                        You:
-                        <SmallUserDisplay user={user} />
-                    </div>
-                )}
+                <div className="flex gap-2 items-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="text-sm">
+                            <SmallUserDisplay user={user} />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align={"end"}>
+                            <DropdownMenuItem asChild className="flex items-end justify-end">
+                                <Link to="/account" className="p-0 text-end">Settings</Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    {/*<SmallUserDisplay user={user} />*/}
+
+                    {/* <Button onClick={() => {
+                            window.location.href = "/account";
+                        }}
+                        variant={"dummy"}
+                        className={"border rounded-full p-0 size-9 text-md"}
+                    >
+                        <Settings className="" />
+                    </Button> */}
+                </div>
             </div>
             {/* main body */}
             <div className="w-full h-full flex items-start justify-between pt-1 gap-2">
@@ -206,7 +228,7 @@ function Index() {
                 )}
             </div>
 
-            <LogOutButton />
+            {/* <LogOutButton /> */}
         </main>
     );
 }
