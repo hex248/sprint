@@ -1,11 +1,15 @@
 import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function LogOutButton() {
+    const navigate = useNavigate();
+
     const logOut = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        window.location.href = "";
+
+        navigate(0);
     };
 
     return (
