@@ -8,6 +8,8 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -185,9 +187,16 @@ function Index() {
                             <SmallUserDisplay user={user} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align={"end"}>
+                            <DropdownMenuLabel className="text-end">Settings</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem asChild className="flex items-end justify-end">
-                                <Link to="/account" className="p-0 text-end">
-                                    Settings
+                                <Link to="/settings/account" className="p-0 text-end">
+                                    My Account
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild className="flex items-end justify-end">
+                                <Link to="/settings/organisations" className="p-0 text-end">
+                                    My Organisations
                                 </Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>

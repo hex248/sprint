@@ -1,8 +1,10 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Account from "@/Account";
 import { Auth } from "@/components/auth-provider";
+import NotFound from "@/components/NotFound";
 import { ThemeProvider } from "@/components/theme-provider";
 import Index from "@/Index";
-import Account from "@/Account";
+import Organisations from "@/Organisations";
 import Test from "@/Test";
 
 function App() {
@@ -12,8 +14,10 @@ function App() {
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Index />} />
-                        <Route path="/account" element={<Account />} />
+                        <Route path="/settings/account" element={<Account />} />
+                        <Route path="/settings/organisations" element={<Organisations />} />
                         <Route path="/test" element={<Test />} />
+                        <Route path={"*"} element={<NotFound />} />
                     </Routes>
                 </BrowserRouter>
             </Auth>
