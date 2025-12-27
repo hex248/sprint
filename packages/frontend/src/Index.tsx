@@ -95,7 +95,7 @@ function Index() {
         <main className="w-full h-full p-1">
             {/* header area */}
             <div className="flex gap-12 items-center justify-between">
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-1 items-center">
                     {/* organisation selection */}
                     <Select
                         value={`${selectedOrganisation?.Organisation.id}`}
@@ -179,31 +179,23 @@ function Index() {
                     )}
                 </div>
 
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-1 items-center">
                     <DropdownMenu>
                         <DropdownMenuTrigger className="text-sm">
                             <SmallUserDisplay user={user} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align={"end"}>
                             <DropdownMenuItem asChild className="flex items-end justify-end">
-                                <Link to="/account" className="p-0 text-end">Settings</Link>
+                                <Link to="/account" className="p-0 text-end">
+                                    Settings
+                                </Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    {/*<SmallUserDisplay user={user} />*/}
-
-                    {/* <Button onClick={() => {
-                            window.location.href = "/account";
-                        }}
-                        variant={"dummy"}
-                        className={"border rounded-full p-0 size-9 text-md"}
-                    >
-                        <Settings className="" />
-                    </Button> */}
                 </div>
             </div>
             {/* main body */}
-            <div className="w-full h-full flex items-start justify-between pt-1 gap-2">
+            <div className="w-full h-full flex items-start justify-between pt-1 gap-1">
                 {selectedProject && issues.length > 0 && (
                     <>
                         {/* issues list (table) */}
