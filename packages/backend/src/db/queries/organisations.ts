@@ -30,6 +30,36 @@ export async function createOrganisationMember(
     return member;
 }
 
+export async function createOrganisationWithOwner(
+    name: string,
+    slug: string,
+    userId: number,
+    description?: string,
+) {
+    return await db.transaction(async (tx) => {
+        const [org] = await tx
+            .insert(Organisation)
+            .values({
+                name,
+                slug,
+                description,
+            })
+            .returning();
+
+        if (!org) {
+            throw new Error("failed to create organisation");
+        }
+
+        await tx.insert(OrganisationMember).values({
+            organisationId: org.id,
+            userId,
+            role: "owner",
+        });
+
+        return org;
+    });
+}
+
 export async function getOrganisationById(id: number) {
     const [organisation] = await db.select().from(Organisation).where(eq(Organisation.id, id));
     return organisation;
