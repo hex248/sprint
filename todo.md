@@ -1,5 +1,4 @@
 - user settings/profile page
 - create issue
-- add user(s) to project
+- add/invite user(s) to org
 - rename Project.blob to Project.key
-- pressing on the left side of log out button does nothing (in user menu)

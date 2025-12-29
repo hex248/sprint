@@ -3,7 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export default function LogOutButton({ noStyle = false }: { noStyle?: boolean }) {
+export default function LogOutButton({
+    noStyle = false,
+    className,
+}: {
+    noStyle?: boolean;
+    className?: string;
+}) {
     const navigate = useNavigate();
 
     const logOut = () => {
@@ -17,7 +23,7 @@ export default function LogOutButton({ noStyle = false }: { noStyle?: boolean })
         <Button
             onClick={logOut}
             variant={noStyle ? "dummy" : "destructive"}
-            className={cn("flex gap-2 items-center", noStyle && "px-2 py-1 m-0 h-auto")}
+            className={cn("flex gap-2 items-center", noStyle && "px-2 py-1 m-0 h-auto", className)}
             size={noStyle ? "none" : "default"}
         >
             Log out

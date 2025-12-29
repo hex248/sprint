@@ -285,7 +285,7 @@ function Index() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="flex items-end justify-end p-0 m-0">
-                                <LogOutButton noStyle />
+                                <LogOutButton noStyle className={"flex w-full justify-end"} />
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
