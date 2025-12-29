@@ -51,7 +51,7 @@ export function CreateProject({
     const blobInvalid = useMemo(() => {
         if (!(blobTouched || submitAttempted)) return "";
         if (blob.trim() === "") return "Cannot be empty";
-        if (blob.length !== 4) return "Must be 4 characters";
+        if (blob.length > 4) return "Must be 4 or less characters";
         return "";
     }, [blobTouched, submitAttempted, blob]);
 
@@ -80,7 +80,7 @@ export function CreateProject({
         setError(null);
         setSubmitAttempted(true);
 
-        if (name.trim() === "" || blob.length !== 4) {
+        if (name.trim() === "" || blob.length > 4) {
             return;
         }
 
