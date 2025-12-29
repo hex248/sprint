@@ -35,6 +35,11 @@ export async function getOrganisationById(id: number) {
     return organisation;
 }
 
+export async function getOrganisationBySlug(slug: string) {
+    const [organisation] = await db.select().from(Organisation).where(eq(Organisation.slug, slug));
+    return organisation;
+}
+
 export async function getOrganisationsByUserId(userId: number) {
     const organisations = await db
         .select()
