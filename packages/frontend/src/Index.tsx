@@ -45,7 +45,7 @@ function Index() {
     const [issues, setIssues] = useState<IssueResponse[]>([]);
     const [selectedIssue, setSelectedIssue] = useState<IssueResponse | null>(null);
 
-    const refetchOrganisations = async () => {
+    const refetchOrganisations = async (options?: { selectOrganisationId?: number }) => {
         try {
             const res = await fetch(`${serverURL}/organisation/by-user?userId=${user.id}`, {
                 headers: getAuthHeaders(),
@@ -54,7 +54,16 @@ function Index() {
 
             setOrganisations(data);
 
-            // attempt to retain selected organisation (avoid re-fetching projects and issues)
+            // select newly created organisation
+            if (options?.selectOrganisationId) {
+                const created = data.find((o) => o.Organisation.id === options.selectOrganisationId);
+                if (created) {
+                    setSelectedOrganisation(created);
+                    return;
+                }
+            }
+
+            // preserve previously selected organisation
             setSelectedOrganisation((prev) => {
                 if (!prev) return data[0] || null;
                 const stillExists = data.find((o) => o.Organisation.id === prev.Organisation.id);
@@ -71,7 +80,7 @@ function Index() {
         void refetchOrganisations();
     }, [user.id]);
 
-    const refetchProjects = async (organisationId: number) => {
+    const refetchProjects = async (organisationId: number, options?: { selectProjectId?: number }) => {
         try {
             const res = await fetch(
                 `${serverURL}/projects/by-organisation?organisationId=${organisationId}`,
@@ -83,6 +92,16 @@ function Index() {
             const data = (await res.json()) as ProjectResponse[];
             setProjects(data);
 
+            // select newly created project
+            if (options?.selectProjectId) {
+                const created = data.find((p) => p.Project.id === options.selectProjectId);
+                if (created) {
+                    setSelectedProject(created);
+                    return;
+                }
+            }
+
+            // preserve previously selected project
             setSelectedProject((prev) => {
                 if (!prev) return data[0] || null;
                 const stillExists = data.find((p) => p.Project.id === prev.Project.id);
@@ -175,7 +194,12 @@ function Index() {
                                         Create Organisation
                                     </Button>
                                 }
-                                completeAction={refetchOrganisations}
+                                completeAction={async (organisationId) => {
+                                    if (!selectedOrganisation) return;
+                                    await refetchOrganisations({
+                                        selectOrganisationId: organisationId,
+                                    });
+                                }}
                             />
                         </SelectContent>
                     </Select>
@@ -229,9 +253,11 @@ function Index() {
                                             Create Project
                                         </Button>
                                     }
-                                    completeAction={async () => {
+                                    completeAction={async (projectId) => {
                                         if (!selectedOrganisation) return;
-                                        await refetchProjects(selectedOrganisation.Organisation.id);
+                                        await refetchProjects(selectedOrganisation.Organisation.id, {
+                                            selectProjectId: projectId,
+                                        });
                                     }}
                                 />
                             </SelectContent>

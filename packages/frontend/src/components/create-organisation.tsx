@@ -25,7 +25,7 @@ export function CreateOrganisation({
     completeAction,
 }: {
     trigger?: React.ReactNode;
-    completeAction?: () => void | Promise<void>;
+    completeAction?: (organisationId: number) => void | Promise<void>;
 }) {
     const serverURL = import.meta.env.VITE_SERVER_URL?.trim() || "http://localhost:3000";
 
@@ -109,10 +109,17 @@ export function CreateOrganisation({
                 return;
             }
 
+            const organisation = (await res.json()) as { id?: number };
+            if (!organisation.id) {
+                setError("failed to create organisation");
+                setSubmitting(false);
+                return;
+            }
+
             setOpen(false);
             reset();
             try {
-                await completeAction?.();
+                await completeAction?.(organisation.id);
             } catch (actionErr) {
                 console.error(actionErr);
             }

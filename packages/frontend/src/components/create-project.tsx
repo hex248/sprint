@@ -25,7 +25,7 @@ export function CreateProject({
 }: {
     organisationId?: number;
     trigger?: React.ReactNode;
-    completeAction?: () => void | Promise<void>;
+    completeAction?: (projectId: number) => void | Promise<void>;
 }) {
     const serverURL = import.meta.env.VITE_SERVER_URL?.trim() || "http://localhost:3000";
 
@@ -113,10 +113,17 @@ export function CreateProject({
                 return;
             }
 
+            const project = (await res.json()) as { id?: number };
+            if (!project.id) {
+                setError("failed to create project");
+                setSubmitting(false);
+                return;
+            }
+
             setOpen(false);
             reset();
             try {
-                await completeAction?.();
+                await completeAction?.(project.id);
             } catch (actionErr) {
                 console.error(actionErr);
             }
