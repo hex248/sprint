@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn, getAuthHeaders } from "@/lib/utils";
 
-const blobify = (value: string) =>
+const keyify = (value: string) =>
     value
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, "")
@@ -33,11 +33,11 @@ export function CreateProject({
 
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("");
-    const [blob, setBlob] = useState("");
+    const [key, setKey] = useState("");
 
     const [nameTouched, setNameTouched] = useState(false);
-    const [blobTouched, setBlobTouched] = useState(false);
-    const [blobManuallyEdited, setBlobManuallyEdited] = useState(false);
+    const [keyTouched, setKeyTouched] = useState(false);
+    const [keyManuallyEdited, setKeyManuallyEdited] = useState(false);
     const [submitAttempted, setSubmitAttempted] = useState(false);
 
     const [submitting, setSubmitting] = useState(false);
@@ -48,20 +48,20 @@ export function CreateProject({
         [nameTouched, submitAttempted, name],
     );
 
-    const blobInvalid = useMemo(() => {
-        if (!(blobTouched || submitAttempted)) return "";
-        if (blob.trim() === "") return "Cannot be empty";
-        if (blob.length > 4) return "Must be 4 or less characters";
+    const keyInvalid = useMemo(() => {
+        if (!(keyTouched || submitAttempted)) return "";
+        if (key.trim() === "") return "Cannot be empty";
+        if (key.length > 4) return "Must be 4 or less characters";
         return "";
-    }, [blobTouched, submitAttempted, blob]);
+    }, [keyTouched, submitAttempted, key]);
 
     const reset = () => {
         setName("");
-        setBlob("");
+        setKey("");
 
         setNameTouched(false);
-        setBlobTouched(false);
-        setBlobManuallyEdited(false);
+        setKeyTouched(false);
+        setKeyManuallyEdited(false);
         setSubmitAttempted(false);
 
         setSubmitting(false);
@@ -80,7 +80,7 @@ export function CreateProject({
         setError(null);
         setSubmitAttempted(true);
 
-        if (name.trim() === "" || blob.length > 4) {
+        if (name.trim() === "" || key.length > 4) {
             return;
         }
 
@@ -97,7 +97,7 @@ export function CreateProject({
         setSubmitting(true);
         try {
             const url = new URL(`${serverURL}/project/create`);
-            url.searchParams.set("blob", blob);
+            url.searchParams.set("key", key);
             url.searchParams.set("name", name.trim());
             url.searchParams.set("creatorId", `${userId}`);
             url.searchParams.set("organisationId", `${organisationId}`);
@@ -161,8 +161,8 @@ export function CreateProject({
                                     const nextName = e.target.value;
                                     setName(nextName);
 
-                                    if (!blobManuallyEdited) {
-                                        setBlob(blobify(nextName));
+                                    if (!keyManuallyEdited) {
+                                        setKey(keyify(nextName));
                                     }
                                 }}
                                 onBlur={() => setNameTouched(true)}
@@ -180,23 +180,23 @@ export function CreateProject({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="project-blob">Blob</Label>
+                            <Label htmlFor="project-key">Key</Label>
                             <Input
-                                id="project-blob"
-                                name="blob"
-                                value={blob}
+                                id="project-key"
+                                name="key"
+                                value={key}
                                 onChange={(e) => {
-                                    setBlob(blobify(e.target.value));
-                                    setBlobManuallyEdited(true);
+                                    setKey(keyify(e.target.value));
+                                    setKeyManuallyEdited(true);
                                 }}
-                                onBlur={() => setBlobTouched(true)}
-                                aria-invalid={blobInvalid !== ""}
+                                onBlur={() => setKeyTouched(true)}
+                                aria-invalid={keyInvalid !== ""}
                                 placeholder="DEMO"
                                 required
                             />
                             <div className="flex items-end justify-end w-full text-xs -mb-4 -mt-2">
-                                {blobInvalid !== "" ? (
-                                    <Label className="text-destructive text-sm">{blobInvalid}</Label>
+                                {keyInvalid !== "" ? (
+                                    <Label className="text-destructive text-sm">{keyInvalid}</Label>
                                 ) : (
                                     <Label className="opacity-0 text-sm">a</Label>
                                 )}
@@ -219,7 +219,7 @@ export function CreateProject({
                             </DialogClose>
                             <Button
                                 type="submit"
-                                disabled={submitting || nameInvalid !== "" || blobInvalid !== ""}
+                                disabled={submitting || nameInvalid !== "" || keyInvalid !== ""}
                             >
                                 {submitting ? "Creating..." : "Create"}
                             </Button>

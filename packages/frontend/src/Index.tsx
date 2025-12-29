@@ -130,7 +130,7 @@ function Index() {
     useEffect(() => {
         if (!selectedProject) return;
 
-        fetch(`${serverURL}/issues/${selectedProject.Project.blob}`, { headers: getAuthHeaders() })
+        fetch(`${serverURL}/issues/${selectedProject.Project.key}`, { headers: getAuthHeaders() })
             .then((res) => res.json())
             .then((data: IssueResponse[]) => {
                 setIssues(data);

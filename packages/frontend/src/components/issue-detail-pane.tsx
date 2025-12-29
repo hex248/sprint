@@ -18,7 +18,7 @@ export function IssueDetailPane({
             <div className="flex flex-row items-center justify-end border-b h-[25px]">
                 <span className="w-full">
                     <p className="text-sm w-fit px-1">
-                        {issueID(project.Project.blob, issueData.Issue.number)}
+                        {issueID(project.Project.key, issueData.Issue.number)}
                     </p>
                 </span>
 

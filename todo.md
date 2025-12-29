@@ -1,4 +1,3 @@
 - user settings/profile page
 - create issue
 - add/invite user(s) to org
-- rename Project.blob to Project.key

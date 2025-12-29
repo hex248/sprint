@@ -34,7 +34,7 @@ export const OrganisationMember = pgTable("OrganisationMember", {
 
 export const Project = pgTable("Project", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    blob: varchar({ length: 4 }).notNull(),
+    key: varchar({ length: 4 }).notNull(),
     name: varchar({ length: 256 }).notNull(),
     organisationId: integer()
         .notNull()

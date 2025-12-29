@@ -43,6 +43,13 @@
       "when": 1766433489198,
       "tag": "0005_great_timeslip",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766988874206,
+      "tag": "0006_wise_kree",
+      "breakpoints": true
     }
   ]
 }

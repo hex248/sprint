@@ -4,7 +4,7 @@ import authRegister from "./auth/register";
 import issueCreate from "./issue/create";
 import issueDelete from "./issue/delete";
 import issueUpdate from "./issue/update";
-import issuesInProject from "./issues/[projectBlob]";
+import issuesInProject from "./issues/[projectKey]";
 import issues from "./issues/all";
 import organisationAddMember from "./organisation/add-member";
 import organisationById from "./organisation/by-id";

@@ -20,7 +20,7 @@ const main = async () => {
             "/issue/create": withCors(withAuth(routes.issueCreate)),
             "/issue/update": withCors(withAuth(routes.issueUpdate)),
             "/issue/delete": withCors(withAuth(routes.issueDelete)),
-            "/issues/:projectBlob": withCors(withAuth(routes.issuesInProject)),
+            "/issues/:projectKey": withCors(withAuth(routes.issuesInProject)),
             "/issues/all": withCors(withAuth(routes.issues)),
 
             "/organisation/create": withCors(withAuth(routes.organisationCreate)),

@@ -2,11 +2,11 @@ import { Issue, Organisation, Project, User } from "@issue/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 
-export async function createProject(blob: string, name: string, creatorId: number, organisationId: number) {
+export async function createProject(key: string, name: string, creatorId: number, organisationId: number) {
     const [project] = await db
         .insert(Project)
         .values({
-            blob,
+            key,
             name,
             creatorId,
             organisationId,
@@ -17,7 +17,7 @@ export async function createProject(blob: string, name: string, creatorId: numbe
 
 export async function updateProject(
     projectId: number,
-    updates: { blob?: string; name?: string; creatorId?: number; organisationId?: number },
+    updates: { key?: string; name?: string; creatorId?: number; organisationId?: number },
 ) {
     const [project] = await db.update(Project).set(updates).where(eq(Project.id, projectId)).returning();
     return project;
@@ -35,8 +35,8 @@ export async function getProjectByID(projectId: number) {
     return project;
 }
 
-export async function getProjectByBlob(projectBlob: string) {
-    const [project] = await db.select().from(Project).where(eq(Project.blob, projectBlob));
+export async function getProjectByKey(projectKey: string) {
+    const [project] = await db.select().from(Project).where(eq(Project.key, projectKey));
     return project;
 }
 

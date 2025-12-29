@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-export function issueID(blob: string, num: number) {
-    return `${blob}-${num.toString().padStart(3, "0")}`;
+export function issueID(key: string, num: number) {
+    return `${key}-${num.toString().padStart(3, "0")}`;
 }
 
 export function getAuthHeaders(): HeadersInit {
