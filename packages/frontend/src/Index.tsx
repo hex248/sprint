@@ -2,6 +2,7 @@
 import type { IssueResponse, OrganisationResponse, ProjectResponse, UserRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { CreateIssue } from "@/components/create-issue";
 import { CreateOrganisation } from "@/components/create-organisation";
 import { CreateProject } from "@/components/create-project";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
@@ -272,6 +273,15 @@ function Index() {
                                 />
                             </SelectContent>
                         </Select>
+                    )}
+                    {selectedOrganisation && selectedProject && (
+                        <CreateIssue
+                            projectId={selectedProject?.Project.id}
+                            completeAction={async () => {
+                                if (!selectedProject) return;
+                                await refetchIssues(selectedProject.Project.key);
+                            }}
+                        />
                     )}
                 </div>
 
