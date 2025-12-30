@@ -1,4 +1,5 @@
-import { type ChangeEvent, useMemo, useState } from "react";
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <> */
+import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,6 +141,17 @@ export default function LogInForm() {
             });
     };
 
+    const focusFirstInput = () => {
+        const firstInput = document.querySelector("input");
+        if (firstInput) {
+            (firstInput as HTMLInputElement).focus();
+        }
+    };
+
+    useEffect(() => {
+        focusFirstInput();
+    }, []);
+
     const resetForm = () => {
         setError("");
         setSubmitAttempted(false);
@@ -147,6 +159,8 @@ export default function LogInForm() {
         setNameTouched(false);
         setUsernameTouched(false);
         setPasswordTouched(false);
+
+        requestAnimationFrame(() => focusFirstInput());
     };
 
     const handleSubmit = (e: React.FormEvent) => {
