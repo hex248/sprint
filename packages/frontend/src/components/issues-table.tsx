@@ -52,7 +52,7 @@ export function IssuesTable({
                             <TableCell className="overflow-hide">{issueData.Issue.description}</TableCell>
                         )}
                         {(columns.assignee == null || columns.assignee === true) && (
-                            <TableCell className={"w-[0px] text-center px-1 py-0"}>
+                            <TableCell className={"w-[1px] text-center px-1 py-0"}>
                                 {issueData.User ? <Avatar user={issueData.User} size={6} /> : "?"}
                             </TableCell>
                         )}
