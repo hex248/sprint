@@ -1,3 +1,4 @@
+import type { ProjectRecord } from "@issue/shared";
 import { type FormEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn, getAuthHeaders, getServerURL } from "@/lib/utils";
+import { project } from "@/lib/server";
+import { cn } from "@/lib/utils";
 
 const keyify = (value: string) =>
     value
@@ -94,37 +96,27 @@ export function CreateProject({
 
         setSubmitting(true);
         try {
-            const url = new URL(`${getServerURL()}/project/create`);
-            url.searchParams.set("key", key);
-            url.searchParams.set("name", name.trim());
-            url.searchParams.set("creatorId", `${userId}`);
-            url.searchParams.set("organisationId", `${organisationId}`);
+            await project.create({
+                key,
+                name,
+                creatorId: userId,
+                organisationId,
+                onSuccess: async (data) => {
+                    const project = data as ProjectRecord;
 
-            const res = await fetch(url.toString(), {
-                headers: getAuthHeaders(),
+                    setOpen(false);
+                    reset();
+                    try {
+                        await completeAction?.(project.id);
+                    } catch (actionErr) {
+                        console.error(actionErr);
+                    }
+                },
+                onError: (message) => {
+                    setError(message);
+                    setSubmitting(false);
+                },
             });
-
-            if (!res.ok) {
-                const message = await res.text();
-                setError(message || `failed to create project (${res.status})`);
-                setSubmitting(false);
-                return;
-            }
-
-            const project = (await res.json()) as { id?: number };
-            if (!project.id) {
-                setError("failed to create project");
-                setSubmitting(false);
-                return;
-            }
-
-            setOpen(false);
-            reset();
-            try {
-                await completeAction?.(project.id);
-            } catch (actionErr) {
-                console.error(actionErr);
-            }
         } catch (err) {
             console.error(err);
             setError("failed to create project");

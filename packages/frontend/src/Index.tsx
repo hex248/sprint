@@ -17,8 +17,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "@/components/ui/resizable";
+import { issue, organisation, project } from "@/lib/server";
 import { getAuthHeaders, getServerURL } from "@/lib/utils";
-import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "./components/ui/resizable";
 
 function Index() {
     const user = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
@@ -35,27 +36,35 @@ function Index() {
 
     const refetchOrganisations = async (options?: { selectOrganisationId?: number }) => {
         try {
-            const res = await fetch(`${getServerURL()}/organisation/by-user?userId=${user.id}`, {
-                headers: getAuthHeaders(),
-            });
-            const data = (await res.json()) as Array<OrganisationResponse>;
+            await organisation.byUser({
+                userId: user.id,
+                onSuccess: (data) => {
+                    const organisations = data as OrganisationResponse[];
+                    setOrganisations(organisations);
 
-            setOrganisations(data);
+                    // select newly created organisation
+                    if (options?.selectOrganisationId) {
+                        const created = organisations.find(
+                            (o) => o.Organisation.id === options.selectOrganisationId,
+                        );
+                        if (created) {
+                            setSelectedOrganisation(created);
+                            return;
+                        }
+                    }
 
-            // select newly created organisation
-            if (options?.selectOrganisationId) {
-                const created = data.find((o) => o.Organisation.id === options.selectOrganisationId);
-                if (created) {
-                    setSelectedOrganisation(created);
-                    return;
-                }
-            }
-
-            // preserve previously selected organisation
-            setSelectedOrganisation((prev) => {
-                if (!prev) return data[0] || null;
-                const stillExists = data.find((o) => o.Organisation.id === prev.Organisation.id);
-                return stillExists || data[0] || null;
+                    // preserve previously selected organisation
+                    setSelectedOrganisation((prev) => {
+                        if (!prev) return organisations[0] || null;
+                        const stillExists = organisations.find(
+                            (o) => o.Organisation.id === prev.Organisation.id,
+                        );
+                        return stillExists || organisations[0] || null;
+                    });
+                },
+                onError: (error) => {
+                    console.error("error fetching organisations:", error);
+                },
             });
         } catch (err) {
             console.error("error fetching organisations:", err);
@@ -74,30 +83,31 @@ function Index() {
 
     const refetchProjects = async (organisationId: number, options?: { selectProjectId?: number }) => {
         try {
-            const res = await fetch(
-                `${getServerURL()}/projects/by-organisation?organisationId=${organisationId}`,
-                {
-                    headers: getAuthHeaders(),
+            await project.byOrganisation({
+                organisationId,
+                onSuccess: (data) => {
+                    const projects = data as ProjectResponse[];
+                    setProjects(projects);
+
+                    // select newly created project
+                    if (options?.selectProjectId) {
+                        const created = projects.find((p) => p.Project.id === options.selectProjectId);
+                        if (created) {
+                            setSelectedProject(created);
+                            return;
+                        }
+                    }
+
+                    // preserve previously selected project
+                    setSelectedProject((prev) => {
+                        if (!prev) return projects[0] || null;
+                        const stillExists = projects.find((p) => p.Project.id === prev.Project.id);
+                        return stillExists || projects[0] || null;
+                    });
                 },
-            );
-
-            const data = (await res.json()) as ProjectResponse[];
-            setProjects(data);
-
-            // select newly created project
-            if (options?.selectProjectId) {
-                const created = data.find((p) => p.Project.id === options.selectProjectId);
-                if (created) {
-                    setSelectedProject(created);
-                    return;
-                }
-            }
-
-            // preserve previously selected project
-            setSelectedProject((prev) => {
-                if (!prev) return data[0] || null;
-                const stillExists = data.find((p) => p.Project.id === prev.Project.id);
-                return stillExists || data[0] || null;
+                onError: (error) => {
+                    console.error("error fetching projects:", error);
+                },
             });
         } catch (err) {
             console.error("error fetching projects:", err);
@@ -124,11 +134,17 @@ function Index() {
 
     const refetchIssues = async (projectKey: string) => {
         try {
-            const res = await fetch(`${getServerURL()}/issues/${projectKey}`, {
-                headers: getAuthHeaders(),
+            await issue.byProject({
+                projectId: selectedProject?.Project.id || 0,
+                onSuccess: (data) => {
+                    const issues = data as IssueResponse[];
+                    setIssues(issues);
+                },
+                onError: (error) => {
+                    console.error("error fetching issues:", error);
+                    setIssues([]);
+                },
             });
-            const data = (await res.json()) as IssueResponse[];
-            setIssues(data);
         } catch (err) {
             console.error("error fetching issues:", err);
             setIssues([]);

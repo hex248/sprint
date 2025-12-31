@@ -2,6 +2,7 @@ import type { OrganisationResponse, UserRecord } from "@issue/shared";
 import { useCallback, useEffect, useState } from "react";
 import { OrganisationSelect } from "@/components/organisation-select";
 import { SettingsPageLayout } from "@/components/settings-page-layout";
+import { organisation } from "@/lib/server";
 import { getAuthHeaders, getServerURL } from "@/lib/utils";
 
 function Organisations() {
@@ -13,32 +14,35 @@ function Organisations() {
     const refetchOrganisations = useCallback(
         async (options?: { selectOrganisationId?: number }) => {
             try {
-                const res = await fetch(`${getServerURL()}/organisation/by-user?userId=${user.id}`, {
-                    headers: getAuthHeaders(),
-                });
+                await organisation.byUser({
+                    userId: user.id,
+                    onSuccess: (data) => {
+                        const organisations = data as OrganisationResponse[];
+                        setOrganisations(organisations);
 
-                if (!res.ok) {
-                    console.error(await res.text());
-                    setOrganisations([]);
-                    setSelectedOrganisation(null);
-                    return;
-                }
+                        if (options?.selectOrganisationId) {
+                            const created = organisations.find(
+                                (o) => o.Organisation.id === options.selectOrganisationId,
+                            );
+                            if (created) {
+                                setSelectedOrganisation(created);
+                                return;
+                            }
+                        }
 
-                const data = (await res.json()) as Array<OrganisationResponse>;
-                setOrganisations(data);
-
-                if (options?.selectOrganisationId) {
-                    const created = data.find((o) => o.Organisation.id === options.selectOrganisationId);
-                    if (created) {
-                        setSelectedOrganisation(created);
-                        return;
-                    }
-                }
-
-                setSelectedOrganisation((prev) => {
-                    if (!prev) return data[0] || null;
-                    const stillExists = data.find((o) => o.Organisation.id === prev.Organisation.id);
-                    return stillExists || data[0] || null;
+                        setSelectedOrganisation((prev) => {
+                            if (!prev) return organisations[0] || null;
+                            const stillExists = organisations.find(
+                                (o) => o.Organisation.id === prev.Organisation.id,
+                            );
+                            return stillExists || organisations[0] || null;
+                        });
+                    },
+                    onError: (error) => {
+                        console.error(error);
+                        setOrganisations([]);
+                        setSelectedOrganisation(null);
+                    },
                 });
             } catch (err) {
                 console.error("error fetching organisations:", err);

@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn, getAuthHeaders, getServerURL } from "@/lib/utils";
+import { issue } from "@/lib/server";
+import { cn } from "@/lib/utils";
 
 export function CreateIssue({
     projectId,
@@ -88,36 +89,24 @@ export function CreateIssue({
         setSubmitting(true);
 
         try {
-            const url = new URL(`${getServerURL()}/issue/create`);
-            url.searchParams.set("projectId", `${projectId}`);
-            url.searchParams.set("title", title.trim());
-            url.searchParams.set("description", description.trim());
-
-            const res = await fetch(url.toString(), {
-                headers: getAuthHeaders(),
+            await issue.create({
+                projectId,
+                title,
+                description,
+                onSuccess: async (data) => {
+                    setOpen(false);
+                    reset();
+                    try {
+                        await completeAction?.(data.id);
+                    } catch (actionErr) {
+                        console.error(actionErr);
+                    }
+                },
+                onError: (message) => {
+                    setError(message);
+                    setSubmitting(false);
+                },
             });
-
-            if (!res.ok) {
-                const message = await res.text();
-                setError(message || `failed to create issue (${res.status})`);
-                setSubmitting(false);
-                return;
-            }
-
-            const issue = (await res.json()) as { id?: number };
-            if (!issue.id) {
-                setError("failed to create issue");
-                setSubmitting(false);
-                return;
-            }
-
-            setOpen(false);
-            reset();
-            try {
-                await completeAction?.(issue.id);
-            } catch (actionErr) {
-                console.error(actionErr);
-            }
         } catch (err) {
             console.error(err);
             setError("failed to create issue");

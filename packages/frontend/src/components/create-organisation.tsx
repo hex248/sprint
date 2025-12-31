@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn, getAuthHeaders, getServerURL } from "@/lib/utils";
+import { organisation } from "@/lib/server";
+import { cn } from "@/lib/utils";
 
 const slugify = (value: string) =>
     value
@@ -88,39 +89,25 @@ export function CreateOrganisation({
 
         setSubmitting(true);
         try {
-            const url = new URL(`${getServerURL()}/organisation/create`);
-            url.searchParams.set("name", name.trim());
-            url.searchParams.set("slug", slug.trim());
-            url.searchParams.set("userId", `${userId}`);
-            if (description.trim() !== "") {
-                url.searchParams.set("description", description.trim());
-            }
-
-            const res = await fetch(url.toString(), {
-                headers: getAuthHeaders(),
+            await organisation.create({
+                name,
+                slug,
+                description,
+                userId,
+                onSuccess: async (data) => {
+                    setOpen(false);
+                    reset();
+                    try {
+                        await completeAction?.(data.id);
+                    } catch (actionErr) {
+                        console.error(actionErr);
+                    }
+                },
+                onError: (err) => {
+                    setError(err || "failed to create organisation");
+                    setSubmitting(false);
+                },
             });
-
-            if (!res.ok) {
-                const message = await res.text();
-                setError(message || `failed to create organisation (${res.status})`);
-                setSubmitting(false);
-                return;
-            }
-
-            const organisation = (await res.json()) as { id?: number };
-            if (!organisation.id) {
-                setError("failed to create organisation");
-                setSubmitting(false);
-                return;
-            }
-
-            setOpen(false);
-            reset();
-            try {
-                await completeAction?.(organisation.id);
-            } catch (actionErr) {
-                console.error(actionErr);
-            }
         } catch (err) {
             console.error(err);
             setError("failed to create organisation");
