@@ -1,3 +1,8 @@
 - user settings/profile page
-- create issue
+- org settings
 - add/invite user(s) to org
+- issues
+	- issue creator
+	- issue assignee
+	- deadline
+- time tracking (linked to issues or standalone)

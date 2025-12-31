@@ -2,6 +2,7 @@
 import type { IssueResponse, OrganisationResponse, ProjectResponse, UserRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { CreateIssue } from "@/components/create-issue";
 import { CreateOrganisation } from "@/components/create-organisation";
 import { CreateProject } from "@/components/create-project";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
@@ -80,6 +81,10 @@ function Index() {
         void refetchOrganisations();
     }, [user.id]);
 
+    useEffect(() => {
+        setSelectedOrganisation((prev) => prev || organisations[0] || null);
+    }, [organisations]);
+
     const refetchProjects = async (organisationId: number, options?: { selectProjectId?: number }) => {
         try {
             const res = await fetch(
@@ -126,23 +131,29 @@ function Index() {
         void refetchProjects(selectedOrganisation.Organisation.id);
     }, [selectedOrganisation]);
 
+    useEffect(() => {
+        setSelectedProject((prev) => prev || projects[0] || null);
+    }, [projects]);
+
+    const refetchIssues = async (projectKey: string) => {
+        try {
+            const res = await fetch(`${serverURL}/issues/${projectKey}`, {
+                headers: getAuthHeaders(),
+            });
+            const data = (await res.json()) as IssueResponse[];
+            setIssues(data);
+        } catch (err) {
+            console.error("error fetching issues:", err);
+            setIssues([]);
+        }
+    };
+
     // fetch issues when project is selected
     useEffect(() => {
         if (!selectedProject) return;
 
-        fetch(`${serverURL}/issues/${selectedProject.Project.key}`, { headers: getAuthHeaders() })
-            .then((res) => res.json())
-            .then((data: IssueResponse[]) => {
-                setIssues(data);
-            })
-            .catch((err) => {
-                console.error("error fetching issues:", err);
-            });
+        void refetchIssues(selectedProject.Project.key);
     }, [selectedProject]);
-
-    useEffect(() => {
-        setSelectedProject((prev) => prev || projects[0] || null);
-    }, [projects]);
 
     return (
         <main className="w-full h-full p-1">
@@ -262,6 +273,15 @@ function Index() {
                                 />
                             </SelectContent>
                         </Select>
+                    )}
+                    {selectedOrganisation && selectedProject && (
+                        <CreateIssue
+                            projectId={selectedProject?.Project.id}
+                            completeAction={async () => {
+                                if (!selectedProject) return;
+                                await refetchIssues(selectedProject.Project.key);
+                            }}
+                        />
                     )}
                 </div>
 
