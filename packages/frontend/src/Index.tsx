@@ -3,11 +3,11 @@ import type { IssueResponse, OrganisationResponse, ProjectResponse, UserRecord }
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { CreateIssue } from "@/components/create-issue";
-import { CreateProject } from "@/components/create-project";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssuesTable } from "@/components/issues-table";
 import LogOutButton from "@/components/log-out-button";
 import { OrganisationSelect } from "@/components/organisation-select";
+import { ProjectSelect } from "@/components/project-select";
 import SmallUserDisplay from "@/components/small-user-display";
 import {
     DropdownMenu,
@@ -17,16 +17,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectSeparator,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { getAuthHeaders } from "@/lib/utils";
-import { Button } from "./components/ui/button";
 import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "./components/ui/resizable";
 
 function Index() {
@@ -39,7 +30,6 @@ function Index() {
     const [selectedOrganisation, setSelectedOrganisation] = useState<OrganisationResponse | null>(null);
 
     const [projects, setProjects] = useState<ProjectResponse[]>([]);
-    const [projectSelectOpen, setProjectSelectOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null);
 
     const [issues, setIssues] = useState<IssueResponse[]>([]);
@@ -171,62 +161,21 @@ function Index() {
 
                     {/* project selection - only shown when organisation is selected */}
                     {selectedOrganisation && (
-                        <Select
-                            value={`${selectedProject?.Project.id}`}
-                            onValueChange={(value) => {
-                                if (value === "NONE") {
-                                    setSelectedProject(null);
-                                    setSelectedIssue(null);
-                                    setIssues([]);
-                                    return;
-                                }
-                                const project = projects.find((p) => p.Project.id === Number(value));
-                                if (!project) {
-                                    console.error(`NO PROJECT FOUND FOR ID: ${value}`);
-                                    return;
-                                }
+                        <ProjectSelect
+                            projects={projects}
+                            selectedProject={selectedProject}
+                            organisationId={selectedOrganisation?.Organisation.id}
+                            onSelectedProjectChange={(project) => {
                                 setSelectedProject(project);
                                 setSelectedIssue(null);
                             }}
-                            onOpenChange={setProjectSelectOpen}
-                        >
-                            <SelectTrigger className="text-sm" isOpen={projectSelectOpen}>
-                                <SelectValue
-                                    placeholder={
-                                        selectedProject
-                                            ? `P: ${selectedProject.Project.name}`
-                                            : "Select Project"
-                                    }
-                                />
-                            </SelectTrigger>
-                            <SelectContent side="bottom" position="popper" align={"start"}>
-                                {projects.map((project) => (
-                                    <SelectItem key={project.Project.id} value={`${project.Project.id}`}>
-                                        {project.Project.name}
-                                    </SelectItem>
-                                ))}
-                                {projects.length > 0 && <SelectSeparator />}
-                                <CreateProject
-                                    organisationId={selectedOrganisation?.Organisation.id}
-                                    trigger={
-                                        <Button
-                                            size={"sm"}
-                                            variant="ghost"
-                                            className={"w-full"}
-                                            disabled={!selectedOrganisation?.Organisation.id}
-                                        >
-                                            Create Project
-                                        </Button>
-                                    }
-                                    completeAction={async (projectId) => {
-                                        if (!selectedOrganisation) return;
-                                        await refetchProjects(selectedOrganisation.Organisation.id, {
-                                            selectProjectId: projectId,
-                                        });
-                                    }}
-                                />
-                            </SelectContent>
-                        </Select>
+                            onCreateProject={async (projectId) => {
+                                if (!selectedOrganisation) return;
+                                await refetchProjects(selectedOrganisation.Organisation.id, {
+                                    selectProjectId: projectId,
+                                });
+                            }}
+                        />
                     )}
                     {selectedOrganisation && selectedProject && (
                         <CreateIssue
