@@ -3,11 +3,11 @@ import type { IssueResponse, OrganisationResponse, ProjectResponse, UserRecord }
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { CreateIssue } from "@/components/create-issue";
-import { CreateOrganisation } from "@/components/create-organisation";
 import { CreateProject } from "@/components/create-project";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssuesTable } from "@/components/issues-table";
 import LogOutButton from "@/components/log-out-button";
+import { OrganisationSelect } from "@/components/organisation-select";
 import SmallUserDisplay from "@/components/small-user-display";
 import {
     DropdownMenu,
@@ -36,7 +36,6 @@ function Index() {
 
     const organisationsRef = useRef(false);
     const [organisations, setOrganisations] = useState<OrganisationResponse[]>([]);
-    const [organisationSelectOpen, setOrganisationSelectOpen] = useState(false);
     const [selectedOrganisation, setSelectedOrganisation] = useState<OrganisationResponse | null>(null);
 
     const [projects, setProjects] = useState<ProjectResponse[]>([]);
@@ -161,59 +160,14 @@ function Index() {
             <div className="flex gap-12 items-center justify-between">
                 <div className="flex gap-1 items-center">
                     {/* organisation selection */}
-                    <Select
-                        value={`${selectedOrganisation?.Organisation.id}`}
-                        onValueChange={(value) => {
-                            if (value === "NONE") {
-                                setSelectedOrganisation(null);
-                                return;
-                            }
-                            const organisation = organisations.find(
-                                (o) => o.Organisation.id === Number(value),
-                            );
-                            if (!organisation) {
-                                console.error(`NO ORGANISATION FOUND FOR ID: ${value}`);
-                                return;
-                            }
-                            setSelectedOrganisation(organisation);
+                    <OrganisationSelect
+                        organisations={organisations}
+                        selectedOrganisation={selectedOrganisation}
+                        onSelectedOrganisationChange={setSelectedOrganisation}
+                        onCreateOrganisation={async (organisationId) => {
+                            await refetchOrganisations({ selectOrganisationId: organisationId });
                         }}
-                        onOpenChange={setOrganisationSelectOpen}
-                    >
-                        <SelectTrigger className="text-sm" isOpen={organisationSelectOpen}>
-                            <SelectValue
-                                placeholder={
-                                    selectedOrganisation
-                                        ? `O: ${selectedOrganisation.Organisation.name}`
-                                        : "Select Organisation"
-                                }
-                            />
-                        </SelectTrigger>
-                        <SelectContent side="bottom" position="popper">
-                            {organisations.map((organisation) => (
-                                <SelectItem
-                                    key={organisation.Organisation.id}
-                                    value={`${organisation.Organisation.id}`}
-                                >
-                                    {organisation.Organisation.name}
-                                </SelectItem>
-                            ))}
-
-                            {organisations.length > 0 && <SelectSeparator />}
-                            <CreateOrganisation
-                                trigger={
-                                    <Button variant="ghost" className={"w-full"} size={"sm"}>
-                                        Create Organisation
-                                    </Button>
-                                }
-                                completeAction={async (organisationId) => {
-                                    if (!selectedOrganisation) return;
-                                    await refetchOrganisations({
-                                        selectOrganisationId: organisationId,
-                                    });
-                                }}
-                            />
-                        </SelectContent>
-                    </Select>
+                    />
 
                     {/* project selection - only shown when organisation is selected */}
                     {selectedOrganisation && (
