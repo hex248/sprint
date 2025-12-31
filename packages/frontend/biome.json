@@ -1,6 +1,6 @@
 {
     "root": false,
-    "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
     "formatter": {
         "enabled": true,
         "formatWithErrors": false,
@@ -12,5 +12,8 @@
         "parser": {
             "tailwindDirectives": true
         }
+    },
+    "files": {
+        "includes": ["**", "!src-tauri/target", "!src-tauri/gen"]
     }
 }

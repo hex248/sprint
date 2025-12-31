@@ -1,5 +1,5 @@
 import type { BunRequest } from "bun";
-import { getProjectByID, deleteProject } from "../../db/queries";
+import { deleteProject, getProjectByID } from "../../db/queries";
 
 // /project/delete?id=1
 export default async function projectDelete(req: BunRequest) {

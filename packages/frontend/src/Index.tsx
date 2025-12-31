@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "@/components/ui/resizable";
 import { issue, organisation, project } from "@/lib/server";
-import { getAuthHeaders, getServerURL } from "@/lib/utils";
 
 function Index() {
     const user = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
@@ -132,7 +131,7 @@ function Index() {
         setSelectedProject((prev) => prev || projects[0] || null);
     }, [projects]);
 
-    const refetchIssues = async (projectKey: string) => {
+    const refetchIssues = async () => {
         try {
             await issue.byProject({
                 projectId: selectedProject?.Project.id || 0,
@@ -155,7 +154,7 @@ function Index() {
     useEffect(() => {
         if (!selectedProject) return;
 
-        void refetchIssues(selectedProject.Project.key);
+        void refetchIssues();
     }, [selectedProject]);
 
     return (
@@ -196,7 +195,7 @@ function Index() {
                             projectId={selectedProject?.Project.id}
                             completeAction={async () => {
                                 if (!selectedProject) return;
-                                await refetchIssues(selectedProject.Project.key);
+                                await refetchIssues();
                             }}
                         />
                     )}
@@ -235,7 +234,6 @@ function Index() {
                         <ResizablePanel id={"left"} minSize={400}>
                             {/* issues list (table) */}
                             <IssuesTable
-                                project={selectedProject}
                                 issuesData={issues}
                                 columns={{ description: false }}
                                 issueSelectAction={setSelectedIssue}

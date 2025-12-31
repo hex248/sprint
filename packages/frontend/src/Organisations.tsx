@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 import { OrganisationSelect } from "@/components/organisation-select";
 import { SettingsPageLayout } from "@/components/settings-page-layout";
 import { organisation } from "@/lib/server";
-import { getAuthHeaders, getServerURL } from "@/lib/utils";
 
 function Organisations() {
     const user = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;

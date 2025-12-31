@@ -17,6 +17,7 @@ export const testDB = async () => {
         console.log("db connected");
     } catch (err) {
         console.log("db down");
+        console.error(err);
         process.exit();
     }
 };

@@ -3,6 +3,6 @@ export * as organisation from "./organisation";
 export * as project from "./project";
 
 export type ServerQueryInput = {
-    onSuccess?: (data: any, res: Response) => void;
-    onError?: (error: any) => void;
+    onSuccess?: (data: unknown, res: Response) => void;
+    onError?: (error: unknown) => void;
 };
