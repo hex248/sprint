@@ -8,7 +8,7 @@ import issues from "./issues/all";
 import issuesByProject from "./issues/by-project";
 import organisationAddMember from "./organisation/add-member";
 import organisationById from "./organisation/by-id";
-import organisationByUser from "./organisation/by-user";
+import organisationsByUser from "./organisation/by-user";
 import organisationCreate from "./organisation/create";
 import organisationDelete from "./organisation/delete";
 import organisationMembers from "./organisation/members";
@@ -23,8 +23,15 @@ import projectDelete from "./project/delete";
 import projectUpdate from "./project/update";
 import projectWithCreator from "./project/with-creator";
 import projectsWithCreators from "./project/with-creators";
+import userUpdate from "./user/update";
 
 export const routes = {
+    authRegister,
+    authLogin,
+    authMe,
+
+    userUpdate,
+
     issueCreate,
     issueDelete,
     issueUpdate,
@@ -34,7 +41,6 @@ export const routes = {
 
     organisationCreate,
     organisationById,
-    organisationByUser,
     organisationUpdate,
     organisationDelete,
     organisationAddMember,
@@ -42,16 +48,15 @@ export const routes = {
     organisationRemoveMember,
     organisationUpdateMemberRole,
 
+    organisationsByUser,
+
     projectCreate,
     projectUpdate,
     projectDelete,
+    projectWithCreator,
+
     projectsByCreator,
     projectsByOrganisation,
     projectsAll,
     projectsWithCreators,
-    projectWithCreator,
-
-    authRegister,
-    authLogin,
-    authMe,
 };

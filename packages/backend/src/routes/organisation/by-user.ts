@@ -1,7 +1,7 @@
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationsByUserId, getUserById } from "../../db/queries";
 
-// /organisation/by-user?userId=1
+// /organisations/by-user?userId=1
 export default async function organisationsByUser(req: AuthedRequest) {
     const url = new URL(req.url);
     const userId = url.searchParams.get("userId");

@@ -17,15 +17,17 @@ const main = async () => {
             "/auth/login": withCors(routes.authLogin),
             "/auth/me": withCors(withAuth(routes.authMe)),
 
+            "/user/update": withCors(withAuth(routes.userUpdate)),
+
             "/issue/create": withCors(withAuth(routes.issueCreate)),
             "/issue/update": withCors(withAuth(routes.issueUpdate)),
             "/issue/delete": withCors(withAuth(routes.issueDelete)),
+
             "/issues/by-project": withCors(withAuth(routes.issuesByProject)),
             "/issues/all": withCors(withAuth(routes.issues)),
 
             "/organisation/create": withCors(withAuth(routes.organisationCreate)),
             "/organisation/by-id": withCors(withAuth(routes.organisationById)),
-            "/organisations/by-user": withCors(withAuth(routes.organisationByUser)),
             "/organisation/update": withCors(withAuth(routes.organisationUpdate)),
             "/organisation/delete": withCors(withAuth(routes.organisationDelete)),
             "/organisation/add-member": withCors(withAuth(routes.organisationAddMember)),
@@ -33,14 +35,17 @@ const main = async () => {
             "/organisation/remove-member": withCors(withAuth(routes.organisationRemoveMember)),
             "/organisation/update-member-role": withCors(withAuth(routes.organisationUpdateMemberRole)),
 
+            "/organisations/by-user": withCors(withAuth(routes.organisationsByUser)),
+
             "/project/create": withCors(withAuth(routes.projectCreate)),
             "/project/update": withCors(withAuth(routes.projectUpdate)),
             "/project/delete": withCors(withAuth(routes.projectDelete)),
+            "/project/with-creator": withCors(withAuth(routes.projectWithCreator)),
+
             "/projects/by-creator": withCors(withAuth(routes.projectsByCreator)),
             "/projects/by-organisation": withCors(withAuth(routes.projectsByOrganisation)),
             "/projects/all": withCors(withAuth(routes.projectsAll)),
             "/projects/with-creators": withCors(withAuth(routes.projectsWithCreators)),
-            "/project/with-creator": withCors(withAuth(routes.projectWithCreator)),
         },
     });
 
