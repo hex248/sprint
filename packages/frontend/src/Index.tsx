@@ -9,6 +9,7 @@ import LogOutButton from "@/components/log-out-button";
 import { OrganisationSelect } from "@/components/organisation-select";
 import { ProjectSelect } from "@/components/project-select";
 import SmallUserDisplay from "@/components/small-user-display";
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "@/components/ui/resizable";
 import { issue, organisation, project } from "@/lib/server";
+import { ServerConfigurationDialog } from "./components/server-configuration-dialog";
 
 function Index() {
     const user = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
@@ -218,6 +220,19 @@ function Index() {
                                 <Link to="/settings/organisations" className="p-0 text-end">
                                     My Organisations
                                 </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild className="flex items-end justify-end">
+                                <ServerConfigurationDialog
+                                    trigger={
+                                        <Button
+                                            variant="ghost"
+                                            className="flex w-full gap-2 items-center justify-end text-end px-2 py-1 m-0 h-auto"
+                                            title="Server Configuration"
+                                        >
+                                            Server Configuration
+                                        </Button>
+                                    }
+                                />
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="flex items-end justify-end p-0 m-0">
