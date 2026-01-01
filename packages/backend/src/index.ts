@@ -18,6 +18,7 @@ const main = async () => {
             "/auth/login": withCors(routes.authLogin),
             "/auth/me": withCors(withAuth(routes.authMe)),
 
+            "/user/by-username": withCors(withAuth(routes.userByUsername)),
             "/user/update": withCors(withAuth(routes.userUpdate)),
             "/user/upload-avatar": withCors(routes.userUploadAvatar),
 

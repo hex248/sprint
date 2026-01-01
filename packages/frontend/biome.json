@@ -14,6 +14,6 @@
         }
     },
     "files": {
-        "includes": ["**", "!src-tauri/target", "!src-tauri/gen"]
+        "includes": ["**", "!dist", "!src-tauri/target", "!src-tauri/gen"]
     }
 }

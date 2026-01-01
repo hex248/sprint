@@ -10,6 +10,7 @@ export function Field({
     hidden = false,
     submitAttempted,
     placeholder,
+    error,
 }: {
     label: string;
     value?: string;
@@ -18,6 +19,7 @@ export function Field({
     hidden?: boolean;
     submitAttempted?: boolean;
     placeholder?: string;
+    error?: string;
 }) {
     const [internalTouched, setInternalTouched] = useState(false);
     const isTouched = submitAttempted || internalTouched;
@@ -43,12 +45,12 @@ export function Field({
                 onChange={onChange}
                 onBlur={() => setInternalTouched(true)}
                 name={label}
-                aria-invalid={invalidMessage !== ""}
+                aria-invalid={error !== undefined || invalidMessage !== ""}
                 type={hidden ? "password" : "text"}
             />
-            <div className="flex items-end justify-end w-full text-xs -mb-0 -mt-1">
-                {invalidMessage !== "" ? (
-                    <Label className="text-destructive text-sm">{invalidMessage}</Label>
+            <div className="flex items-end justify-end w-full text-xs mb-0 -mt-1">
+                {error || invalidMessage !== "" ? (
+                    <Label className="text-destructive text-sm">{error ?? invalidMessage}</Label>
                 ) : (
                     <Label className="opacity-0 text-sm">a</Label>
                 )}

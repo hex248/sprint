@@ -1,7 +1,12 @@
 - org settings
-- add/invite user(s) to org
+- sprints
 - issues
   - issue creator
   - issue assignee
   - deadline
+  - comments
+  - status
+  - sprints
 - time tracking (linked to issues or standalone)
+- for users without avatars, a random colour + initials is shown
+  - use username as a seed in a random selection of colour list

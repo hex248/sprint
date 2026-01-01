@@ -5,6 +5,7 @@ export type {
     OrganisationInsert,
     OrganisationMemberInsert,
     OrganisationMemberRecord,
+    OrganisationMemberResponse,
     OrganisationRecord,
     OrganisationResponse,
     ProjectInsert,

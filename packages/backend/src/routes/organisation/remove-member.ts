@@ -1,8 +1,8 @@
-import type { BunRequest } from "bun";
-import { getOrganisationById, getUserById, removeOrganisationMember } from "../../db/queries";
+import type { AuthedRequest } from "../../auth/middleware";
+import { getOrganisationById, getOrganisationMemberRole, removeOrganisationMember } from "../../db/queries";
 
 // /organisation/remove-member?organisationId=1&userId=2
-export default async function organisationRemoveMember(req: BunRequest) {
+export default async function organisationRemoveMember(req: AuthedRequest) {
     const url = new URL(req.url);
     const organisationId = url.searchParams.get("organisationId");
     const userId = url.searchParams.get("userId");
@@ -26,9 +26,22 @@ export default async function organisationRemoveMember(req: BunRequest) {
         return new Response(`organisation with id ${organisationId} not found`, { status: 404 });
     }
 
-    const user = await getUserById(userIdNumber);
-    if (!user) {
-        return new Response(`user with id ${userId} not found`, { status: 404 });
+    const memberToRemove = await getOrganisationMemberRole(orgIdNumber, userIdNumber);
+    if (!memberToRemove) {
+        return new Response("User is not a member of this organisation", { status: 404 });
+    }
+
+    if (memberToRemove.role === "owner") {
+        return new Response("Cannot remove the organisation owner", { status: 403 });
+    }
+
+    const requesterMember = await getOrganisationMemberRole(orgIdNumber, req.userId);
+    if (!requesterMember) {
+        return new Response("You are not a member of this organisation", { status: 403 });
+    }
+
+    if (requesterMember.role !== "owner" && requesterMember.role !== "admin") {
+        return new Response("Only owners and admins can remove members", { status: 403 });
     }
 
     await removeOrganisationMember(orgIdNumber, userIdNumber);

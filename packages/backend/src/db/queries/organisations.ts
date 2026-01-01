@@ -1,4 +1,4 @@
-import { Organisation, OrganisationMember } from "@issue/shared";
+import { Organisation, OrganisationMember, User } from "@issue/shared";
 import { and, eq } from "drizzle-orm";
 import { db } from "../client";
 
@@ -103,8 +103,19 @@ export async function getOrganisationMembers(organisationId: number) {
         .select()
         .from(OrganisationMember)
         .where(eq(OrganisationMember.organisationId, organisationId))
-        .innerJoin(Organisation, eq(OrganisationMember.organisationId, Organisation.id));
+        .innerJoin(Organisation, eq(OrganisationMember.organisationId, Organisation.id))
+        .innerJoin(User, eq(OrganisationMember.userId, User.id));
     return members;
+}
+
+export async function getOrganisationMemberRole(organisationId: number, userId: number) {
+    const [member] = await db
+        .select()
+        .from(OrganisationMember)
+        .where(
+            and(eq(OrganisationMember.organisationId, organisationId), eq(OrganisationMember.userId, userId)),
+        );
+    return member;
 }
 
 export async function removeOrganisationMember(organisationId: number, userId: number) {

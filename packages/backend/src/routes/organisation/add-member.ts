@@ -1,8 +1,13 @@
-import type { BunRequest } from "bun";
-import { createOrganisationMember, getOrganisationById, getUserById } from "../../db/queries";
+import type { AuthedRequest } from "../../auth/middleware";
+import {
+    createOrganisationMember,
+    getOrganisationById,
+    getOrganisationMemberRole,
+    getUserById,
+} from "../../db/queries";
 
 // /organisation/add-member?organisationId=1&userId=2&role=member
-export default async function organisationAddMember(req: BunRequest) {
+export default async function organisationAddMember(req: AuthedRequest) {
     const url = new URL(req.url);
     const organisationId = url.searchParams.get("organisationId");
     const userId = url.searchParams.get("userId");
@@ -30,6 +35,20 @@ export default async function organisationAddMember(req: BunRequest) {
     const user = await getUserById(userIdNumber);
     if (!user) {
         return new Response(`user with id ${userId} not found`, { status: 404 });
+    }
+
+    const existingMember = await getOrganisationMemberRole(orgIdNumber, userIdNumber);
+    if (existingMember) {
+        return new Response("User is already a member of this organisation", { status: 409 });
+    }
+
+    const requesterMember = await getOrganisationMemberRole(orgIdNumber, req.userId);
+    if (!requesterMember) {
+        return new Response("You are not a member of this organisation", { status: 403 });
+    }
+
+    if (requesterMember.role !== "owner" && requesterMember.role !== "admin") {
+        return new Response("Only owners and admins can add members", { status: 403 });
     }
 
     const member = await createOrganisationMember(orgIdNumber, userIdNumber, role);

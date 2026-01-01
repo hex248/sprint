@@ -116,3 +116,9 @@ export type OrganisationResponse = {
     Organisation: OrganisationRecord;
     OrganisationMember: OrganisationMemberRecord;
 };
+
+export type OrganisationMemberResponse = {
+    OrganisationMember: OrganisationMemberRecord;
+    Organisation: OrganisationRecord;
+    User: UserRecord;
+};
