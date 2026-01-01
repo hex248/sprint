@@ -15,6 +15,8 @@ export default function LogOutButton({
     const logOut = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        localStorage.removeItem("selectedOrganisationId");
+        localStorage.removeItem("selectedProjectId");
 
         navigate(0);
     };

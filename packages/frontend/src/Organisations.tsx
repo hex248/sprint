@@ -30,23 +30,32 @@ function Organisations() {
                         const organisations = data as OrganisationResponse[];
                         setOrganisations(organisations);
 
+                        let selected: OrganisationResponse | null = null;
+
                         if (options?.selectOrganisationId) {
                             const created = organisations.find(
                                 (o) => o.Organisation.id === options.selectOrganisationId,
                             );
                             if (created) {
-                                setSelectedOrganisation(created);
-                                return;
+                                selected = created;
+                            }
+                        } else {
+                            const savedId = localStorage.getItem("selectedOrganisationId");
+                            if (savedId) {
+                                const saved = organisations.find(
+                                    (o) => o.Organisation.id === Number(savedId),
+                                );
+                                if (saved) {
+                                    selected = saved;
+                                }
                             }
                         }
 
-                        setSelectedOrganisation((prev) => {
-                            if (!prev) return organisations[0] || null;
-                            const stillExists = organisations.find(
-                                (o) => o.Organisation.id === prev.Organisation.id,
-                            );
-                            return stillExists || organisations[0] || null;
-                        });
+                        if (!selected) {
+                            selected = organisations[0] || null;
+                        }
+
+                        setSelectedOrganisation(selected);
                     },
                     onError: (error) => {
                         console.error(error);
@@ -118,10 +127,6 @@ function Organisations() {
     }, [refetchOrganisations]);
 
     useEffect(() => {
-        setSelectedOrganisation((prev) => prev || organisations[0] || null);
-    }, [organisations]);
-
-    useEffect(() => {
         void refetchMembers();
     }, [refetchMembers]);
 
@@ -132,7 +137,10 @@ function Organisations() {
                     <OrganisationSelect
                         organisations={organisations}
                         selectedOrganisation={selectedOrganisation}
-                        onSelectedOrganisationChange={setSelectedOrganisation}
+                        onSelectedOrganisationChange={(org) => {
+                            setSelectedOrganisation(org);
+                            localStorage.setItem("selectedOrganisationId", `${org?.Organisation.id}`);
+                        }}
                         onCreateOrganisation={async (organisationId) => {
                             await refetchOrganisations({ selectOrganisationId: organisationId });
                         }}

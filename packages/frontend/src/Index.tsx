@@ -31,25 +31,30 @@ function Index() {
                     const organisations = data as OrganisationResponse[];
                     setOrganisations(organisations);
 
-                    // select newly created organisation
+                    let selected: OrganisationResponse | null = null;
+
                     if (options?.selectOrganisationId) {
                         const created = organisations.find(
                             (o) => o.Organisation.id === options.selectOrganisationId,
                         );
                         if (created) {
-                            setSelectedOrganisation(created);
-                            return;
+                            selected = created;
+                        }
+                    } else {
+                        const savedId = localStorage.getItem("selectedOrganisationId");
+                        if (savedId) {
+                            const saved = organisations.find((o) => o.Organisation.id === Number(savedId));
+                            if (saved) {
+                                selected = saved;
+                            }
                         }
                     }
 
-                    // preserve previously selected organisation
-                    setSelectedOrganisation((prev) => {
-                        if (!prev) return organisations[0] || null;
-                        const stillExists = organisations.find(
-                            (o) => o.Organisation.id === prev.Organisation.id,
-                        );
-                        return stillExists || organisations[0] || null;
-                    });
+                    if (!selected) {
+                        selected = organisations[0] || null;
+                    }
+
+                    setSelectedOrganisation(selected);
                 },
                 onError: (error) => {
                     console.error("error fetching organisations:", error);
@@ -66,10 +71,6 @@ function Index() {
         void refetchOrganisations();
     }, [user.id]);
 
-    useEffect(() => {
-        setSelectedOrganisation((prev) => prev || organisations[0] || null);
-    }, [organisations]);
-
     const refetchProjects = async (organisationId: number, options?: { selectProjectId?: number }) => {
         try {
             await project.byOrganisation({
@@ -78,21 +79,28 @@ function Index() {
                     const projects = data as ProjectResponse[];
                     setProjects(projects);
 
-                    // select newly created project
+                    let selected: ProjectResponse | null = null;
+
                     if (options?.selectProjectId) {
                         const created = projects.find((p) => p.Project.id === options.selectProjectId);
                         if (created) {
-                            setSelectedProject(created);
-                            return;
+                            selected = created;
+                        }
+                    } else {
+                        const savedId = localStorage.getItem("selectedProjectId");
+                        if (savedId) {
+                            const saved = projects.find((p) => p.Project.id === Number(savedId));
+                            if (saved) {
+                                selected = saved;
+                            }
                         }
                     }
 
-                    // preserve previously selected project
-                    setSelectedProject((prev) => {
-                        if (!prev) return projects[0] || null;
-                        const stillExists = projects.find((p) => p.Project.id === prev.Project.id);
-                        return stillExists || projects[0] || null;
-                    });
+                    if (!selected) {
+                        selected = projects[0] || null;
+                    }
+
+                    setSelectedProject(selected);
                 },
                 onError: (error) => {
                     console.error("error fetching projects:", error);
@@ -116,10 +124,6 @@ function Index() {
 
         void refetchProjects(selectedOrganisation.Organisation.id);
     }, [selectedOrganisation]);
-
-    useEffect(() => {
-        setSelectedProject((prev) => prev || projects[0] || null);
-    }, [projects]);
 
     const refetchIssues = async () => {
         try {
@@ -156,7 +160,10 @@ function Index() {
                     <OrganisationSelect
                         organisations={organisations}
                         selectedOrganisation={selectedOrganisation}
-                        onSelectedOrganisationChange={setSelectedOrganisation}
+                        onSelectedOrganisationChange={(org) => {
+                            setSelectedOrganisation(org);
+                            localStorage.setItem("selectedOrganisationId", `${org?.Organisation.id}`);
+                        }}
                         onCreateOrganisation={async (organisationId) => {
                             await refetchOrganisations({ selectOrganisationId: organisationId });
                         }}
@@ -170,6 +177,7 @@ function Index() {
                             organisationId={selectedOrganisation?.Organisation.id}
                             onSelectedProjectChange={(project) => {
                                 setSelectedProject(project);
+                                localStorage.setItem("selectedProjectId", `${project?.Project.id}`);
                                 setSelectedIssue(null);
                             }}
                             onCreateProject={async (projectId) => {

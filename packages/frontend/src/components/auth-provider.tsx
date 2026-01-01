@@ -37,6 +37,8 @@ export function Auth({ children }: AuthProviderProps) {
                 setLoggedIn(false);
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
+                localStorage.removeItem("selectedOrganisationId");
+                localStorage.removeItem("selectedProjectId");
             });
     }, []);
 
