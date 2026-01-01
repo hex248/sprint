@@ -24,6 +24,7 @@ import projectUpdate from "./project/update";
 import projectWithCreator from "./project/with-creator";
 import projectsWithCreators from "./project/with-creators";
 import userUpdate from "./user/update";
+import userUploadAvatar from "./user/upload-avatar";
 
 export const routes = {
     authRegister,
@@ -31,6 +32,7 @@ export const routes = {
     authMe,
 
     userUpdate,
+    userUploadAvatar,
 
     issueCreate,
     issueDelete,

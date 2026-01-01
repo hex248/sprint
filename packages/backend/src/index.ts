@@ -19,6 +19,7 @@ const main = async () => {
             "/auth/me": withCors(withAuth(routes.authMe)),
 
             "/user/update": withCors(withAuth(routes.userUpdate)),
+            "/user/upload-avatar": withCors(routes.userUploadAvatar),
 
             "/issue/create": withCors(withAuth(routes.issueCreate)),
             "/issue/update": withCors(withAuth(routes.issueUpdate)),
