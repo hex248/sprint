@@ -4,7 +4,8 @@ import Avatar from "@/components/avatar";
 export default function SmallUserDisplay({ user }: { user: UserRecord }) {
     return (
         <div className="flex gap-2 items-center">
-            {user.name} <Avatar user={user} size={6} />
+            <Avatar user={user} size={6} />
+            {user.name}
         </div>
     );
 }

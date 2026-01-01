@@ -5,4 +5,3 @@
   - issue assignee
   - deadline
 - time tracking (linked to issues or standalone)
-- user avatars
