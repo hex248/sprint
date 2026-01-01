@@ -4,11 +4,13 @@ import { SettingsPageLayout } from "@/components/settings-page-layout";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
+import { UploadAvatar } from "@/components/upload-avatar";
 import { user } from "@/lib/server";
 
 function Account() {
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
+    const [avatarURL, setAvatarUrl] = useState<string | null>(null);
     const [error, setError] = useState("");
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [userId, setUserId] = useState<number | null>(null);
@@ -19,6 +21,7 @@ function Account() {
             const user = JSON.parse(userStr) as UserRecord;
             setName(user.name);
             setUserId(user.id);
+            setAvatarUrl(user.avatarURL || null);
         }
     }, []);
 
@@ -39,6 +42,7 @@ function Account() {
             id: userId,
             name: name.trim(),
             password: password.trim(),
+            avatarURL: avatarURL || undefined,
             onSuccess: (data) => {
                 setError("");
                 localStorage.setItem("user", JSON.stringify(data));
@@ -52,7 +56,11 @@ function Account() {
 
     return (
         <SettingsPageLayout title="Account">
-            <form onSubmit={handleSubmit} className="flex flex-col max-w-sm">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-sm">
+                <div>
+                    <Label className="mb-4 block">Avatar</Label>
+                    <UploadAvatar avatarURL={avatarURL} onAvatarUploaded={setAvatarUrl} />
+                </div>
                 <Field
                     label="Full Name"
                     value={name}

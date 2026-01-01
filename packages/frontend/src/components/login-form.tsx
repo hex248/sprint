@@ -4,6 +4,7 @@ import { ServerConfigurationDialog } from "@/components/server-configuration-dia
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
+import { UploadAvatar } from "@/components/upload-avatar";
 import { capitalise, cn, getServerURL } from "@/lib/utils";
 
 export default function LogInForm() {
@@ -12,6 +13,7 @@ export default function LogInForm() {
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [avatarURL, setAvatarUrl] = useState<string | null>(null);
     const [error, setError] = useState("");
     const [submitAttempted, setSubmitAttempted] = useState(false);
 
@@ -59,6 +61,7 @@ export default function LogInForm() {
                 name,
                 username,
                 password,
+                avatarURL,
             }),
         })
             .then(async (res) => {
@@ -83,7 +86,7 @@ export default function LogInForm() {
     };
 
     const focusFirstInput = () => {
-        const firstInput = document.querySelector("input");
+        const firstInput = document.querySelector('input[type="text"]');
         if (firstInput) {
             (firstInput as HTMLInputElement).focus();
         }
@@ -96,6 +99,7 @@ export default function LogInForm() {
     const resetForm = () => {
         setError("");
         setSubmitAttempted(false);
+        setAvatarUrl(null);
         requestAnimationFrame(() => focusFirstInput());
     };
 
@@ -119,32 +123,41 @@ export default function LogInForm() {
                     )}
                 >
                     <ServerConfigurationDialog />
-                    <span className="text-xl mb-2">{capitalise(mode)}</span>
+                    <span className="text-xl ">{capitalise(mode)}</span>
 
-                    {mode === "register" && (
+                    <div className={"flex flex-col items-center mb-0"}>
+                        {mode === "register" && (
+                            <>
+                                <UploadAvatar
+                                    avatarURL={avatarURL}
+                                    onAvatarUploaded={setAvatarUrl}
+                                    className={"mt-2 mb-4"}
+                                />
+                                <Field
+                                    label="Full Name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                                    submitAttempted={submitAttempted}
+                                />
+                            </>
+                        )}
                         <Field
-                            label="Full Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            label="Username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
                             submitAttempted={submitAttempted}
                         />
-                    )}
-                    <Field
-                        label="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                        submitAttempted={submitAttempted}
-                    />
-                    <Field
-                        label="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                        hidden={true}
-                        submitAttempted={submitAttempted}
-                    />
+                        <Field
+                            label="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            hidden={true}
+                            submitAttempted={submitAttempted}
+                        />
+                    </div>
 
                     {mode === "login" ? (
                         <>

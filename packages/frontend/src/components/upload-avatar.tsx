@@ -2,15 +2,18 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { user } from "@/lib/server";
+import { cn } from "@/lib/utils";
 
 export function UploadAvatar({
     avatarURL,
     onAvatarUploaded,
     label,
+    className,
 }: {
     avatarURL?: string | null;
     onAvatarUploaded: (avatarURL: string) => void;
     label?: string;
+    className?: string;
 }) {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -37,7 +40,7 @@ export function UploadAvatar({
     };
 
     return (
-        <div className="flex items-center gap-4">
+        <div className={cn("flex items-center gap-4", className)}>
             {avatarURL && (
                 <img src={avatarURL} alt="Avatar" className="w-16 h-16 rounded-full border object-cover" />
             )}
