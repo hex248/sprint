@@ -31,3 +31,45 @@ export function getServerURL() {
     }
     return serverURL;
 }
+
+export async function resizeImageToSquare(file: File, targetSize: number = 256): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+            reject(new Error("Could not get canvas context"));
+            return;
+        }
+
+        img.onload = () => {
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+
+            const minDimension = Math.min(img.width, img.height);
+            const startX = (img.width - minDimension) / 2;
+            const startY = (img.height - minDimension) / 2;
+
+            ctx.drawImage(img, startX, startY, minDimension, minDimension, 0, 0, targetSize, targetSize);
+
+            canvas.toBlob(
+                (blob) => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error("Failed to create blob"));
+                    }
+                },
+                "image/png",
+                0.9,
+            );
+        };
+
+        img.onerror = () => {
+            reject(new Error("Failed to load image"));
+        };
+
+        img.src = URL.createObjectURL(file);
+    });
+}
