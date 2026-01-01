@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -8,7 +8,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { organisation } from "@/lib/server";
 import { cn } from "@/lib/utils";
@@ -34,34 +34,17 @@ export function CreateOrganisation({
     const [name, setName] = useState("");
     const [slug, setSlug] = useState("");
     const [description, setDescription] = useState("");
-
-    const [nameTouched, setNameTouched] = useState(false);
-    const [slugTouched, setSlugTouched] = useState(false);
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
     const [submitAttempted, setSubmitAttempted] = useState(false);
-
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    const nameInvalid = useMemo(
-        () => ((nameTouched || submitAttempted) && name.trim() === "" ? "Cannot be empty" : ""),
-        [nameTouched, submitAttempted, name],
-    );
-    const slugInvalid = useMemo(
-        () => ((slugTouched || submitAttempted) && slug.trim() === "" ? "Cannot be empty" : ""),
-        [slugTouched, submitAttempted, slug],
-    );
 
     const reset = () => {
         setName("");
         setSlug("");
         setDescription("");
-
-        setNameTouched(false);
-        setSlugTouched(false);
         setSlugManuallyEdited(false);
         setSubmitAttempted(false);
-
         setSubmitting(false);
         setError(null);
     };
@@ -128,69 +111,42 @@ export function CreateOrganisation({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 mt-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="org-name">Name</Label>
-                            <Input
-                                id="org-name"
-                                name="name"
-                                value={name}
-                                onChange={(e) => {
-                                    const nextName = e.target.value;
-                                    setName(nextName);
-
-                                    if (!slugManuallyEdited) {
-                                        setSlug(slugify(nextName));
-                                    }
-                                }}
-                                onBlur={() => setNameTouched(true)}
-                                aria-invalid={nameInvalid !== ""}
-                                placeholder="Demo Organisation"
-                                required
-                            />
-                            <div className="flex items-end justify-end w-full text-xs -mb-4 -mt-2">
-                                {nameInvalid !== "" ? (
-                                    <Label className="text-destructive text-sm">{nameInvalid}</Label>
-                                ) : (
-                                    <Label className="opacity-0 text-sm">a</Label>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="org-slug">Slug</Label>
-                            <Input
-                                id="org-slug"
-                                name="slug"
-                                value={slug}
-                                onChange={(e) => {
-                                    setSlug(slugify(e.target.value));
-                                    setSlugManuallyEdited(true);
-                                }}
-                                onBlur={() => setSlugTouched(true)}
-                                aria-invalid={slugInvalid !== ""}
-                                placeholder="demo-organisation"
-                                required
-                            />
-                            <div className="flex items-end justify-end w-full text-xs -mb-4 -mt-2">
-                                {slugInvalid !== "" ? (
-                                    <Label className="text-destructive text-sm">{slugInvalid}</Label>
-                                ) : (
-                                    <Label className="opacity-0 text-sm">a</Label>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="org-description">Description (optional)</Label>
-                            <Input
-                                id="org-description"
-                                name="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="What is this organisation for?"
-                            />
-                        </div>
+                    <div className="grid mt-2">
+                        <Field
+                            label="Name"
+                            value={name}
+                            onChange={(e) => {
+                                const nextName = e.target.value;
+                                setName(nextName);
+                                if (!slugManuallyEdited) {
+                                    setSlug(slugify(nextName));
+                                }
+                            }}
+                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            submitAttempted={submitAttempted}
+                            placeholder="Demo Organisation"
+                        />
+                        <Field
+                            label="Slug"
+                            value={slug}
+                            onChange={(e) => {
+                                setSlug(slugify(e.target.value));
+                                setSlugManuallyEdited(true);
+                            }}
+                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            submitAttempted={submitAttempted}
+                            placeholder="demo-organisation"
+                        />
+                        <Field
+                            label="Description (optional)"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            validate={(v) =>
+                                v.trim().length > 2048 ? "Too long (2048 character limit)" : undefined
+                            }
+                            submitAttempted={submitAttempted}
+                            placeholder="What is this organisation for?"
+                        />
 
                         <div className="flex items-end justify-end w-full text-xs -mb-2 -mt-2">
                             {error ? (
@@ -200,7 +156,7 @@ export function CreateOrganisation({
                             )}
                         </div>
 
-                        <div className="flex gap-2 w-full justify-end">
+                        <div className="flex gap-2 w-full justify-end mt-2">
                             <DialogClose asChild>
                                 <Button variant="outline" type="button">
                                     Cancel
@@ -208,7 +164,11 @@ export function CreateOrganisation({
                             </DialogClose>
                             <Button
                                 type="submit"
-                                disabled={submitting || nameInvalid !== "" || slugInvalid !== ""}
+                                disabled={
+                                    submitting ||
+                                    (name.trim() === "" && submitAttempted) ||
+                                    (slug.trim() === "" && submitAttempted)
+                                }
                             >
                                 {submitting ? "Creating..." : "Create"}
                             </Button>

@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -8,7 +8,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { issue } from "@/lib/server";
 import { cn } from "@/lib/utils";
@@ -27,35 +27,14 @@ export function CreateIssue({
     const [open, setOpen] = useState(false);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-
-    const [titleTouched, setTitleTouched] = useState(false);
-    const [descriptionTouched, setDescriptionTouched] = useState(false);
     const [submitAttempted, setSubmitAttempted] = useState(false);
-
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    const titleInvalid = useMemo(
-        () => ((titleTouched || submitAttempted) && title.trim() === "" ? "Cannot be empty" : ""),
-        [titleTouched, submitAttempted, title],
-    );
-
-    const descriptionInvalid = useMemo(
-        () =>
-            (descriptionTouched || submitAttempted) && description.trim().length > 2048
-                ? "Too long (2048 character limit)"
-                : "",
-        [descriptionTouched, submitAttempted, description],
-    );
 
     const reset = () => {
         setTitle("");
         setDescription("");
-
-        setTitleTouched(false);
-        setDescriptionTouched(false);
         setSubmitAttempted(false);
-
         setSubmitting(false);
         setError(null);
     };
@@ -72,7 +51,7 @@ export function CreateIssue({
         setError(null);
         setSubmitAttempted(true);
 
-        if (title.trim() === "" || descriptionInvalid !== "") {
+        if (title.trim() === "" || description.trim().length > 2048) {
             return;
         }
 
@@ -130,51 +109,25 @@ export function CreateIssue({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 mt-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="issue-title">Title</Label>
-                            <Input
-                                id="issue-title"
-                                name="title"
-                                value={title}
-                                onChange={(e) => {
-                                    setTitle(e.target.value);
-                                }}
-                                onBlur={() => setTitleTouched(true)}
-                                aria-invalid={titleInvalid !== ""}
-                                placeholder="Demo Issue"
-                                required
-                            />
-                            <div className="flex items-end justify-end w-full text-xs -mb-4 -mt-2">
-                                {titleInvalid !== "" ? (
-                                    <Label className="text-destructive text-sm">{titleInvalid}</Label>
-                                ) : (
-                                    <Label className="opacity-0 text-sm">a</Label>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="issue-description">Description</Label>
-                            <Input
-                                id="issue-description"
-                                name="description"
-                                value={description}
-                                onChange={(e) => {
-                                    setDescription(e.target.value);
-                                }}
-                                onBlur={() => setDescriptionTouched(true)}
-                                aria-invalid={descriptionInvalid !== ""}
-                                placeholder="Optional details"
-                            />
-                            <div className="flex items-end justify-end w-full text-xs -mb-4 -mt-2">
-                                {descriptionInvalid !== "" ? (
-                                    <Label className="text-destructive text-sm">{descriptionInvalid}</Label>
-                                ) : (
-                                    <Label className="opacity-0 text-sm">a</Label>
-                                )}
-                            </div>
-                        </div>
+                    <div className="grid mt-2">
+                        <Field
+                            label="Title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            submitAttempted={submitAttempted}
+                            placeholder="Demo Issue"
+                        />
+                        <Field
+                            label="Description (optional)"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            validate={(v) =>
+                                v.trim().length > 2048 ? "Too long (2048 character limit)" : undefined
+                            }
+                            submitAttempted={submitAttempted}
+                            placeholder="Optional details"
+                        />
 
                         <div className="flex items-end justify-end w-full text-xs -mb-2 -mt-2">
                             {error ? (
@@ -184,7 +137,7 @@ export function CreateIssue({
                             )}
                         </div>
 
-                        <div className="flex gap-2 w-full justify-end">
+                        <div className="flex gap-2 w-full justify-end mt-2">
                             <DialogClose asChild>
                                 <Button variant="outline" type="button">
                                     Cancel
@@ -192,7 +145,11 @@ export function CreateIssue({
                             </DialogClose>
                             <Button
                                 type="submit"
-                                disabled={submitting || titleInvalid !== "" || descriptionInvalid !== ""}
+                                disabled={
+                                    submitting ||
+                                    (title.trim() === "" && submitAttempted) ||
+                                    (description.trim().length > 2048 && submitAttempted)
+                                }
                             >
                                 {submitting ? "Creating..." : "Create"}
                             </Button>

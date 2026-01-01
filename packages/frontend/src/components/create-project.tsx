@@ -1,5 +1,5 @@
 import type { ProjectRecord } from "@issue/shared";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -9,7 +9,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { project } from "@/lib/server";
 import { cn } from "@/lib/utils";
@@ -34,36 +34,16 @@ export function CreateProject({
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("");
     const [key, setKey] = useState("");
-
-    const [nameTouched, setNameTouched] = useState(false);
-    const [keyTouched, setKeyTouched] = useState(false);
     const [keyManuallyEdited, setKeyManuallyEdited] = useState(false);
     const [submitAttempted, setSubmitAttempted] = useState(false);
-
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    const nameInvalid = useMemo(
-        () => ((nameTouched || submitAttempted) && name.trim() === "" ? "Cannot be empty" : ""),
-        [nameTouched, submitAttempted, name],
-    );
-
-    const keyInvalid = useMemo(() => {
-        if (!(keyTouched || submitAttempted)) return "";
-        if (key.trim() === "") return "Cannot be empty";
-        if (key.length > 4) return "Must be 4 or less characters";
-        return "";
-    }, [keyTouched, submitAttempted, key]);
 
     const reset = () => {
         setName("");
         setKey("");
-
-        setNameTouched(false);
-        setKeyTouched(false);
         setKeyManuallyEdited(false);
         setSubmitAttempted(false);
-
         setSubmitting(false);
         setError(null);
     };
@@ -80,7 +60,7 @@ export function CreateProject({
         setError(null);
         setSubmitAttempted(true);
 
-        if (name.trim() === "" || key.length > 4) {
+        if (name.trim() === "" || key.trim() === "" || key.length > 4) {
             return;
         }
 
@@ -140,58 +120,36 @@ export function CreateProject({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 mt-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="project-name">Name</Label>
-                            <Input
-                                id="project-name"
-                                name="name"
-                                value={name}
-                                onChange={(e) => {
-                                    const nextName = e.target.value;
-                                    setName(nextName);
-
-                                    if (!keyManuallyEdited) {
-                                        setKey(keyify(nextName));
-                                    }
-                                }}
-                                onBlur={() => setNameTouched(true)}
-                                aria-invalid={nameInvalid !== ""}
-                                placeholder="Demo Project"
-                                required
-                            />
-                            <div className="flex items-end justify-end w-full text-xs -mb-4 -mt-2">
-                                {nameInvalid !== "" ? (
-                                    <Label className="text-destructive text-sm">{nameInvalid}</Label>
-                                ) : (
-                                    <Label className="opacity-0 text-sm">a</Label>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="project-key">Key</Label>
-                            <Input
-                                id="project-key"
-                                name="key"
-                                value={key}
-                                onChange={(e) => {
-                                    setKey(keyify(e.target.value));
-                                    setKeyManuallyEdited(true);
-                                }}
-                                onBlur={() => setKeyTouched(true)}
-                                aria-invalid={keyInvalid !== ""}
-                                placeholder="DEMO"
-                                required
-                            />
-                            <div className="flex items-end justify-end w-full text-xs -mb-4 -mt-2">
-                                {keyInvalid !== "" ? (
-                                    <Label className="text-destructive text-sm">{keyInvalid}</Label>
-                                ) : (
-                                    <Label className="opacity-0 text-sm">a</Label>
-                                )}
-                            </div>
-                        </div>
+                    <div className="grid mt-2">
+                        <Field
+                            label="Name"
+                            value={name}
+                            onChange={(e) => {
+                                const nextName = e.target.value;
+                                setName(nextName);
+                                if (!keyManuallyEdited) {
+                                    setKey(keyify(nextName));
+                                }
+                            }}
+                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            submitAttempted={submitAttempted}
+                            placeholder="Demo Project"
+                        />
+                        <Field
+                            label="Key"
+                            value={key}
+                            onChange={(e) => {
+                                setKey(keyify(e.target.value));
+                                setKeyManuallyEdited(true);
+                            }}
+                            validate={(v) => {
+                                if (v.trim() === "") return "Cannot be empty";
+                                if (v.length > 4) return "Must be 4 or less characters";
+                                return undefined;
+                            }}
+                            submitAttempted={submitAttempted}
+                            placeholder="DEMO"
+                        />
 
                         <div className="flex items-end justify-end w-full text-xs -mb-2 -mt-2">
                             {error ? (
@@ -201,7 +159,7 @@ export function CreateProject({
                             )}
                         </div>
 
-                        <div className="flex gap-2 w-full justify-end">
+                        <div className="flex gap-2 w-full justify-end mt-2">
                             <DialogClose asChild>
                                 <Button variant="outline" type="button">
                                     Cancel
@@ -209,7 +167,11 @@ export function CreateProject({
                             </DialogClose>
                             <Button
                                 type="submit"
-                                disabled={submitting || nameInvalid !== "" || keyInvalid !== ""}
+                                disabled={
+                                    submitting ||
+                                    (name.trim() === "" && submitAttempted) ||
+                                    ((key.trim() === "" || key.length > 4) && submitAttempted)
+                                }
                             >
                                 {submitting ? "Creating..." : "Create"}
                             </Button>

@@ -1,50 +1,10 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <> */
-import { type ChangeEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ServerConfigurationDialog } from "@/components/server-configuration-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { capitalise, cn, getServerURL } from "@/lib/utils";
-
-function Field({
-    label = "label",
-    onChange = () => {},
-    onBlur,
-    invalidMessage = "",
-    hidden = false,
-}: {
-    label: string;
-    onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: () => void;
-    invalidMessage?: string;
-    hidden?: boolean;
-}) {
-    return (
-        <div className="flex flex-col gap-1">
-            <div className="flex items-end justify-between w-full text-xs">
-                <Label htmlFor="org-slug" className="flex items-center text-sm">
-                    {label}
-                </Label>
-            </div>
-            <Input
-                id="org-slug"
-                placeholder={label}
-                onChange={onChange}
-                onBlur={onBlur}
-                name={label}
-                aria-invalid={invalidMessage !== ""}
-                type={hidden ? "password" : "text"}
-            />
-            <div className="flex items-end justify-end w-full text-xs -mb-0 -mt-1">
-                {invalidMessage !== "" ? (
-                    <Label className="text-destructive text-sm">{invalidMessage}</Label>
-                ) : (
-                    <Label className="opacity-0 text-sm">a</Label>
-                )}
-            </div>
-        </div>
-    );
-}
 
 export default function LogInForm() {
     const [mode, setMode] = useState<"login" | "register">("login");
@@ -52,26 +12,8 @@ export default function LogInForm() {
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-
-    const [nameTouched, setNameTouched] = useState(false);
-    const [usernameTouched, setUsernameTouched] = useState(false);
-    const [passwordTouched, setPasswordTouched] = useState(false);
-    const [submitAttempted, setSubmitAttempted] = useState(false);
-
     const [error, setError] = useState("");
-
-    const nameInvalid = useMemo(
-        () => ((nameTouched || submitAttempted) && name.trim() === "" ? "Cannot be empty" : ""),
-        [nameTouched, submitAttempted, name],
-    );
-    const usernameInvalid = useMemo(
-        () => ((usernameTouched || submitAttempted) && username.trim() === "" ? "Cannot be empty" : ""),
-        [usernameTouched, submitAttempted, username],
-    );
-    const passwordInvalid = useMemo(
-        () => ((passwordTouched || submitAttempted) && password.trim() === "" ? "Cannot be empty" : ""),
-        [passwordTouched, submitAttempted, password],
-    );
+    const [submitAttempted, setSubmitAttempted] = useState(false);
 
     const logIn = () => {
         if (username.trim() === "" || password.trim() === "") {
@@ -154,11 +96,6 @@ export default function LogInForm() {
     const resetForm = () => {
         setError("");
         setSubmitAttempted(false);
-
-        setNameTouched(false);
-        setUsernameTouched(false);
-        setPasswordTouched(false);
-
         requestAnimationFrame(() => focusFirstInput());
     };
 
@@ -187,23 +124,26 @@ export default function LogInForm() {
                     {mode === "register" && (
                         <Field
                             label="Full Name"
+                            value={name}
                             onChange={(e) => setName(e.target.value)}
-                            onBlur={() => setNameTouched(true)}
-                            invalidMessage={nameInvalid}
+                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            submitAttempted={submitAttempted}
                         />
                     )}
                     <Field
                         label="Username"
+                        value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        onBlur={() => setUsernameTouched(true)}
-                        invalidMessage={usernameInvalid}
+                        validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                        submitAttempted={submitAttempted}
                     />
                     <Field
                         label="Password"
+                        value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        onBlur={() => setPasswordTouched(true)}
-                        invalidMessage={passwordInvalid}
+                        validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
                         hidden={true}
+                        submitAttempted={submitAttempted}
                     />
 
                     {mode === "login" ? (
