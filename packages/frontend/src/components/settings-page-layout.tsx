@@ -1,22 +1,19 @@
-import { Home } from "lucide-react";
+import type { UserRecord } from "@issue/shared";
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import Header from "@/components/header";
 
 export function SettingsPageLayout({ title, children }: { title: string; children?: ReactNode }) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
+
     return (
-        <main className="w-full min-h-[100vh] flex flex-col items-start">
-            <div className="flex items-center gap-4 w-full border-b px-2 py-2">
-                <Button asChild variant="ghost" size="icon">
-                    <Link to="/">
-                        <Home />
-                    </Link>
-                </Button>
+        <main className="w-full h-screen flex flex-col">
+            <Header user={user}>
+                <div className="flex gap-1 items-center">
+                    <h1 className="text-3xl font-600">{title}</h1>
+                </div>
+            </Header>
 
-                <h1 className="text-3xl font-600">{title}</h1>
-            </div>
-
-            <div className="w-full px-4 py-4 text-md">{children}</div>
+            <div className="flex flex-col items-center justify-center w-full flex-1 text-md">{children}</div>
         </main>
     );
 }

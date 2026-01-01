@@ -127,7 +127,7 @@ function Organisations() {
 
     return (
         <SettingsPageLayout title="Organisations">
-            <div className="flex flex-col gap-2 -m-2">
+            <div className="flex flex-col p-1 gap-2">
                 <div className="flex gap-2 items-center">
                     <OrganisationSelect
                         organisations={organisations}

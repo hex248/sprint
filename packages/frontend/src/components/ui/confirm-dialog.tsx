@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "./button";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "./dialog";
- 
+
 export function ConfirmDialog({
     open,
     onOpenChange,

@@ -56,7 +56,8 @@ function Account() {
 
     return (
         <SettingsPageLayout title="Account">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-sm">
+            <form onSubmit={handleSubmit} className="flex flex-col p-4 gap-2 w-sm border">
+                <h2 className="text-xl font-600 mb-2">Account Details</h2>
                 <div>
                     <Label className="mb-4 block">Avatar</Label>
                     <UploadAvatar avatarURL={avatarURL} onAvatarUploaded={setAvatarUrl} />
