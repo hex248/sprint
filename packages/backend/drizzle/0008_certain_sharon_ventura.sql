@@ -1,0 +1,1 @@
+ALTER TABLE "User" RENAME COLUMN "avatarUrl" TO "avatarURL";

@@ -7,6 +7,7 @@ export const User = pgTable("User", {
     name: varchar({ length: 256 }).notNull(),
     username: varchar({ length: 32 }).notNull().unique(),
     passwordHash: varchar({ length: 255 }).notNull(),
+    avatarURL: varchar({ length: 512 }),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });
