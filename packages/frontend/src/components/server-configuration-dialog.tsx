@@ -1,5 +1,6 @@
 import { CheckIcon, ServerIcon, Undo2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -108,76 +109,79 @@ export function ServerConfigurationDialog({ trigger }: { trigger?: ReactNode }) 
     };
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2"
-                        title="Server Configuration"
-                    >
-                        <ServerIcon className="size-4" />
-                    </Button>
-                )}
-            </DialogTrigger>
+        <>
+            <Dialog open={open} onOpenChange={handleOpenChange}>
+                <DialogTrigger asChild>
+                    {trigger || (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2"
+                            title="Server Configuration"
+                        >
+                            <ServerIcon className="size-4" />
+                        </Button>
+                    )}
+                </DialogTrigger>
 
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Server Configuration</DialogTitle>
-                </DialogHeader>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Server Configuration</DialogTitle>
+                    </DialogHeader>
 
-                <div className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="server-url">Server URL</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                id="server-url"
-                                value={serverURL}
-                                onChange={(e) => handleServerURLChange(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && canSave && !isCheckingHealth) {
-                                        e.preventDefault();
-                                        void handleSave();
-                                    }
-                                }}
-                                placeholder="https://example.com"
-                                className={!isValid ? "border-destructive" : ""}
-                            />
-                            <Button
-                                type="button"
-                                size="icon"
-                                variant={canSave ? "default" : "outline"}
-                                disabled={!canSave || isCheckingHealth}
-                                onClick={handleSave}
-                            >
-                                <CheckIcon className="size-4" />
-                            </Button>
-                            <Button
-                                type="button"
-                                size="icon"
-                                variant="secondary"
-                                disabled={!isNotDefault || isCheckingHealth}
-                                onClick={handleResetToDefault}
-                                title="Reset to default"
-                            >
-                                <Undo2 className="size-4" />
-                            </Button>
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="server-url">Server URL</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="server-url"
+                                    value={serverURL}
+                                    onChange={(e) => handleServerURLChange(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && canSave && !isCheckingHealth) {
+                                            e.preventDefault();
+                                            void handleSave();
+                                        }
+                                    }}
+                                    placeholder="https://example.com"
+                                    className={!isValid ? "border-destructive" : ""}
+                                />
+                                <Button
+                                    type="button"
+                                    size="icon"
+                                    variant={canSave ? "default" : "outline"}
+                                    disabled={!canSave || isCheckingHealth}
+                                    onClick={handleSave}
+                                >
+                                    <CheckIcon className="size-4" />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="secondary"
+                                    disabled={!isNotDefault || isCheckingHealth}
+                                    onClick={handleResetToDefault}
+                                    title="Reset to default"
+                                >
+                                    <Undo2 className="size-4" />
+                                </Button>
+                            </div>
+                            {!isValid && (
+                                <Label className="text-destructive text-sm">Please enter a valid URL</Label>
+                            )}
+                            {healthError && <Label className="text-destructive text-sm">{healthError}</Label>}
                         </div>
-                        {!isValid && (
-                            <Label className="text-destructive text-sm">Please enter a valid URL</Label>
-                        )}
-                        {healthError && <Label className="text-destructive text-sm">{healthError}</Label>}
                     </div>
-                </div>
-            </DialogContent>
-
-            {countdown !== null && (
-                <div className="fixed inset-0 z-[100] bg-black/50 flex flex-col items-center justify-center pointer-events-auto">
-                    <div className="text-2xl font-bold pointer-events-none noselect">Redirecting</div>
-                    <div className="text-8xl font-bold pointer-events-none noselect">{countdown}</div>
-                </div>
-            )}
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+            {countdown !== null &&
+                createPortal(
+                    <div className="fixed inset-0 z-[100] bg-black/50 flex flex-col items-center justify-center pointer-events-auto">
+                        <div className="text-2xl font-bold pointer-events-none noselect">Redirecting</div>
+                        <div className="text-8xl font-bold pointer-events-none noselect">{countdown}</div>
+                    </div>,
+                    document.body,
+                )}
+        </>
     );
 }
