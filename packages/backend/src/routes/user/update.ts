@@ -1,8 +1,9 @@
 import type { UserRecord } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
+import { hashPassword } from "../../auth/utils";
 import { getUserById } from "../../db/queries";
 
-// /user/update?id=1&name=NewName&passwordHash=NewHash&serverURL=NewURL
+// /user/update?id=1&name=NewName&password=NewPassword
 export default async function update(req: AuthedRequest) {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
@@ -16,11 +17,14 @@ export default async function update(req: AuthedRequest) {
     }
 
     const name = url.searchParams.get("name") || undefined;
-    const passwordHash = url.searchParams.get("passwordHash") || undefined;
-    const serverURL = url.searchParams.get("serverURL") || undefined;
+    const password = url.searchParams.get("password") || undefined;
+    let passwordHash: string | undefined;
+    if (password !== undefined) {
+        passwordHash = await hashPassword(password);
+    }
 
     const { updateById } = await import("../../db/queries/users");
-    const updatedUser = await updateById(user.id, { name, passwordHash, serverURL });
+    const updatedUser = await updateById(user.id, { name, passwordHash });
 
     if (!updatedUser) {
         return new Response("failed to update user", { status: 500 });
