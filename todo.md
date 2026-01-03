@@ -8,5 +8,3 @@
   - status
   - sprints
 - time tracking (linked to issues or standalone)
-- for users without avatars, a random colour + initials is shown
-  - use username as a seed in a random selection of colour list

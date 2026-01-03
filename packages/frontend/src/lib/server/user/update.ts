@@ -12,15 +12,13 @@ export async function update({
     id: number;
     name: string;
     password: string;
-    avatarURL?: string;
+    avatarURL: string | null;
 } & ServerQueryInput) {
     const url = new URL(`${getServerURL()}/user/update`);
     url.searchParams.set("id", `${id}`);
     url.searchParams.set("name", name.trim());
     url.searchParams.set("password", password.trim());
-    if (avatarURL) {
-        url.searchParams.set("avatarURL", avatarURL);
-    }
+    url.searchParams.set("avatarURL", avatarURL || "null");
 
     const res = await fetch(url.toString(), {
         headers: getAuthHeaders(),

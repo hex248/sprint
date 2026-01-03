@@ -22,7 +22,7 @@ export async function updateById(
     updates: {
         name?: string;
         passwordHash?: string;
-        avatarURL?: string;
+        avatarURL?: string | null;
     },
 ): Promise<UserRecord | undefined> {
     const [user] = await db.update(User).set(updates).where(eq(User.id, id)).returning();

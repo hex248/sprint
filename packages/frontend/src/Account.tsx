@@ -9,6 +9,7 @@ import { user } from "@/lib/server";
 
 function Account() {
     const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [avatarURL, setAvatarUrl] = useState<string | null>(null);
     const [error, setError] = useState("");
@@ -20,6 +21,7 @@ function Account() {
         if (userStr) {
             const user = JSON.parse(userStr) as UserRecord;
             setName(user.name);
+            setUsername(user.username);
             setUserId(user.id);
             setAvatarUrl(user.avatarURL || null);
         }
@@ -42,11 +44,12 @@ function Account() {
             id: userId,
             name: name.trim(),
             password: password.trim(),
-            avatarURL: avatarURL || undefined,
+            avatarURL: avatarURL,
             onSuccess: (data) => {
                 setError("");
                 localStorage.setItem("user", JSON.stringify(data));
                 setPassword("");
+                window.location.reload();
             },
             onError: (errorMessage) => {
                 setError(errorMessage);
@@ -58,7 +61,24 @@ function Account() {
         <SettingsPageLayout title="Account">
             <form onSubmit={handleSubmit} className="flex flex-col p-4 gap-2 w-sm border">
                 <h2 className="text-xl font-600 mb-2 text-center">Account Details</h2>
-                <UploadAvatar avatarURL={avatarURL} onAvatarUploaded={setAvatarUrl} />
+                <UploadAvatar
+                    name={name}
+                    username={username}
+                    avatarURL={avatarURL}
+                    onAvatarUploaded={setAvatarUrl}
+                />
+                {avatarURL && (
+                    <Button
+                        variant={"dummy"}
+                        type={"button"}
+                        onClick={() => {
+                            setAvatarUrl(null);
+                        }}
+                        className="-mt-2 hover:underline"
+                    >
+                        Remove Avatar
+                    </Button>
+                )}
                 <Field
                     label="Full Name"
                     value={name}

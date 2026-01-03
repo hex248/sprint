@@ -50,8 +50,15 @@ export function IssuesTable({
                             <TableCell className="overflow-hide">{issueData.Issue.description}</TableCell>
                         )}
                         {(columns.assignee == null || columns.assignee === true) && (
-                            <TableCell className={"flex items-center justify-end px-1 py-1"}>
-                                <Avatar user={issueData.User} />
+                            <TableCell className={"flex items-center justify-end px-1 py-0 h-[32px]"}>
+                                {issueData.User && (
+                                    <Avatar
+                                        name={issueData.User?.name}
+                                        username={issueData.User?.username}
+                                        avatarURL={issueData.User?.avatarURL}
+                                        textClass="text-xs"
+                                    />
+                                )}
                             </TableCell>
                         )}
                     </TableRow>

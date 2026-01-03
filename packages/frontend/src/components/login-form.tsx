@@ -129,6 +129,8 @@ export default function LogInForm() {
                         {mode === "register" && (
                             <>
                                 <UploadAvatar
+                                    name={name}
+                                    username={username || undefined}
                                     avatarURL={avatarURL}
                                     onAvatarUploaded={setAvatarUrl}
                                     className={"mt-2 mb-4"}

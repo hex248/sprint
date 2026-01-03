@@ -18,7 +18,8 @@ export default async function update(req: AuthedRequest) {
 
     const name = url.searchParams.get("name") || undefined;
     const password = url.searchParams.get("password") || undefined;
-    const avatarURL = url.searchParams.get("avatarURL") || undefined;
+    const avatarURL =
+        url.searchParams.get("avatarURL") === "null" ? null : url.searchParams.get("avatarURL") || undefined;
     let passwordHash: string | undefined;
     if (password !== undefined) {
         passwordHash = await hashPassword(password);
