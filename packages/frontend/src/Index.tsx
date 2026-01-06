@@ -23,7 +23,9 @@ import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "@/compo
 import { issue, organisation, project } from "@/lib/server";
 
 function Index() {
-    const user = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
+    const userData = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
+
+    const [user, setUser] = useState<UserRecord>(userData);
 
     const organisationsRef = useRef(false);
     const [organisations, setOrganisations] = useState<OrganisationResponse[]>([]);
@@ -34,6 +36,11 @@ function Index() {
 
     const [issues, setIssues] = useState<IssueResponse[]>([]);
     const [selectedIssue, setSelectedIssue] = useState<IssueResponse | null>(null);
+
+    const refetchUser = async () => {
+        const userData = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
+        setUser(userData);
+    };
 
     const refetchOrganisations = async (options?: { selectOrganisationId?: number }) => {
         try {
@@ -220,7 +227,11 @@ function Index() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align={"end"}>
                             <DropdownMenuItem asChild className="flex items-end justify-end">
-                                <AccountDialog />
+                                <AccountDialog
+                                    onUpdate={async () => {
+                                        refetchUser();
+                                    }}
+                                />
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild className="flex items-end justify-end">
                                 <OrganisationsDialog

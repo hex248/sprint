@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { UploadAvatar } from "@/components/upload-avatar";
 import { user } from "@/lib/server";
 
-function AccountDialog({ trigger }: { trigger?: ReactNode }) {
+function AccountDialog({ onUpdate, trigger }: { onUpdate?: () => void; trigger?: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
@@ -57,7 +57,8 @@ function AccountDialog({ trigger }: { trigger?: ReactNode }) {
                 setError("");
                 localStorage.setItem("user", JSON.stringify(data));
                 setPassword("");
-                window.location.reload();
+                onUpdate?.();
+                setOpen(false);
             },
             onError: (errorMessage) => {
                 setError(errorMessage);
