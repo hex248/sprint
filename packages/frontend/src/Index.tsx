@@ -321,7 +321,7 @@ function Index() {
                                         <IssueDetailPane
                                             project={selectedProject}
                                             issueData={selectedIssue}
-                                            organisationId={selectedOrganisation.Organisation.id}
+                                            members={members}
                                             close={() => setSelectedIssue(null)}
                                             onIssueUpdate={refetchIssues}
                                         />

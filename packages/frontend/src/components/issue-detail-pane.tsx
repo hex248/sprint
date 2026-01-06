@@ -1,46 +1,32 @@
-import type { IssueResponse, OrganisationMemberResponse, ProjectResponse } from "@issue/shared";
+import type { IssueResponse, ProjectResponse, UserRecord } from "@issue/shared";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import SmallUserDisplay from "@/components/small-user-display";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { issue, organisation } from "@/lib/server";
+import { UserSelect } from "@/components/user-select";
+import { issue } from "@/lib/server";
 import { issueID } from "@/lib/utils";
 
 export function IssueDetailPane({
     project,
     issueData,
-    organisationId,
+    members,
     close,
     onIssueUpdate,
 }: {
     project: ProjectResponse;
     issueData: IssueResponse;
-    organisationId: number;
+    members: UserRecord[];
     close: () => void;
     onIssueUpdate?: () => void;
 }) {
-    const [members, setMembers] = useState<OrganisationMemberResponse[]>([]);
     const [assigneeId, setAssigneeId] = useState<string>(
         issueData.Issue.assigneeId?.toString() ?? "unassigned",
     );
-    const [assigneeSelectOpen, setAssigneeSelectOpen] = useState(false);
 
     useEffect(() => {
         setAssigneeId(issueData.Issue.assigneeId?.toString() ?? "unassigned");
     }, [issueData.Issue.assigneeId]);
-
-    useEffect(() => {
-        organisation.members({
-            organisationId,
-            onSuccess: (data) => {
-                setMembers(data);
-            },
-            onError: (error) => {
-                console.error("error fetching members:", error);
-            },
-        });
-    }, [organisationId]);
 
     const handleAssigneeChange = async (value: string) => {
         setAssigneeId(value);
@@ -81,53 +67,12 @@ export function IssueDetailPane({
 
                 <div className="flex items-center gap-2">
                     <span className="text-sm">Assignee:</span>
-                    <Select
+                    <UserSelect
+                        users={members}
                         value={assigneeId}
-                        onValueChange={handleAssigneeChange}
-                        onOpenChange={setAssigneeSelectOpen}
-                    >
-                        <SelectTrigger className="w-fit p-0 px-2 py-2" isOpen={assigneeSelectOpen}>
-                            <SelectValue placeholder="Select assignee">
-                                {assigneeId === "unassigned"
-                                    ? "Unassigned"
-                                    : (() => {
-                                          const member = members.find(
-                                              (m) => m.User.id.toString() === assigneeId,
-                                          );
-                                          const className = "p-0 py-2 text-sm";
-                                          if (member) {
-                                              return (
-                                                  <SmallUserDisplay
-                                                      user={member.User}
-                                                      className={className}
-                                                  />
-                                              );
-                                          }
-                                          if (issueData.Assignee) {
-                                              return (
-                                                  <SmallUserDisplay
-                                                      user={issueData.Assignee}
-                                                      className={className}
-                                                  />
-                                              );
-                                          }
-                                          return null;
-                                      })()}
-                            </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent
-                            side="bottom"
-                            position="popper"
-                            className={"data-[side=bottom]:translate-y-1 data-[side=bottom]:translate-x-0.25"}
-                        >
-                            <SelectItem value="unassigned">Unassigned</SelectItem>
-                            {members.map((member) => (
-                                <SelectItem key={member.User.id} value={member.User.id.toString()}>
-                                    <SmallUserDisplay user={member.User} className="p-0" />
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        onChange={handleAssigneeChange}
+                        fallbackUser={issueData.Assignee}
+                    />
                 </div>
 
                 <div className="flex items-center gap-2">
