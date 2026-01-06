@@ -1,5 +1,7 @@
 - landing/marketing page
-- logo/favicon
+  - does your team need a snappy project management tool?
+  - build your next project with Issue (might need a new name...)
+- real logo
 - org settings
 - sprints
 - issues
@@ -9,3 +11,5 @@
     - predefined statuses are added to organisation by default. list of statuses can be edited by owner/admin (maybe this should be on projects rather than organisations?)
   - sprints
 - time tracking (linked to issues or standalone)
+- user preferences
+  - "assign to me by default" option for new issues
