@@ -58,6 +58,9 @@ export const Issue = pgTable(
         title: varchar({ length: 256 }).notNull(),
         description: varchar({ length: 2048 }).notNull(),
 
+        creatorId: integer()
+            .notNull()
+            .references(() => User.id),
         assigneeId: integer().references(() => User.id),
     },
     (t) => [
@@ -103,7 +106,8 @@ export type IssueInsert = z.infer<typeof IssueInsertSchema>;
 
 export type IssueResponse = {
     Issue: IssueRecord;
-    User?: UserRecord;
+    Creator: UserRecord;
+    Assignee: UserRecord | null;
 };
 
 export type ProjectResponse = {

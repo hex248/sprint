@@ -64,6 +64,13 @@
       "when": 1767250186823,
       "tag": "0008_certain_sharon_ventura",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1767704274330,
+      "tag": "0009_closed_metal_master",
+      "breakpoints": true
     }
   ]
 }

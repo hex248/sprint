@@ -51,11 +51,11 @@ export function IssuesTable({
                         )}
                         {(columns.assignee == null || columns.assignee === true) && (
                             <TableCell className={"flex items-center justify-end px-1 py-0 h-[32px]"}>
-                                {issueData.User && (
+                                {issueData.Assignee && (
                                     <Avatar
-                                        name={issueData.User?.name}
-                                        username={issueData.User?.username}
-                                        avatarURL={issueData.User?.avatarURL}
+                                        name={issueData.Assignee?.name}
+                                        username={issueData.Assignee?.username}
+                                        avatarURL={issueData.Assignee?.avatarURL}
                                         textClass="text-xs"
                                     />
                                 )}

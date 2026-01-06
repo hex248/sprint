@@ -27,16 +27,21 @@ export function IssueDetailPane({
                 </Button>
             </div>
 
-            <div className="flex flex-col w-full p-2 gap-2">
+            <div className="flex flex-col w-full p-2 py-1 gap-2">
                 <h1 className="text-md">{issueData.Issue.title}</h1>
                 <p className="text-sm">{issueData.Issue.description}</p>
 
-                {issueData.User && (
+                {issueData.Assignee && (
                     <div className="flex items-center gap-2">
                         Assignee:
-                        {issueData.User ? <SmallUserDisplay user={issueData.User} /> : "Unassigned"}
+                        <SmallUserDisplay user={issueData.Assignee} />
                     </div>
                 )}
+            </div>
+
+            <div className="flex items-center gap-2 px-2 py-1 border-t text-sm text-muted-foreground">
+                Created by:
+                <SmallUserDisplay user={issueData.Creator} />
             </div>
         </div>
     );

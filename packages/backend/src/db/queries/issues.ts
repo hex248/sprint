@@ -1,11 +1,12 @@
 import { Issue, User } from "@issue/shared";
-import { and, eq, sql } from "drizzle-orm";
+import { aliasedTable, and, eq, sql } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createIssue(
     projectId: number,
     title: string,
     description: string,
+    creatorId: number,
     assigneeId?: number,
 ) {
     // prevents two issues with the same unique number
@@ -27,6 +28,7 @@ export async function createIssue(
                 title,
                 description,
                 number: nextNumber,
+                creatorId,
                 assigneeId,
             })
             .returning();
@@ -64,10 +66,18 @@ export async function getIssueByNumber(projectId: number, number: number) {
     return issue;
 }
 
-export async function getIssuesWithAssigneeByProject(projectId: number) {
+export async function getIssuesWithUsersByProject(projectId: number) {
+    const Creator = aliasedTable(User, "Creator");
+    const Assignee = aliasedTable(User, "Assignee");
+
     return await db
-        .select()
+        .select({
+            Issue: Issue,
+            Creator: Creator,
+            Assignee: Assignee,
+        })
         .from(Issue)
         .where(eq(Issue.projectId, projectId))
-        .leftJoin(User, eq(Issue.assigneeId, User.id));
+        .innerJoin(Creator, eq(Issue.creatorId, Creator.id))
+        .leftJoin(Assignee, eq(Issue.assigneeId, Assignee.id));
 }

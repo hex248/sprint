@@ -1,5 +1,5 @@
 import type { AuthedRequest } from "../../auth/middleware";
-import { getIssuesWithAssigneeByProject, getProjectByID } from "../../db/queries";
+import { getIssuesWithUsersByProject, getProjectByID } from "../../db/queries";
 
 export default async function issuesByProject(req: AuthedRequest) {
     const url = new URL(req.url);
@@ -9,7 +9,7 @@ export default async function issuesByProject(req: AuthedRequest) {
     if (!project) {
         return new Response(`project not found: provided ${projectId}`, { status: 404 });
     }
-    const issues = await getIssuesWithAssigneeByProject(project.id);
+    const issues = await getIssuesWithUsersByProject(project.id);
 
     return Response.json(issues);
 }

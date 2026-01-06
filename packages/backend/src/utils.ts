@@ -121,6 +121,7 @@ export const createDemoData = async () => {
                     project.id,
                     `Issue ${i} in ${projectName}`,
                     `This is a description for issue ${i} in ${projectName}.`,
+                    config.creator.id,
                     assignee,
                 );
             }
