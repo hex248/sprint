@@ -1,3 +1,4 @@
+import type { UserRecord } from "@issue/shared";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,15 +11,18 @@ import {
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
+import { UserSelect } from "@/components/user-select";
 import { issue } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 export function CreateIssue({
     projectId,
+    members,
     trigger,
     completeAction,
 }: {
     projectId?: number;
+    members?: UserRecord[];
     trigger?: React.ReactNode;
     completeAction?: (issueId: number) => void | Promise<void>;
 }) {
@@ -27,6 +31,7 @@ export function CreateIssue({
     const [open, setOpen] = useState(false);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const [assigneeId, setAssigneeId] = useState<string>("unassigned");
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -34,6 +39,7 @@ export function CreateIssue({
     const reset = () => {
         setTitle("");
         setDescription("");
+        setAssigneeId("unassigned");
         setSubmitAttempted(false);
         setSubmitting(false);
         setError(null);
@@ -72,6 +78,7 @@ export function CreateIssue({
                 projectId,
                 title,
                 description,
+                assigneeId: assigneeId === "unassigned" ? null : Number(assigneeId),
                 onSuccess: async (data) => {
                     setOpen(false);
                     reset();
@@ -128,6 +135,13 @@ export function CreateIssue({
                             submitAttempted={submitAttempted}
                             placeholder="Optional details"
                         />
+
+                        {members && members.length > 0 && (
+                            <div className="flex items-center gap-2 mt-2">
+                                <Label className="text-sm">Assignee</Label>
+                                <UserSelect users={members} value={assigneeId} onChange={setAssigneeId} />
+                            </div>
+                        )}
 
                         <div className="flex items-end justify-end w-full text-xs -mb-2 -mt-2">
                             {error ? (

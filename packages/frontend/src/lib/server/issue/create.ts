@@ -5,17 +5,20 @@ export async function create({
     projectId,
     title,
     description,
+    assigneeId,
     onSuccess,
     onError,
 }: {
     projectId: number;
     title: string;
     description: string;
+    assigneeId?: number | null;
 } & ServerQueryInput) {
     const url = new URL(`${getServerURL()}/issue/create`);
     url.searchParams.set("projectId", `${projectId}`);
     url.searchParams.set("title", title.trim());
     if (description.trim() !== "") url.searchParams.set("description", description.trim());
+    if (assigneeId != null) url.searchParams.set("assigneeId", `${assigneeId}`);
 
     const res = await fetch(url.toString(), {
         headers: getAuthHeaders(),

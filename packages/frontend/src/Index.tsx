@@ -243,6 +243,7 @@ function Index() {
                     {selectedOrganisation && selectedProject && (
                         <CreateIssue
                             projectId={selectedProject?.Project.id}
+                            members={members}
                             completeAction={async () => {
                                 if (!selectedProject) return;
                                 await refetchIssues();

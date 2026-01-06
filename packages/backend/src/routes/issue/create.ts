@@ -23,8 +23,10 @@ export default async function issueCreate(req: AuthedRequest) {
 
     const title = url.searchParams.get("title") || "Untitled Issue";
     const description = url.searchParams.get("description") || "";
+    const assigneeIdParam = url.searchParams.get("assigneeId");
+    const assigneeId = assigneeIdParam ? Number(assigneeIdParam) : undefined;
 
-    const issue = await createIssue(project.id, title, description, req.userId);
+    const issue = await createIssue(project.id, title, description, req.userId, assigneeId);
 
     return Response.json(issue);
 }
