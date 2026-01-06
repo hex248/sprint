@@ -1,5 +1,11 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <> */
-import type { IssueResponse, OrganisationResponse, ProjectResponse, UserRecord } from "@issue/shared";
+import type {
+    IssueResponse,
+    OrganisationMemberResponse,
+    OrganisationResponse,
+    ProjectResponse,
+    UserRecord,
+} from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
 import AccountDialog from "@/components/account-dialog";
 import { CreateIssue } from "@/components/create-issue";
@@ -38,6 +44,8 @@ function Index() {
 
     const [issues, setIssues] = useState<IssueResponse[]>([]);
     const [selectedIssue, setSelectedIssue] = useState<IssueResponse | null>(null);
+
+    const [members, setMembers] = useState<UserRecord[]>([]);
 
     const refetchUser = async () => {
         const userData = JSON.parse(localStorage.getItem("user") || "{}") as UserRecord;
@@ -135,17 +143,37 @@ function Index() {
         }
     };
 
+    const refetchMembers = async (organisationId: number) => {
+        try {
+            await organisation.members({
+                organisationId,
+                onSuccess: (data: OrganisationMemberResponse[]) => {
+                    setMembers(data.map((m) => m.User));
+                },
+                onError: (error) => {
+                    console.error("error fetching members:", error);
+                    setMembers([]);
+                },
+            });
+        } catch (err) {
+            console.error("error fetching members:", err);
+            setMembers([]);
+        }
+    };
+
     // fetch projects when organisation is selected
     useEffect(() => {
         setProjects([]);
         setSelectedProject(null);
         setSelectedIssue(null);
         setIssues([]);
+        setMembers([]);
         if (!selectedOrganisation) {
             return;
         }
 
         void refetchProjects(selectedOrganisation.Organisation.id);
+        void refetchMembers(selectedOrganisation.Organisation.id);
     }, [selectedOrganisation]);
 
     const refetchIssues = async () => {
