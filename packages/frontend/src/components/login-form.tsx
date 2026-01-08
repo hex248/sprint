@@ -1,13 +1,27 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <> */
+
+import { AlertTriangle, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import Avatar from "@/components/avatar";
 import { ServerConfigurationDialog } from "@/components/server-configuration-dialog";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { UploadAvatar } from "@/components/upload-avatar";
 import { capitalise, cn, getServerURL } from "@/lib/utils";
 
+const DEMO_USERS = [
+    { name: "User 1", username: "u1", password: "a" },
+    { name: "User 2", username: "u2", password: "a" },
+];
+
 export default function LogInForm() {
+    const [loginDetailsOpen, setLoginDetailsOpen] = useState(false);
+    const [showWarning, setShowWarning] = useState(() => {
+        return localStorage.getItem("hide-under-construction") !== "true";
+    });
+
     const [mode, setMode] = useState<"login" | "register">("login");
 
     const [name, setName] = useState("");
@@ -114,100 +128,170 @@ export default function LogInForm() {
     };
 
     return (
-        <div>
-            <form onSubmit={handleSubmit}>
-                <div
-                    className={cn(
-                        "relative flex flex-col gap-2 items-center border p-6 pb-4",
-                        error !== "" && "border-destructive",
-                    )}
-                >
-                    <ServerConfigurationDialog />
-                    <span className="text-xl ">{capitalise(mode)}</span>
+        <>
+            {/* under construction warning */}
+            {showWarning && (
+                <div className="relative flex flex-col border p-4 items-center border-border/50 bg-border/10 gap-2 max-w-lg">
+                    <Button
+                        variant="dummy"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                            localStorage.setItem("hide-under-construction", "true");
+                            setShowWarning(false);
+                        }}
+                    >
+                        <X />
+                    </Button>
+                    <AlertTriangle className="w-16 h-16 text-yellow-500" strokeWidth={1.5} />
+                    <p className="text-center text-sm text-muted-foreground font-500">
+                        This application is currently under construction. Your data is very likely to be lost
+                        at some point.
+                        <pre> </pre>
+                        <p className="font-700 underline underline-offset-3 text-foreground/85 decoration-yellow-500">
+                            It is not recommended for production use.
+                        </p>
+                        But you're more than welcome to have a look around!
+                        <Dialog open={loginDetailsOpen} onOpenChange={setLoginDetailsOpen}>
+                            <DialogTrigger className="underline underline-offset-2 text-primary hover:text-primary/90 cursor-pointer mt-2">
+                                Login Details
+                            </DialogTrigger>
+                            <DialogContent className="w-xs" showCloseButton={false}>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {DEMO_USERS.map((user) => (
+                                        <button
+                                            type="button"
+                                            key={user.username}
+                                            className="space-y-2 border border-background hover:border-border hover:bg-border/10 cursor-pointer p-2 text-left"
+                                            onClick={() => {
+                                                setMode("login");
+                                                setUsername(user.username);
+                                                setPassword(user.password);
+                                                setLoginDetailsOpen(false);
+                                                resetForm();
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Avatar name={user.name} username={user.username} />
+                                                <span className="font-semibold">{user.name}</span>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground space-y-1">
+                                                <p>
+                                                    <span className="font-medium text-foreground">
+                                                        Username:
+                                                    </span>{" "}
+                                                    {user.username}
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium text-foreground">
+                                                        Password:
+                                                    </span>{" "}
+                                                    {user.password}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </p>
+                </div>
+            )}
+            <div>
+                <form onSubmit={handleSubmit}>
+                    <div
+                        className={cn(
+                            "relative flex flex-col gap-2 items-center border p-6 pb-4",
+                            error !== "" && "border-destructive",
+                        )}
+                    >
+                        <ServerConfigurationDialog />
+                        <span className="text-xl ">{capitalise(mode)}</span>
 
-                    <div className={"flex flex-col items-center mb-0"}>
-                        {mode === "register" && (
+                        <div className={"flex flex-col items-center mb-0"}>
+                            {mode === "register" && (
+                                <>
+                                    <UploadAvatar
+                                        name={name}
+                                        username={username || undefined}
+                                        avatarURL={avatarURL}
+                                        onAvatarUploaded={setAvatarUrl}
+                                        className={"mt-2 mb-4"}
+                                    />
+                                    <Field
+                                        label="Full Name"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                                        submitAttempted={submitAttempted}
+                                        spellcheck={false}
+                                    />
+                                </>
+                            )}
+                            <Field
+                                label="Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                                submitAttempted={submitAttempted}
+                                spellcheck={false}
+                            />
+                            <Field
+                                label="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                                hidden={true}
+                                submitAttempted={submitAttempted}
+                                spellcheck={false}
+                            />
+                        </div>
+
+                        {mode === "login" ? (
                             <>
-                                <UploadAvatar
-                                    name={name}
-                                    username={username || undefined}
-                                    avatarURL={avatarURL}
-                                    onAvatarUploaded={setAvatarUrl}
-                                    className={"mt-2 mb-4"}
-                                />
-                                <Field
-                                    label="Full Name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                                    submitAttempted={submitAttempted}
-                                    spellcheck={false}
-                                />
+                                <Button variant={"outline"} type={"submit"}>
+                                    Log in
+                                </Button>
+                                <Button
+                                    className="text-xs hover:underline p-0"
+                                    variant={"dummy"}
+                                    type="button"
+                                    onClick={() => {
+                                        setMode("register");
+                                        resetForm();
+                                    }}
+                                >
+                                    I don't have an account
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button variant={"outline"} type={"submit"}>
+                                    Register
+                                </Button>
+                                <Button
+                                    className="text-xs hover:underline p-0"
+                                    variant={"dummy"}
+                                    type="button"
+                                    onClick={() => {
+                                        setMode("login");
+                                        resetForm();
+                                    }}
+                                >
+                                    I already have an account
+                                </Button>
                             </>
                         )}
-                        <Field
-                            label="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                            submitAttempted={submitAttempted}
-                            spellcheck={false}
-                        />
-                        <Field
-                            label="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                            hidden={true}
-                            submitAttempted={submitAttempted}
-                            spellcheck={false}
-                        />
                     </div>
-
-                    {mode === "login" ? (
-                        <>
-                            <Button variant={"outline"} type={"submit"}>
-                                Log in
-                            </Button>
-                            <Button
-                                className="text-xs hover:underline p-0"
-                                variant={"dummy"}
-                                type="button"
-                                onClick={() => {
-                                    setMode("register");
-                                    resetForm();
-                                }}
-                            >
-                                I don't have an account
-                            </Button>
-                        </>
+                </form>
+                <div className="flex items-end justify-end w-full text-xs -mb-4">
+                    {error !== "" ? (
+                        <Label className="text-destructive text-sm">{error}</Label>
                     ) : (
-                        <>
-                            <Button variant={"outline"} type={"submit"}>
-                                Register
-                            </Button>
-                            <Button
-                                className="text-xs hover:underline p-0"
-                                variant={"dummy"}
-                                type="button"
-                                onClick={() => {
-                                    setMode("login");
-                                    resetForm();
-                                }}
-                            >
-                                I already have an account
-                            </Button>
-                        </>
+                        <Label className="opacity-0 text-sm">a</Label>
                     )}
                 </div>
-            </form>
-            <div className="flex items-end justify-end w-full text-xs -mb-4">
-                {error !== "" ? (
-                    <Label className="text-destructive text-sm">{error}</Label>
-                ) : (
-                    <Label className="opacity-0 text-sm">a</Label>
-                )}
             </div>
-        </div>
+        </>
     );
 }
