@@ -303,7 +303,10 @@ function Index() {
                             <IssuesTable
                                 issuesData={issues}
                                 columns={{ description: false }}
-                                issueSelectAction={setSelectedIssue}
+                                issueSelectAction={(issue) => {
+                                    if (issue.Issue.id === selectedIssue?.Issue.id) setSelectedIssue(null);
+                                    else setSelectedIssue(issue);
+                                }}
                                 className="border w-full flex-shrink"
                             />
                         </ResizablePanel>
