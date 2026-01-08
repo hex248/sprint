@@ -12,6 +12,7 @@ export function Field({
     placeholder,
     error,
     tabIndex,
+    spellcheck,
 }: {
     label: string;
     value?: string;
@@ -22,6 +23,7 @@ export function Field({
     placeholder?: string;
     error?: string;
     tabIndex?: number;
+    spellcheck?: boolean;
 }) {
     const [internalTouched, setInternalTouched] = useState(false);
     const isTouched = submitAttempted || internalTouched;
@@ -53,6 +55,7 @@ export function Field({
                 aria-invalid={error !== undefined || invalidMessage !== ""}
                 type={hidden ? "password" : "text"}
                 tabIndex={tabIndex}
+                spellCheck={spellcheck}
             />
             <div className="flex items-end justify-end w-full text-xs mb-0 -mt-1">
                 {error || invalidMessage !== "" ? (

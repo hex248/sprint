@@ -141,6 +141,7 @@ export default function LogInForm() {
                                     onChange={(e) => setName(e.target.value)}
                                     validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
                                     submitAttempted={submitAttempted}
+                                    spellcheck={false}
                                 />
                             </>
                         )}
@@ -150,6 +151,7 @@ export default function LogInForm() {
                             onChange={(e) => setUsername(e.target.value)}
                             validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
                             submitAttempted={submitAttempted}
+                            spellcheck={false}
                         />
                         <Field
                             label="Password"
@@ -158,6 +160,7 @@ export default function LogInForm() {
                             validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
                             hidden={true}
                             submitAttempted={submitAttempted}
+                            spellcheck={false}
                         />
                     </div>
 

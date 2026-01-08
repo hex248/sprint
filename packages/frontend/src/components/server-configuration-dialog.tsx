@@ -145,6 +145,7 @@ export function ServerConfigurationDialog({ trigger }: { trigger?: ReactNode }) 
                                     }}
                                     placeholder="https://example.com"
                                     className={!isValid ? "border-destructive" : ""}
+                                    spellCheck={false}
                                 />
                                 <Button
                                     type="button"
