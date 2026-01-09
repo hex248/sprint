@@ -2,6 +2,7 @@ import type { IssueResponse, ProjectResponse, UserRecord } from "@issue/shared";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import SmallUserDisplay from "@/components/small-user-display";
+import { TimerModal } from "@/components/timer-modal";
 import { Button } from "@/components/ui/button";
 import { UserSelect } from "@/components/user-select";
 import { issue } from "@/lib/server";
@@ -78,6 +79,10 @@ export function IssueDetailPane({
                 <div className="flex items-center gap-2">
                     <span className="text-sm">Created by:</span>
                     <SmallUserDisplay user={issueData.Creator} className={"text-sm"} />
+                </div>
+
+                <div>
+                    <TimerModal issueId={issueData.Issue.id} />
                 </div>
             </div>
         </div>
