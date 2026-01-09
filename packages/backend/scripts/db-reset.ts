@@ -21,6 +21,8 @@ async function resetDatabase() {
 
     try {
         // drop all tables in the correct order (respecting foreign key constraints)
+        await db.execute(sql`DROP TABLE IF EXISTS "TimedSession" CASCADE`);
+        await db.execute(sql`DROP TABLE IF EXISTS "Session" CASCADE`);
         await db.execute(sql`DROP TABLE IF EXISTS "Issue" CASCADE`);
         await db.execute(sql`DROP TABLE IF EXISTS "Project" CASCADE`);
         await db.execute(sql`DROP TABLE IF EXISTS "OrganisationMember" CASCADE`);
