@@ -1,4 +1,4 @@
-import { getAuthHeaders, getServerURL } from "@/lib/utils";
+import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
 export async function byUser({
@@ -12,7 +12,7 @@ export async function byUser({
     url.searchParams.set("userId", `${userId}`);
 
     const res = await fetch(url.toString(), {
-        headers: getAuthHeaders(),
+        credentials: "include",
     });
 
     if (!res.ok) {

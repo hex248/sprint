@@ -1,4 +1,4 @@
-import { getAuthHeaders, getServerURL } from "@/lib/utils";
+import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
 export async function create({
@@ -20,8 +20,13 @@ export async function create({
     if (description.trim() !== "") url.searchParams.set("description", description.trim());
     if (assigneeId != null) url.searchParams.set("assigneeId", `${assigneeId}`);
 
+    const csrfToken = getCsrfToken();
+    const headers: HeadersInit = {};
+    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+
     const res = await fetch(url.toString(), {
-        headers: getAuthHeaders(),
+        headers,
+        credentials: "include",
     });
 
     if (!res.ok) {

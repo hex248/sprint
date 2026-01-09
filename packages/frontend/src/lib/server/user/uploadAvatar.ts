@@ -1,4 +1,4 @@
-import { getAuthHeaders, getServerURL } from "@/lib/utils";
+import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
 export async function uploadAvatar({
@@ -24,10 +24,15 @@ export async function uploadAvatar({
     const formData = new FormData();
     formData.append("file", file);
 
+    const csrfToken = getCsrfToken();
+    const headers: HeadersInit = {};
+    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+
     const res = await fetch(`${getServerURL()}/user/upload-avatar`, {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers,
         body: formData,
+        credentials: "include",
     });
 
     if (!res.ok) {

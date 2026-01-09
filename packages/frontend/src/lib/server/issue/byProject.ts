@@ -1,4 +1,4 @@
-import { getAuthHeaders, getServerURL } from "@/lib/utils";
+import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
 export async function byProject({
@@ -12,7 +12,7 @@ export async function byProject({
     url.searchParams.set("projectId", `${projectId}`);
 
     const res = await fetch(url.toString(), {
-        headers: getAuthHeaders(),
+        credentials: "include",
     });
 
     if (!res.ok) {

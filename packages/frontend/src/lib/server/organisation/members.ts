@@ -1,5 +1,5 @@
 import type { OrganisationMemberResponse } from "@issue/shared";
-import { getAuthHeaders, getServerURL } from "@/lib/utils";
+import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
 export async function members({
@@ -13,7 +13,7 @@ export async function members({
     url.searchParams.set("organisationId", `${organisationId}`);
 
     const res = await fetch(url.toString(), {
-        headers: getAuthHeaders(),
+        credentials: "include",
     });
 
     if (!res.ok) {
