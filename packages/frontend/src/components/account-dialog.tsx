@@ -95,7 +95,7 @@ function AccountDialog({ onUpdate, trigger }: { onUpdate?: () => void; trigger?:
                             onClick={() => {
                                 setAvatarUrl(null);
                             }}
-                            className="-mt-2 hover:underline"
+                            className="-mt-2 hover:text-personality"
                         >
                             Remove Avatar
                         </Button>

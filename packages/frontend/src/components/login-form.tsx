@@ -159,7 +159,7 @@ export default function LogInForm() {
                         </p>
                         But you're more than welcome to have a look around!
                         <Dialog open={loginDetailsOpen} onOpenChange={setLoginDetailsOpen}>
-                            <DialogTrigger className="underline underline-offset-2 text-primary hover:text-primary/90 cursor-pointer mt-2">
+                            <DialogTrigger className="text-primary hover:text-personality cursor-pointer mt-2">
                                 Login Details
                             </DialogTrigger>
                             <DialogContent className="w-xs" showCloseButton={false}>
@@ -259,7 +259,7 @@ export default function LogInForm() {
                                     Log in
                                 </Button>
                                 <Button
-                                    className="text-xs hover:underline p-0"
+                                    className="text-xs hover:text-personality p-0"
                                     variant={"dummy"}
                                     type="button"
                                     onClick={() => {
@@ -276,7 +276,7 @@ export default function LogInForm() {
                                     Register
                                 </Button>
                                 <Button
-                                    className="text-xs hover:underline p-0"
+                                    className="text-xs hover:text-personality p-0"
                                     variant={"dummy"}
                                     type="button"
                                     onClick={() => {

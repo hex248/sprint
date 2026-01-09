@@ -91,12 +91,7 @@ export default function Landing() {
             <footer className="flex justify-center gap-2 items-center py-2 border-t">
                 <span className="font-300 text-sm text-muted-foreground">
                     Built by{" "}
-                    <a
-                        href="https://ob248.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline underline-offset-2"
-                    >
+                    <a href="https://ob248.com" target="_blank" rel="noopener noreferrer">
                         Oliver Bryan
                     </a>
                 </span>
