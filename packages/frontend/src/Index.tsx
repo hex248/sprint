@@ -219,6 +219,7 @@ function Index() {
                         onCreateOrganisation={async (organisationId) => {
                             await refetchOrganisations({ selectOrganisationId: organisationId });
                         }}
+                        showLabel
                     />
 
                     {/* project selection - only shown when organisation is selected */}
@@ -238,6 +239,7 @@ function Index() {
                                     selectProjectId: projectId,
                                 });
                             }}
+                            showLabel
                         />
                     )}
                     {selectedOrganisation && selectedProject && (

@@ -20,6 +20,8 @@ export function OrganisationSelect({
     onCreateOrganisation,
     placeholder = "Select Organisation",
     contentClass,
+    showLabel = false,
+    label = "Organisation",
     labelPosition = "top",
 }: {
     organisations: OrganisationResponse[];
@@ -28,6 +30,8 @@ export function OrganisationSelect({
     onCreateOrganisation?: (organisationId: number) => void | Promise<void>;
     placeholder?: string;
     contentClass?: string;
+    showLabel?: boolean;
+    label?: string;
     labelPosition?: "top" | "bottom";
 }) {
     const [open, setOpen] = useState(false);
@@ -48,7 +52,7 @@ export function OrganisationSelect({
             <SelectTrigger
                 className="text-sm"
                 isOpen={open}
-                label="Organisation"
+                label={showLabel ? label : undefined}
                 hasValue={!!selectedOrganisation}
                 labelPosition={labelPosition}
             >

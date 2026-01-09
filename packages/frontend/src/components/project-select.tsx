@@ -20,6 +20,8 @@ export function ProjectSelect({
     onSelectedProjectChange,
     onCreateProject,
     placeholder = "Select Project",
+    showLabel = false,
+    label = "Project",
     labelPosition = "top",
 }: {
     projects: ProjectResponse[];
@@ -28,6 +30,8 @@ export function ProjectSelect({
     onSelectedProjectChange: (project: ProjectResponse | null) => void;
     onCreateProject?: (projectId: number) => void | Promise<void>;
     placeholder?: string;
+    showLabel?: boolean;
+    label?: string;
     labelPosition?: "top" | "bottom";
 }) {
     const [open, setOpen] = useState(false);
@@ -48,7 +52,7 @@ export function ProjectSelect({
             <SelectTrigger
                 className="text-sm"
                 isOpen={open}
-                label="Project"
+                label={showLabel ? label : undefined}
                 hasValue={!!selectedProject}
                 labelPosition={labelPosition}
             >
