@@ -1,6 +1,4 @@
 - landing/marketing page
-  - does your team need a snappy project management tool?
-  - build your next project with Issue (might need a new name...)
   - add loading state to landing CTAs during auth verification
 - dedicated /register route (currently login/register are combined on /login)
 - real logo
@@ -16,5 +14,4 @@
 - time tracking (linked to issues or standalone)
 - user preferences
   - "assign to me by default" option for new issues
-- add support for gif avatars (if its a gif, just check size, reject if too big and skip the canvas step otherwise)
 - org member role promotion/demotion

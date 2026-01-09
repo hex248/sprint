@@ -1,4 +1,4 @@
-import { getAuthHeaders, getServerURL, resizeImageToSquare } from "@/lib/utils";
+import { getAuthHeaders, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
 export async function uploadAvatar({
@@ -21,17 +21,8 @@ export async function uploadAvatar({
         return;
     }
 
-    let resizedFile: File;
-    try {
-        const blob = await resizeImageToSquare(file, 256);
-        resizedFile = new File([blob], "avatar.png", { type: "image/png" });
-    } catch (_error) {
-        onError?.("Failed to resize image");
-        return;
-    }
-
     const formData = new FormData();
-    formData.append("file", resizedFile);
+    formData.append("file", file);
 
     const res = await fetch(`${getServerURL()}/user/upload-avatar`, {
         method: "POST",

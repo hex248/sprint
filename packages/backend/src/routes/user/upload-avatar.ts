@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { BunRequest } from "bun";
+import sharp from "sharp";
 import { s3Client, s3Endpoint, s3PublicUrl } from "../../s3";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
-const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif"];
+const TARGET_SIZE = 256;
 
 export default async function uploadAvatar(req: BunRequest) {
     if (req.method !== "POST") {
@@ -28,19 +29,38 @@ export default async function uploadAvatar(req: BunRequest) {
         });
     }
 
-    const fileExtension = file.name.split(".").pop()?.toLowerCase();
-    if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
-        return new Response("invalid file extension", { status: 400 });
+    const isGIF = file.type === "image/gif";
+    const outputExtension = isGIF ? "gif" : "png";
+    const outputMimeType = isGIF ? "image/gif" : "image/png";
+
+    let resizedBuffer: Buffer;
+    try {
+        const inputBuffer = Buffer.from(await file.arrayBuffer());
+
+        if (isGIF) {
+            resizedBuffer = await sharp(inputBuffer, { animated: true })
+                .resize(TARGET_SIZE, TARGET_SIZE, { fit: "cover" })
+                .gif()
+                .toBuffer();
+        } else {
+            resizedBuffer = await sharp(inputBuffer)
+                .resize(TARGET_SIZE, TARGET_SIZE, { fit: "cover" })
+                .png()
+                .toBuffer();
+        }
+    } catch (error) {
+        console.error("failed to resize image:", error);
+        return new Response("failed to process image", { status: 500 });
     }
 
     const uuid = randomUUID();
-    const key = `avatars/${uuid}.${fileExtension}`;
+    const key = `avatars/${uuid}.${outputExtension}`;
     const publicUrlBase = s3PublicUrl || s3Endpoint;
     const publicUrl = `${publicUrlBase}/${key}`;
 
     try {
         const s3File = s3Client.file(key);
-        await s3File.write(file, { type: file.type });
+        await s3File.write(resizedBuffer, { type: outputMimeType });
     } catch (error) {
         console.error("failed to upload to S3:", error);
         return new Response("failed to upload image", { status: 500 });
