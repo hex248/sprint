@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { UploadAvatar } from "@/components/upload-avatar";
-import { capitalise, cn, getServerURL } from "@/lib/utils";
+import { capitalise, cn, getServerURL, setCsrfToken } from "@/lib/utils";
 
 const DEMO_USERS = [
     { name: "User 1", username: "u1", password: "a" },
@@ -43,14 +43,14 @@ export default function LogInForm() {
         fetch(`${getServerURL()}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-
             body: JSON.stringify({ username, password }),
+            credentials: "include",
         })
             .then(async (res) => {
                 if (res.status === 200) {
                     setError("");
                     const data = await res.json();
-                    localStorage.setItem("token", data.token);
+                    setCsrfToken(data.csrfToken);
                     localStorage.setItem("user", JSON.stringify(data.user));
                     const next = searchParams.get("next") || "/app";
                     navigate(next, { replace: true });
@@ -82,12 +82,13 @@ export default function LogInForm() {
                 password,
                 avatarURL,
             }),
+            credentials: "include",
         })
             .then(async (res) => {
                 if (res.status === 200) {
                     setError("");
                     const data = await res.json();
-                    localStorage.setItem("token", data.token);
+                    setCsrfToken(data.csrfToken);
                     localStorage.setItem("user", JSON.stringify(data.user));
                     const next = searchParams.get("next") || "/app";
                     navigate(next, { replace: true });

@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { clearAuth, cn, getCsrfToken, getServerURL } from "@/lib/utils";
 
 export default function LogOutButton({
     noStyle = false,
@@ -12,12 +12,20 @@ export default function LogOutButton({
 }) {
     const navigate = useNavigate();
 
-    const logOut = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("selectedOrganisationId");
-        localStorage.removeItem("selectedProjectId");
+    const logOut = async () => {
+        const csrfToken = getCsrfToken();
+        const headers: HeadersInit = {};
+        if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
+        try {
+            await fetch(`${getServerURL()}/auth/logout`, {
+                method: "POST",
+                headers,
+                credentials: "include",
+            });
+        } catch {}
+
+        clearAuth();
         navigate(0);
     };
 

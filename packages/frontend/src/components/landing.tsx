@@ -2,45 +2,34 @@ import type { UserRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { getServerURL } from "@/lib/utils";
+import { clearAuth, getServerURL, setCsrfToken } from "@/lib/utils";
 
 type AuthState = "unknown" | "authenticated" | "unauthenticated";
 
 export default function Landing() {
-    const [authState, setAuthState] = useState<AuthState>(() => {
-        // if token exists, assume authenticated until verified
-        return localStorage.getItem("token") ? "unknown" : "unauthenticated";
-    });
+    const [authState, setAuthState] = useState<AuthState>("unknown");
     const verifiedRef = useRef(false);
 
     useEffect(() => {
         if (verifiedRef.current) return;
         verifiedRef.current = true;
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setAuthState("unauthenticated");
-            return;
-        }
-
-        // verify token in background
         fetch(`${getServerURL()}/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then(async (res) => {
                 if (res.ok) {
-                    const user = (await res.json()) as UserRecord;
-                    localStorage.setItem("user", JSON.stringify(user));
+                    const data = (await res.json()) as { user: UserRecord; csrfToken: string };
+                    localStorage.setItem("user", JSON.stringify(data.user));
+                    setCsrfToken(data.csrfToken);
                     setAuthState("authenticated");
                 } else {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("user");
+                    clearAuth();
                     setAuthState("unauthenticated");
                 }
             })
             .catch(() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
+                clearAuth();
                 setAuthState("unauthenticated");
             });
     }, []);

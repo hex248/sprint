@@ -2,7 +2,7 @@ import type { UserRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import Loading from "@/components/loading";
-import { getServerURL } from "@/lib/utils";
+import { clearAuth, getServerURL, setCsrfToken } from "@/lib/utils";
 
 export function Auth({ children }: { children: React.ReactNode }) {
     const [loggedIn, setLoggedIn] = useState<boolean>();
@@ -12,29 +12,22 @@ export function Auth({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (fetched.current) return;
         fetched.current = true;
-        const token = localStorage.getItem("token");
-        if (!token) {
-            return setLoggedIn(false);
-        }
+
         fetch(`${getServerURL()}/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then(async (res) => {
                 if (!res.ok) {
                     throw new Error(`auth check failed: ${res.status}`);
                 }
-                return (await res.json()) as UserRecord;
-            })
-            .then((data) => {
+                const data = (await res.json()) as { user: UserRecord; csrfToken: string };
                 setLoggedIn(true);
-                localStorage.setItem("user", JSON.stringify(data));
+                setCsrfToken(data.csrfToken);
+                localStorage.setItem("user", JSON.stringify(data.user));
             })
             .catch(() => {
                 setLoggedIn(false);
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                localStorage.removeItem("selectedOrganisationId");
-                localStorage.removeItem("selectedProjectId");
+                clearAuth();
             });
     }, []);
 

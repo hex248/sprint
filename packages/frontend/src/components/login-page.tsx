@@ -1,8 +1,9 @@
+import type { UserRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loading from "@/components/loading";
 import LogInForm from "@/components/login-form";
-import { getServerURL } from "@/lib/utils";
+import { clearAuth, getServerURL, setCsrfToken } from "@/lib/utils";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -14,24 +15,18 @@ export default function LoginPage() {
         if (checkedRef.current) return;
         checkedRef.current = true;
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setChecking(false);
-            return;
-        }
-
         fetch(`${getServerURL()}/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
         })
             .then(async (res) => {
                 if (res.ok) {
-                    // logged in, redirect to next if defined
-                    // fallback to /app
+                    const data = (await res.json()) as { user: UserRecord; csrfToken: string };
+                    setCsrfToken(data.csrfToken);
+                    localStorage.setItem("user", JSON.stringify(data.user));
                     const next = searchParams.get("next") || "/app";
                     navigate(next, { replace: true });
                 } else {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("user");
+                    clearAuth();
                     setChecking(false);
                 }
             })
