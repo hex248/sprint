@@ -31,8 +31,16 @@ export default async function register(req: BunRequest) {
         return new Response("username must be 1-32 characters", { status: 400 });
     }
 
-    if (password.length < 1) {
-        return new Response("password must be at least 1 character", { status: 400 });
+    if (password.length < 8) {
+        return new Response("password must be at least 8 characters", { status: 400 });
+    }
+
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+        return new Response("password must contain uppercase, lowercase, and numbers", { status: 400 });
     }
 
     const existing = await getUserByUsername(username);
