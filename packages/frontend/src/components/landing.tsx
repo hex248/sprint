@@ -47,9 +47,9 @@ export default function Landing() {
 
     return (
         <div className="min-h-screen flex flex-col">
-            <header className="flex items-center justify-between p-2 border-b">
-                <div className="text-lg font-semibold">Issue</div>
-                <nav className="flex items-center gap-4">
+            <header className="relative flex items-center justify-center p-2 border-b">
+                <div className="text-3xl font-basteleur font-700">Issue</div>
+                <nav className="absolute right-2 flex items-center gap-4">
                     {authState === "authenticated" ? (
                         <Button asChild variant="outline" size="sm">
                             <Link to="/app">Open app</Link>
@@ -63,14 +63,14 @@ export default function Landing() {
             </header>
 
             <main className="flex-1 flex flex-col items-center justify-center gap-8">
-                <div className="max-w-2xl text-center space-y-4">
-                    <h1 className="text-4xl font-600">
-                        Does your team need a snappy project management tool?
+                <div className="max-w-3xl text-center space-y-4">
+                    <h1 className="text-[54px] font-basteleur font-700">
+                        Need a snappy project management tool?
                     </h1>
-                    <p className="text-md text-muted-foreground font-500">
-                        Build your next project with <span className="font-700">Issue</span>.
+                    <p className="text-[24px] font-goudy text-muted-foreground">
+                        Build your next project with <span className="font-goudy font-700">Issue.</span>
                     </p>
-                    <p className="text-md text-muted-foreground font-400">
+                    <p className="text-[18px] font-goudy text-muted-foreground">
                         Sick of Jira? Say hello to your new favorite project management tool.
                     </p>
                 </div>
