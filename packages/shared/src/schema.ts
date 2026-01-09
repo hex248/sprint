@@ -45,6 +45,16 @@ export const Project = pgTable("Project", {
         .references(() => User.id),
 });
 
+export const Session = pgTable("Session", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer()
+        .notNull()
+        .references(() => User.id),
+    csrfToken: varchar({ length: 64 }).notNull(),
+    expiresAt: timestamp({ withTimezone: false }).notNull(),
+    createdAt: timestamp({ withTimezone: false }).defaultNow(),
+});
+
 export const Issue = pgTable(
     "Issue",
     {
@@ -86,6 +96,9 @@ export const ProjectInsertSchema = createInsertSchema(Project);
 export const IssueSelectSchema = createSelectSchema(Issue);
 export const IssueInsertSchema = createInsertSchema(Issue);
 
+export const SessionSelectSchema = createSelectSchema(Session);
+export const SessionInsertSchema = createInsertSchema(Session);
+
 // Types
 export type UserRecord = z.infer<typeof UserSelectSchema>;
 export type UserInsert = z.infer<typeof UserInsertSchema>;
@@ -101,6 +114,9 @@ export type ProjectInsert = z.infer<typeof ProjectInsertSchema>;
 
 export type IssueRecord = z.infer<typeof IssueSelectSchema>;
 export type IssueInsert = z.infer<typeof IssueInsertSchema>;
+
+export type SessionRecord = z.infer<typeof SessionSelectSchema>;
+export type SessionInsert = z.infer<typeof SessionInsertSchema>;
 
 // Responses
 

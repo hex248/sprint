@@ -11,6 +11,8 @@ export type {
     ProjectInsert,
     ProjectRecord,
     ProjectResponse,
+    SessionInsert,
+    SessionRecord,
     UserInsert,
     UserRecord,
 } from "./schema";
@@ -27,6 +29,9 @@ export {
     Project,
     ProjectInsertSchema,
     ProjectSelectSchema,
+    Session,
+    SessionInsertSchema,
+    SessionSelectSchema,
     User,
     UserInsertSchema,
     UserSelectSchema,
