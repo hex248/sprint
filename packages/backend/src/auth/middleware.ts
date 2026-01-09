@@ -89,6 +89,11 @@ const buildCorsHeaders = (req: Request) => {
 export const withCors = <T extends BunRequest>(handler: RouteHandler<T>): RouteHandler<T> => {
     return async (req: T) => {
         const corsHeaders = buildCorsHeaders(req);
+        const securityHeaders = new Headers();
+        securityHeaders.set("X-Content-Type-Options", "nosniff");
+        securityHeaders.set("X-Frame-Options", "DENY");
+        securityHeaders.set("X-XSS-Protection", "1; mode=block");
+        securityHeaders.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
         if (req.method === "OPTIONS") {
             return new Response(null, { status: 204, headers: corsHeaders });
@@ -98,6 +103,10 @@ export const withCors = <T extends BunRequest>(handler: RouteHandler<T>): RouteH
         const wrapped = new Response(res.body, res);
 
         corsHeaders.forEach((value, key) => {
+            wrapped.headers.set(key, value);
+        });
+
+        securityHeaders.forEach((value, key) => {
             wrapped.headers.set(key, value);
         });
 
