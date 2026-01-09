@@ -1,5 +1,6 @@
-- landing/marketing page
-  - add loading state to landing CTAs during auth verification
+- setup guide
+- pricing page
+- github link
 - dedicated /register route (currently login/register are combined on /login)
 - real logo
 - org settings
