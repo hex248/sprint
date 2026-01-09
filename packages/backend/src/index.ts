@@ -66,6 +66,11 @@ const main = async () => {
             "/projects/by-organisation": withCors(withAuth(routes.projectsByOrganisation)),
             "/projects/all": withCors(withAuth(routes.projectsAll)),
             "/projects/with-creators": withCors(withAuth(routes.projectsWithCreators)),
+
+            "/timer/toggle": withCors(withAuth(withCSRF(routes.timerToggle))),
+            "/timer/end": withCors(withAuth(withCSRF(routes.timerEnd))),
+            "/timer/get": withCors(withAuth(withCSRF(routes.timerGet))),
+            "/timers": withCors(withAuth(withCSRF(routes.timers))),
         },
     });
 

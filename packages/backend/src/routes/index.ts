@@ -24,6 +24,10 @@ import projectDelete from "./project/delete";
 import projectUpdate from "./project/update";
 import projectWithCreator from "./project/with-creator";
 import projectsWithCreators from "./project/with-creators";
+import timerEnd from "./timer/end";
+import timerGet from "./timer/get";
+import timerToggle from "./timer/toggle";
+import timers from "./timers";
 import userByUsername from "./user/by-username";
 import userUpdate from "./user/update";
 import userUploadAvatar from "./user/upload-avatar";
@@ -65,4 +69,9 @@ export const routes = {
     projectsByOrganisation,
     projectsAll,
     projectsWithCreators,
+
+    timerToggle,
+    timerGet,
+    timerEnd,
+    timers,
 };
