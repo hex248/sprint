@@ -1,12 +1,13 @@
 import type { UserRecord } from "@issue/shared";
 import { useEffect, useRef, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import Loading from "@/components/loading";
-import LogInForm from "@/components/login-form";
 import { getServerURL } from "@/lib/utils";
 
-export function Auth({ children }: { children: React.ReactNode; loggedInDefault?: boolean }) {
+export function Auth({ children }: { children: React.ReactNode }) {
     const [loggedIn, setLoggedIn] = useState<boolean>();
     const fetched = useRef(false);
+    const location = useLocation();
 
     useEffect(() => {
         if (fetched.current) return;
@@ -40,12 +41,11 @@ export function Auth({ children }: { children: React.ReactNode; loggedInDefault?
     if (loggedIn) {
         return <>{children}</>;
     }
-    if (loggedIn === false)
-        return (
-            <div className="flex flex-col items-center justify-center gap-4 w-full h-[100vh]">
-                <LogInForm />
-            </div>
-        );
 
-    return <Loading message={"Understanding your authentication state"} />;
+    if (loggedIn === false) {
+        const next = encodeURIComponent(location.pathname + location.search);
+        return <Navigate to={`/login?next=${next}`} replace />;
+    }
+
+    return <Loading message={"Checking authentication"} />;
 }

@@ -2,6 +2,7 @@
 
 import { AlertTriangle, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Avatar from "@/components/avatar";
 import { ServerConfigurationDialog } from "@/components/server-configuration-dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,9 @@ const DEMO_USERS = [
 ];
 
 export default function LogInForm() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
     const [loginDetailsOpen, setLoginDetailsOpen] = useState(false);
     const [showWarning, setShowWarning] = useState(() => {
         return localStorage.getItem("hide-under-construction") !== "true";
@@ -48,7 +52,8 @@ export default function LogInForm() {
                     const data = await res.json();
                     localStorage.setItem("token", data.token);
                     localStorage.setItem("user", JSON.stringify(data.user));
-                    window.location.href = "";
+                    const next = searchParams.get("next") || "/app";
+                    navigate(next, { replace: true });
                 }
                 // unauthorized
                 else if (res.status === 401) {
@@ -84,7 +89,8 @@ export default function LogInForm() {
                     const data = await res.json();
                     localStorage.setItem("token", data.token);
                     localStorage.setItem("user", JSON.stringify(data.user));
-                    window.location.href = "";
+                    const next = searchParams.get("next") || "/app";
+                    navigate(next, { replace: true });
                 }
                 // bad request (probably a bad user input)
                 else if (res.status === 400) {

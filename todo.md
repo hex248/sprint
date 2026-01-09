@@ -1,6 +1,8 @@
 - landing/marketing page
   - does your team need a snappy project management tool?
   - build your next project with Issue (might need a new name...)
+  - add loading state to landing CTAs during auth verification
+- dedicated /register route (currently login/register are combined on /login)
 - real logo
 - org settings
 - sprints
@@ -10,7 +12,7 @@
     - admins are capable of deleting comments from members who are at their permission level or below (not sure if this should apply, or if ANYONE should have control over others' comments - people in an org tend to be trusted to not be trolls)
   - status
     - predefined statuses are added to organisation by default. list of statuses can be edited by owner/admin (maybe this should be on projects rather than organisations?)
-  - sprints
+  - sprint
 - time tracking (linked to issues or standalone)
 - user preferences
   - "assign to me by default" option for new issues

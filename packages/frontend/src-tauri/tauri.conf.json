@@ -5,7 +5,7 @@
     "identifier": "com.hex248.issue",
     "build": {
         "beforeDevCommand": "bun run dev",
-        "devUrl": "http://localhost:1420",
+        "devUrl": "http://localhost:1420/app",
         "beforeBuildCommand": "bun run build",
         "frontendDist": "../dist"
     },
@@ -17,7 +17,8 @@
                 "height": 900,
                 "minWidth": 640,
                 "minHeight": 360,
-                "decorations": false
+                "decorations": false,
+                "url": "/app"
             }
         ],
         "security": {
