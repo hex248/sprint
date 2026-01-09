@@ -15,4 +15,3 @@
 - time tracking (linked to issues or standalone)
 - user preferences
   - "assign to me by default" option for new issues
-- org member role promotion/demotion

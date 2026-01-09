@@ -1,5 +1,5 @@
 import type { OrganisationMemberResponse, OrganisationResponse } from "@issue/shared";
-import { Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { AddMemberDialog } from "@/components/add-member-dialog";
@@ -30,9 +30,21 @@ function OrganisationsDialog({
     const [members, setMembers] = useState<OrganisationMemberResponse[]>([]);
     const [confirmDialog, setConfirmDialog] = useState<{
         open: boolean;
-        memberUserId: number;
-        memberName: string;
-    }>({ open: false, memberUserId: 0, memberName: "" });
+        title: string;
+        message: string;
+        confirmText: string;
+        processingText: string;
+        variant: "default" | "destructive";
+        onConfirm: () => Promise<void>;
+    }>({
+        open: false,
+        title: "",
+        message: "",
+        confirmText: "",
+        processingText: "",
+        variant: "default",
+        onConfirm: async () => {},
+    });
 
     const refetchMembers = useCallback(async () => {
         if (!selectedOrganisation) return;
@@ -60,34 +72,70 @@ function OrganisationsDialog({
         }
     }, [selectedOrganisation]);
 
-    const handleRemoveMember = async (memberUserId: number, memberName: string) => {
-        setConfirmDialog({ open: true, memberUserId, memberName });
-    };
-
-    const confirmRemoveMember = async () => {
+    const handleRoleChange = (memberUserId: number, memberName: string, currentRole: string) => {
         if (!selectedOrganisation) return;
-
-        try {
-            await organisation.removeMember({
-                organisationId: selectedOrganisation.Organisation.id,
-                userId: confirmDialog.memberUserId,
-                onSuccess: () => {
-                    setConfirmDialog({ open: false, memberUserId: 0, memberName: "" });
-                    void refetchMembers();
-                },
-                onError: (error) => {
-                    console.error(error);
-                },
-            });
-        } catch (err) {
-            console.error(err);
-        }
+        const action = currentRole === "admin" ? "demote" : "promote";
+        const newRole = currentRole === "admin" ? "member" : "admin";
+        setConfirmDialog({
+            open: true,
+            title: action === "promote" ? "Promote Member" : "Demote Member",
+            message: `Are you sure you want to ${action} ${memberName} to ${newRole}?`,
+            confirmText: action === "promote" ? "Promote" : "Demote",
+            processingText: action === "promote" ? "Promoting..." : "Demoting...",
+            variant: action === "demote" ? "destructive" : "default",
+            onConfirm: async () => {
+                try {
+                    await organisation.updateMemberRole({
+                        organisationId: selectedOrganisation.Organisation.id,
+                        userId: memberUserId,
+                        role: newRole,
+                        onSuccess: () => {
+                            closeConfirmDialog();
+                            void refetchMembers();
+                        },
+                        onError: (error) => {
+                            console.error(error);
+                        },
+                    });
+                } catch (err) {
+                    console.error(err);
+                }
+            },
+        });
     };
 
-    // useEffect(() => {
-    //     if (!open) return;
-    //     void refetchOrganisations();
-    // }, [open, refetchOrganisations]);
+    const closeConfirmDialog = () => {
+        setConfirmDialog((prev) => ({ ...prev, open: false }));
+    };
+
+    const handleRemoveMember = (memberUserId: number, memberName: string) => {
+        if (!selectedOrganisation) return;
+        setConfirmDialog({
+            open: true,
+            title: "Remove Member",
+            message: `Are you sure you want to remove ${memberName} from this organisation?`,
+            confirmText: "Remove",
+            processingText: "Removing...",
+            variant: "destructive",
+            onConfirm: async () => {
+                try {
+                    await organisation.removeMember({
+                        organisationId: selectedOrganisation.Organisation.id,
+                        userId: memberUserId,
+                        onSuccess: () => {
+                            closeConfirmDialog();
+                            void refetchMembers();
+                        },
+                        onError: (error) => {
+                            console.error(error);
+                        },
+                    });
+                } catch (err) {
+                    console.error(err);
+                }
+            },
+        });
+    };
 
     useEffect(() => {
         if (!open) return;
@@ -168,24 +216,47 @@ function OrganisationsDialog({
                                                         {member.OrganisationMember.role}
                                                     </span>
                                                 </div>
-                                                {(selectedOrganisation.OrganisationMember.role === "owner" ||
-                                                    selectedOrganisation.OrganisationMember.role ===
-                                                        "admin") &&
-                                                    member.OrganisationMember.role !== "owner" &&
-                                                    member.User.id !== user.id && (
-                                                        <Button
-                                                            variant="dummy"
-                                                            size="none"
-                                                            onClick={() =>
-                                                                handleRemoveMember(
-                                                                    member.User.id,
-                                                                    member.User.name,
-                                                                )
-                                                            }
-                                                        >
-                                                            <X className="size-5 text-destructive" />
-                                                        </Button>
-                                                    )}
+                                                <div className="flex items-center gap-2">
+                                                    {(selectedOrganisation.OrganisationMember.role ===
+                                                        "owner" ||
+                                                        selectedOrganisation.OrganisationMember.role ===
+                                                            "admin") &&
+                                                        member.OrganisationMember.role !== "owner" &&
+                                                        member.User.id !== user.id && (
+                                                            <>
+                                                                <Button
+                                                                    variant="dummy"
+                                                                    size="none"
+                                                                    onClick={() =>
+                                                                        handleRoleChange(
+                                                                            member.User.id,
+                                                                            member.User.name,
+                                                                            member.OrganisationMember.role,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {member.OrganisationMember.role ===
+                                                                    "admin" ? (
+                                                                        <ChevronDown className="size-5 text-yellow-500" />
+                                                                    ) : (
+                                                                        <ChevronUp className="size-5 text-green-500" />
+                                                                    )}
+                                                                </Button>
+                                                                <Button
+                                                                    variant="dummy"
+                                                                    size="none"
+                                                                    onClick={() =>
+                                                                        handleRemoveMember(
+                                                                            member.User.id,
+                                                                            member.User.name,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <X className="size-5 text-destructive" />
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -211,13 +282,13 @@ function OrganisationsDialog({
 
                     <ConfirmDialog
                         open={confirmDialog.open}
-                        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-                        onConfirm={confirmRemoveMember}
-                        title="Remove Member"
-                        processingText="Removing..."
-                        message={`Are you sure you want to remove ${confirmDialog.memberName} from this organisation?`}
-                        confirmText="Remove"
-                        variant="destructive"
+                        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+                        onConfirm={confirmDialog.onConfirm}
+                        title={confirmDialog.title}
+                        processingText={confirmDialog.processingText}
+                        message={confirmDialog.message}
+                        confirmText={confirmDialog.confirmText}
+                        variant={confirmDialog.variant}
                     />
                 </div>
             </DialogContent>
