@@ -1,0 +1,2 @@
+ALTER TABLE "Issue" ADD COLUMN "status" varchar(64) DEFAULT 'TO DO' NOT NULL;--> statement-breakpoint
+ALTER TABLE "Organisation" ADD COLUMN "statuses" varchar(64)[] DEFAULT '{"TO DO","IN PROGRESS","REVIEW","DONE"}' NOT NULL;

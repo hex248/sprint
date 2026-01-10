@@ -17,6 +17,7 @@ export const Organisation = pgTable("Organisation", {
     name: varchar({ length: 256 }).notNull(),
     description: varchar({ length: 1024 }),
     slug: varchar({ length: 64 }).notNull().unique(),
+    statuses: varchar({ length: 64 }).array().notNull().default(["TO DO", "IN PROGRESS", "REVIEW", "DONE"]),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });
@@ -80,6 +81,7 @@ export const Issue = pgTable(
 
         title: varchar({ length: 256 }).notNull(),
         description: varchar({ length: 2048 }).notNull(),
+        status: varchar({ length: 64 }).notNull().default("TO DO"),
 
         creatorId: integer()
             .notNull()
