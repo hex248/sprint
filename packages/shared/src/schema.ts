@@ -8,10 +8,8 @@ import {
     ORG_DESCRIPTION_MAX_LENGTH,
     ORG_NAME_MAX_LENGTH,
     ORG_SLUG_MAX_LENGTH,
-    PROJECT_DESCRIPTION_MAX_LENGTH,
     PROJECT_NAME_MAX_LENGTH,
-    PROJECT_SLUG_MAX_LENGTH,
-} from "./index";
+} from "./constants";
 
 export const User = pgTable("User", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -52,8 +50,6 @@ export const Project = pgTable("Project", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     key: varchar({ length: 4 }).notNull(),
     name: varchar({ length: PROJECT_NAME_MAX_LENGTH }).notNull(),
-    description: varchar({ length: PROJECT_DESCRIPTION_MAX_LENGTH }),
-    slug: varchar({ length: PROJECT_SLUG_MAX_LENGTH }).notNull().unique(),
     organisationId: integer()
         .notNull()
         .references(() => Organisation.id),

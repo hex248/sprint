@@ -1,3 +1,15 @@
+export {
+    ISSUE_DESCRIPTION_MAX_LENGTH,
+    ISSUE_STATUS_MAX_LENGTH,
+    ISSUE_TITLE_MAX_LENGTH,
+    ORG_DESCRIPTION_MAX_LENGTH,
+    ORG_NAME_MAX_LENGTH,
+    ORG_SLUG_MAX_LENGTH,
+    PROJECT_DESCRIPTION_MAX_LENGTH,
+    PROJECT_NAME_MAX_LENGTH,
+    PROJECT_SLUG_MAX_LENGTH,
+} from "./constants";
+
 export type {
     IssueInsert,
     IssueRecord,
@@ -41,17 +53,5 @@ export {
     UserInsertSchema,
     UserSelectSchema,
 } from "./schema";
-
-export const ORG_NAME_MAX_LENGTH = 256;
-export const ORG_DESCRIPTION_MAX_LENGTH = 1024;
-export const ORG_SLUG_MAX_LENGTH = 64;
-
-export const PROJECT_NAME_MAX_LENGTH = 256;
-export const PROJECT_DESCRIPTION_MAX_LENGTH = 1024;
-export const PROJECT_SLUG_MAX_LENGTH = 64;
-
-export const ISSUE_TITLE_MAX_LENGTH = 256;
-export const ISSUE_DESCRIPTION_MAX_LENGTH = 2048;
-export const ISSUE_STATUS_MAX_LENGTH = 24;
 
 export { calculateBreakTimeMs, calculateWorkTimeMs, isTimerRunning } from "./utils/time-tracking";
