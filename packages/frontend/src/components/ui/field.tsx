@@ -13,6 +13,7 @@ export function Field({
     error,
     tabIndex,
     spellcheck,
+    maxLength,
 }: {
     label: string;
     value?: string;
@@ -24,6 +25,7 @@ export function Field({
     error?: string;
     tabIndex?: number;
     spellcheck?: boolean;
+    maxLength?: number;
 }) {
     const [internalTouched, setInternalTouched] = useState(false);
     const isTouched = submitAttempted || internalTouched;
@@ -56,6 +58,7 @@ export function Field({
                 type={hidden ? "password" : "text"}
                 tabIndex={tabIndex}
                 spellCheck={spellcheck}
+                maxLength={maxLength}
             />
             <div className="flex items-end justify-end w-full text-xs mb-0 -mt-1">
                 {error || invalidMessage !== "" ? (
