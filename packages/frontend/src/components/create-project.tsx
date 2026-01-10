@@ -1,4 +1,4 @@
-import type { ProjectRecord } from "@issue/shared";
+import { PROJECT_NAME_MAX_LENGTH, type ProjectRecord } from "@issue/shared";
 import { type FormEvent, useState } from "react";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,12 @@ export function CreateProject({
         setError(null);
         setSubmitAttempted(true);
 
-        if (name.trim() === "" || key.trim() === "" || key.length > 4) {
+        if (
+            name.trim() === "" ||
+            name.trim().length > PROJECT_NAME_MAX_LENGTH ||
+            key.trim() === "" ||
+            key.length > 4
+        ) {
             return;
         }
 
@@ -115,7 +120,7 @@ export function CreateProject({
                 )}
             </DialogTrigger>
 
-            <DialogContent className={cn("w-md", error && "border-destructive")}>
+            <DialogContent className={cn("w-md", error ? "border-destructive" : "")}>
                 <DialogHeader>
                     <DialogTitle>Create Project</DialogTitle>
                 </DialogHeader>
@@ -132,9 +137,16 @@ export function CreateProject({
                                     setKey(keyify(nextName));
                                 }
                             }}
-                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            validate={(v) => {
+                                if (v.trim() === "") return "Cannot be empty";
+                                if (v.trim().length > PROJECT_NAME_MAX_LENGTH) {
+                                    return `Too long (${PROJECT_NAME_MAX_LENGTH} character limit)`;
+                                }
+                                return undefined;
+                            }}
                             submitAttempted={submitAttempted}
                             placeholder="Demo Project"
+                            maxLength={PROJECT_NAME_MAX_LENGTH}
                         />
                         <Field
                             label="Key"
@@ -171,6 +183,7 @@ export function CreateProject({
                                 disabled={
                                     submitting ||
                                     (name.trim() === "" && submitAttempted) ||
+                                    (name.trim().length > PROJECT_NAME_MAX_LENGTH && submitAttempted) ||
                                     ((key.trim() === "" || key.length > 4) && submitAttempted)
                                 }
                             >

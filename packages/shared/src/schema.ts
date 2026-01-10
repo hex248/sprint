@@ -1,6 +1,17 @@
 import { integer, pgTable, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
+import {
+    ISSUE_DESCRIPTION_MAX_LENGTH,
+    ISSUE_STATUS_MAX_LENGTH,
+    ISSUE_TITLE_MAX_LENGTH,
+    ORG_DESCRIPTION_MAX_LENGTH,
+    ORG_NAME_MAX_LENGTH,
+    ORG_SLUG_MAX_LENGTH,
+    PROJECT_DESCRIPTION_MAX_LENGTH,
+    PROJECT_NAME_MAX_LENGTH,
+    PROJECT_SLUG_MAX_LENGTH,
+} from "./index";
 
 export const User = pgTable("User", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -14,10 +25,13 @@ export const User = pgTable("User", {
 
 export const Organisation = pgTable("Organisation", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    name: varchar({ length: 256 }).notNull(),
-    description: varchar({ length: 1024 }),
-    slug: varchar({ length: 64 }).notNull().unique(),
-    statuses: varchar({ length: 64 }).array().notNull().default(["TO DO", "IN PROGRESS", "REVIEW", "DONE"]),
+    name: varchar({ length: ORG_NAME_MAX_LENGTH }).notNull(),
+    description: varchar({ length: ORG_DESCRIPTION_MAX_LENGTH }),
+    slug: varchar({ length: ORG_SLUG_MAX_LENGTH }).notNull().unique(),
+    statuses: varchar({ length: ISSUE_STATUS_MAX_LENGTH })
+        .array()
+        .notNull()
+        .default(["TO DO", "IN PROGRESS", "REVIEW", "DONE", "ARCHIVED", "MERGED"]),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });
@@ -37,7 +51,9 @@ export const OrganisationMember = pgTable("OrganisationMember", {
 export const Project = pgTable("Project", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     key: varchar({ length: 4 }).notNull(),
-    name: varchar({ length: 256 }).notNull(),
+    name: varchar({ length: PROJECT_NAME_MAX_LENGTH }).notNull(),
+    description: varchar({ length: PROJECT_DESCRIPTION_MAX_LENGTH }),
+    slug: varchar({ length: PROJECT_SLUG_MAX_LENGTH }).notNull().unique(),
     organisationId: integer()
         .notNull()
         .references(() => Organisation.id),
@@ -79,9 +95,9 @@ export const Issue = pgTable(
 
         number: integer("number").notNull(),
 
-        title: varchar({ length: 256 }).notNull(),
-        description: varchar({ length: 2048 }).notNull(),
-        status: varchar({ length: 64 }).notNull().default("TO DO"),
+        title: varchar({ length: ISSUE_TITLE_MAX_LENGTH }).notNull(),
+        description: varchar({ length: ISSUE_DESCRIPTION_MAX_LENGTH }).notNull(),
+        status: varchar({ length: ISSUE_STATUS_MAX_LENGTH }).notNull().default("TO DO"),
 
         creatorId: integer()
             .notNull()

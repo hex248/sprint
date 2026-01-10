@@ -1,3 +1,4 @@
+import { ORG_DESCRIPTION_MAX_LENGTH, ORG_NAME_MAX_LENGTH, ORG_SLUG_MAX_LENGTH } from "@issue/shared";
 import { type FormEvent, useState } from "react";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
@@ -62,8 +63,9 @@ export function CreateOrganisation({
         setError(null);
         setSubmitAttempted(true);
 
-        if (name.trim() === "" || name.trim().length > 16) return;
-        if (slug.trim() === "" || slug.trim().length > 16) return;
+        if (name.trim() === "" || name.trim().length > ORG_NAME_MAX_LENGTH) return;
+        if (slug.trim() === "" || slug.trim().length > ORG_SLUG_MAX_LENGTH) return;
+        if (description.trim().length > ORG_DESCRIPTION_MAX_LENGTH) return;
 
         if (!user.id) {
             setError("you must be logged in to create an organisation");
@@ -104,7 +106,7 @@ export function CreateOrganisation({
                 {trigger || <Button variant="outline">Create Organisation</Button>}
             </DialogTrigger>
 
-            <DialogContent className={cn("w-md", error && "border-destructive")}>
+            <DialogContent className={cn("w-md", error ? "border-destructive" : "")}>
                 <DialogHeader>
                     <DialogTitle>Create Organisation</DialogTitle>
                     {/* <DialogDescription>Enter the details for the new organisation.</DialogDescription> */}
@@ -122,15 +124,16 @@ export function CreateOrganisation({
                                     setSlug(slugify(nextName));
                                 }
                             }}
-                            validate={(v) =>
-                                v.trim() === ""
-                                    ? "Cannot be empty"
-                                    : v.trim().length > 16
-                                      ? "Too long (16 character limit)"
-                                      : undefined
-                            }
+                            validate={(v) => {
+                                if (v.trim() === "") return "Cannot be empty";
+                                if (v.trim().length > ORG_NAME_MAX_LENGTH) {
+                                    return `Too long (${ORG_NAME_MAX_LENGTH} character limit)`;
+                                }
+                                return undefined;
+                            }}
                             submitAttempted={submitAttempted}
                             placeholder="Demo Organisation"
+                            maxLength={ORG_NAME_MAX_LENGTH}
                         />
                         <Field
                             label="Slug"
@@ -139,25 +142,30 @@ export function CreateOrganisation({
                                 setSlug(slugify(e.target.value));
                                 setSlugManuallyEdited(true);
                             }}
-                            validate={(v) =>
-                                v.trim() === ""
-                                    ? "Cannot be empty"
-                                    : v.trim().length > 16
-                                      ? "Too long (16 character limit)"
-                                      : undefined
-                            }
+                            validate={(v) => {
+                                if (v.trim() === "") return "Cannot be empty";
+                                if (v.trim().length > ORG_SLUG_MAX_LENGTH) {
+                                    return `Too long (${ORG_SLUG_MAX_LENGTH} character limit)`;
+                                }
+                                return undefined;
+                            }}
                             submitAttempted={submitAttempted}
                             placeholder="demo-organisation"
+                            maxLength={ORG_SLUG_MAX_LENGTH}
                         />
                         <Field
                             label="Description (optional)"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            validate={(v) =>
-                                v.trim().length > 2048 ? "Too long (2048 character limit)" : undefined
-                            }
+                            validate={(v) => {
+                                if (v.trim().length > ORG_DESCRIPTION_MAX_LENGTH) {
+                                    return `Too long (${ORG_DESCRIPTION_MAX_LENGTH} character limit)`;
+                                }
+                                return undefined;
+                            }}
                             submitAttempted={submitAttempted}
                             placeholder="What is this organisation for?"
+                            maxLength={ORG_DESCRIPTION_MAX_LENGTH}
                         />
 
                         <div className="flex items-end justify-end w-full text-xs -mb-2 -mt-2">
@@ -179,9 +187,10 @@ export function CreateOrganisation({
                                 disabled={
                                     submitting ||
                                     name.trim() === "" ||
-                                    name.trim().length > 16 ||
+                                    name.trim().length > ORG_NAME_MAX_LENGTH ||
                                     slug.trim() === "" ||
-                                    slug.trim().length > 16
+                                    slug.trim().length > ORG_SLUG_MAX_LENGTH ||
+                                    description.trim().length > ORG_DESCRIPTION_MAX_LENGTH
                                 }
                             >
                                 {submitting ? "Creating..." : "Create"}
