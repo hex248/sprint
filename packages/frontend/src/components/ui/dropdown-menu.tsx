@@ -14,28 +14,34 @@ function DropdownMenuPortal({ ...props }: React.ComponentProps<typeof DropdownMe
 function DropdownMenuTrigger({
     className,
     size = "default",
+    noStyle = false,
     ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger> & {
     size?: "sm" | "default";
+    noStyle?: boolean;
 }) {
     return (
         <DropdownMenuPrimitive.Trigger
             data-slot="dropdown-menu-trigger"
             data-size={size}
-            className={cn(
-                "cursor-pointer border data-[placeholder]:text-muted-foreground",
-                "[&_svg:not([class*='text-'])]:text-foreground",
-                "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
-                "aria-invalid:border-destructive dark:hover:bg-muted/40",
-                "flex w-fit items-center justify-between gap-2 border",
-                "bg-transparent px-3 py-2 text-sm whitespace-nowrap",
-                "shadow-xs outline-none disabled:cursor-not-allowed",
-                "disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8",
-                "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex",
-                "*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
-                "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-                className,
-            )}
+            className={
+                noStyle
+                    ? cn(className)
+                    : cn(
+                          "cursor-pointer border data-[placeholder]:text-muted-foreground",
+                          "[&_svg:not([class*='text-'])]:text-foreground",
+                          "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
+                          "aria-invalid:border-destructive dark:hover:bg-muted/40",
+                          "flex w-fit items-center justify-between gap-2 border",
+                          "bg-transparent px-3 py-2 text-sm whitespace-nowrap",
+                          "shadow-xs outline-none disabled:cursor-not-allowed",
+                          "disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8",
+                          "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex",
+                          "*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
+                          "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                          className,
+                      )
+            }
             {...props}
         />
     );

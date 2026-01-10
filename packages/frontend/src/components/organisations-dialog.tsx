@@ -4,7 +4,7 @@ import {
     type OrganisationMemberResponse,
     type OrganisationResponse,
 } from "@issue/shared";
-import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, EllipsisVertical, Plus, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { AddMemberDialog } from "@/components/add-member-dialog";
@@ -16,6 +16,12 @@ import { Button } from "@/components/ui/button";
 import ColourPicker from "@/components/ui/colour-picker";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -207,6 +213,7 @@ function OrganisationsDialog({
         newStatuses[trimmed] = newStatusColour;
         await updateStatuses(newStatuses);
         setNewStatusName("");
+        setNewStatusColour(DEFAULT_STATUS_COLOUR);
         setIsCreatingStatus(false);
         setStatusError(null);
     };
@@ -421,42 +428,58 @@ function OrganisationsDialog({
                                                         />
                                                     </div>
                                                     {isAdmin && (
-                                                        <div className="flex items-center gap-2">
-                                                            <Button
-                                                                variant="dummy"
-                                                                size="none"
-                                                                disabled={index === 0}
-                                                                onClick={() => void moveStatus(status, "up")}
-                                                                aria-label="Move status up"
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger
+                                                                asChild
+                                                                size={"sm"}
+                                                                noStyle
+                                                                className="hover:opacity-80 cursor-pointer"
                                                             >
-                                                                <ChevronUp className="size-5 text-muted-foreground" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="dummy"
-                                                                size="none"
-                                                                disabled={
-                                                                    index === Object.keys(statuses).length - 1
-                                                                }
-                                                                onClick={() =>
-                                                                    void moveStatus(status, "down")
-                                                                }
-                                                                aria-label="Move status down"
+                                                                <EllipsisVertical className="size-4 text-foreground" />
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent
+                                                                align="end"
+                                                                sideOffset={4}
+                                                                className="bg-background"
                                                             >
-                                                                <ChevronDown className="size-5 text-muted-foreground" />
-                                                            </Button>
-                                                            {Object.keys(statuses).length > 1 && (
-                                                                <Button
-                                                                    variant="dummy"
-                                                                    size="none"
-                                                                    onClick={() =>
+                                                                <DropdownMenuItem
+                                                                    disabled={index === 0}
+                                                                    onSelect={() =>
+                                                                        void moveStatus(status, "up")
+                                                                    }
+                                                                    className="hover:bg-primary-foreground"
+                                                                >
+                                                                    <ChevronUp className="size-4 text-muted-foreground" />
+                                                                    Move up
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    disabled={
+                                                                        index ===
+                                                                        Object.keys(statuses).length - 1
+                                                                    }
+                                                                    onSelect={() =>
+                                                                        void moveStatus(status, "down")
+                                                                    }
+                                                                    className="hover:bg-primary-foreground"
+                                                                >
+                                                                    <ChevronDown className="size-4 text-muted-foreground" />
+                                                                    Move down
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    variant="destructive"
+                                                                    disabled={
+                                                                        Object.keys(statuses).length <= 1
+                                                                    }
+                                                                    onSelect={() =>
                                                                         handleRemoveStatusClick(status)
                                                                     }
-                                                                    aria-label="Remove status"
+                                                                    className="hover:bg-destructive/10"
                                                                 >
-                                                                    <X className="size-5 text-destructive" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
+                                                                    <X className="size-4" />
+                                                                    Remove
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     )}
                                                 </div>
                                             ))}
@@ -564,19 +587,22 @@ function OrganisationsDialog({
                             }
                         }}
                     >
-                        <DialogContent>
+                        <DialogContent className="sm:max-w-lg">
                             <DialogHeader>
                                 <DialogTitle>Remove Status</DialogTitle>
                             </DialogHeader>
                             <p className="text-sm text-muted-foreground">
-                                Are you sure you want to remove the "{statusToRemove}" status? Which status
-                                would you like issues with this status to be set to?
+                                Are you sure you want to remove the{" "}
+                                {statusToRemove ? (
+                                    <StatusTag status={statusToRemove} colour={statuses[statusToRemove]} />
+                                ) : null}{" "}
+                                status? Which status would you like issues with this status to be set to?
                             </p>
                             <Select value={reassignToStatus} onValueChange={setReassignToStatus}>
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-min">
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent side={"bottom"} position="popper" align="start">
                                     {Object.keys(statuses)
                                         .filter((s) => s !== statusToRemove)
                                         .map((status) => (
