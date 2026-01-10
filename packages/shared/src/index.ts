@@ -8,6 +8,8 @@ export {
     PROJECT_DESCRIPTION_MAX_LENGTH,
     PROJECT_NAME_MAX_LENGTH,
     PROJECT_SLUG_MAX_LENGTH,
+    USER_NAME_MAX_LENGTH,
+    USER_USERNAME_MAX_LENGTH,
 } from "./constants";
 
 export type {

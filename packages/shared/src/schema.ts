@@ -9,12 +9,14 @@ import {
     ORG_NAME_MAX_LENGTH,
     ORG_SLUG_MAX_LENGTH,
     PROJECT_NAME_MAX_LENGTH,
+    USER_NAME_MAX_LENGTH,
+    USER_USERNAME_MAX_LENGTH,
 } from "./constants";
 
 export const User = pgTable("User", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    name: varchar({ length: 256 }).notNull(),
-    username: varchar({ length: 32 }).notNull().unique(),
+    name: varchar({ length: USER_NAME_MAX_LENGTH }).notNull(),
+    username: varchar({ length: USER_USERNAME_MAX_LENGTH }).notNull().unique(),
     passwordHash: varchar({ length: 255 }).notNull(),
     avatarURL: varchar({ length: 512 }),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),

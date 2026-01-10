@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <> */
 
+import { USER_NAME_MAX_LENGTH, USER_USERNAME_MAX_LENGTH } from "@issue/shared";
 import { AlertTriangle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -246,6 +247,7 @@ export default function LogInForm() {
                                         validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
                                         submitAttempted={submitAttempted}
                                         spellcheck={false}
+                                        maxLength={USER_NAME_MAX_LENGTH}
                                     />
                                 </>
                             )}
@@ -256,6 +258,8 @@ export default function LogInForm() {
                                 validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
                                 submitAttempted={submitAttempted}
                                 spellcheck={false}
+                                maxLength={USER_USERNAME_MAX_LENGTH}
+                                showCounter={mode === "register"}
                             />
                             <Field
                                 label="Password"
