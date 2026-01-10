@@ -10,6 +10,7 @@ import { AddMemberDialog } from "@/components/add-member-dialog";
 import { OrganisationSelect } from "@/components/organisation-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
+import StatusTag from "@/components/status-tag";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -411,7 +412,7 @@ function OrganisationsDialog({
                                                     key={status}
                                                     className="flex items-center justify-between p-2 border"
                                                 >
-                                                    <span className="text-sm">{status}</span>
+                                                    <StatusTag status={status} />
                                                     {isAdmin && (
                                                         <div className="flex items-center gap-2">
                                                             <Button
