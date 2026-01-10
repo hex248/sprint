@@ -1,13 +1,14 @@
+import { Hash } from "lucide-react";
 import type * as React from "react";
-
 import { cn } from "@/lib/utils";
 
 function Input({
     className,
     type,
     showCounter = true,
+    showHashPrefix = false,
     ...props
-}: React.ComponentProps<"input"> & { showCounter?: boolean }) {
+}: React.ComponentProps<"input"> & { showCounter?: boolean; showHashPrefix?: boolean }) {
     const maxLength = typeof props.maxLength === "number" ? props.maxLength : undefined;
     const currentLength = typeof props.value === "string" ? props.value.length : undefined;
 
@@ -22,6 +23,11 @@ function Input({
                 className,
             )}
         >
+            {showHashPrefix && (
+                <span className="border-r px-1 py-1 text-muted-foreground">
+                    <Hash className="size-3.5" strokeWidth={1.5} />
+                </span>
+            )}
             <input
                 type={type}
                 data-slot="input"
@@ -30,6 +36,7 @@ function Input({
                     "h-full flex-1 min-w-0 bg-transparent px-3 py-1 pr-1 text-base outline-none",
                     "file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
                     "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                    showHashPrefix ? "pl-2 py-0" : "pl-3",
                 )}
                 {...props}
             />

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noImportantStyles: <needs it because the initial styles are in the component> */
 @import "./fonts.css";
 
 @import "tailwindcss";
@@ -160,4 +161,36 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+/* react-colorful */
+.react-colorful {
+    width: 150px !important;
+    height: 150px !important;
+}
+
+.react-colorful__saturation {
+    border-radius: 0 !important;
+    /* cursor: pointer; */
+}
+
+.react-colorful__last-control {
+    border-radius: 0 !important;
+}
+
+.react-colorful__saturation-pointer {
+    width: 16px !important;
+    height: 16px !important;
+    border: 1px solid white !important;
+}
+
+.react-colorful__hue {
+    height: 10px !important;
+    cursor: pointer;
+}
+
+.react-colorful__hue-pointer {
+    width: 16px !important;
+    height: 16px !important;
+    border: 1px solid white !important;
 }
