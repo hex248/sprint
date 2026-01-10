@@ -1,5 +1,7 @@
 - setup guide
 - pricing page
+  - see jira and other competitors
+    - explore payment providers (stripe is the only one i know)
 - github link
 - dedicated /register route (currently login/register are combined on /login)
 - real logo
@@ -12,6 +14,7 @@
   - status
     - predefined statuses are added to organisation by default. list of statuses can be edited by owner/admin (maybe this should be on projects rather than organisations?)
   - sprint
+  - more than one assignee
 - time tracking (linked to issues or standalone)
 - user preferences
   - "assign to me by default" option for new issues
