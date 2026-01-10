@@ -44,7 +44,7 @@ function Input({
                               : "text-muted-foreground",
                     )}
                 >
-                    {currentLength}/{maxLength}
+                    {String(currentLength).padStart(String(maxLength).length, "0")}/{maxLength}
                 </span>
             )}
         </div>
