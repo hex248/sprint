@@ -240,6 +240,7 @@ export default function App() {
                         <CreateIssue
                             projectId={selectedProject?.Project.id}
                             members={members}
+                            statuses={selectedOrganisation.Organisation.statuses as unknown as string[]}
                             completeAction={async () => {
                                 if (!selectedProject) return;
                                 await refetchIssues();

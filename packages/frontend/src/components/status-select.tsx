@@ -29,7 +29,7 @@ export function StatusSelect({
                     chevronClassName={"size-3 -mr-1"}
                     isOpen={isOpen}
                 >
-                    <SelectValue placeholder={placeholder}>{value}</SelectValue>
+                    <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
             )}
             <SelectContent side="bottom" position="popper" align="start">

@@ -1,6 +1,7 @@
-import type { UserRecord } from "@issue/shared";
+import { ISSUE_DESCRIPTION_MAX_LENGTH, ISSUE_TITLE_MAX_LENGTH, type UserRecord } from "@issue/shared";
 import { type FormEvent, useState } from "react";
 import { useAuthenticatedSession } from "@/components/session-provider";
+import { StatusSelect } from "@/components/status-select";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -15,15 +16,19 @@ import { Label } from "@/components/ui/label";
 import { UserSelect } from "@/components/user-select";
 import { issue } from "@/lib/server";
 import { cn } from "@/lib/utils";
+import StatusTag from "./status-tag";
+import { SelectTrigger } from "./ui/select";
 
 export function CreateIssue({
     projectId,
     members,
+    statuses,
     trigger,
     completeAction,
 }: {
     projectId?: number;
     members?: UserRecord[];
+    statuses?: string[];
     trigger?: React.ReactNode;
     completeAction?: (issueId: number) => void | Promise<void>;
 }) {
@@ -33,6 +38,7 @@ export function CreateIssue({
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [assigneeId, setAssigneeId] = useState<string>("unassigned");
+    const [status, setStatus] = useState<string>(statuses?.[0] ?? "");
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -41,6 +47,7 @@ export function CreateIssue({
         setTitle("");
         setDescription("");
         setAssigneeId("unassigned");
+        setStatus(statuses?.[0] ?? "");
         setSubmitAttempted(false);
         setSubmitting(false);
         setError(null);
@@ -58,7 +65,11 @@ export function CreateIssue({
         setError(null);
         setSubmitAttempted(true);
 
-        if (title.trim() === "" || description.trim().length > 2048) {
+        if (
+            title.trim() === "" ||
+            description.trim().length > ISSUE_DESCRIPTION_MAX_LENGTH ||
+            title.trim().length > ISSUE_TITLE_MAX_LENGTH
+        ) {
             return;
         }
 
@@ -80,6 +91,7 @@ export function CreateIssue({
                 title,
                 description,
                 assigneeId: assigneeId === "unassigned" ? null : Number(assigneeId),
+                status: status.trim() === "" ? undefined : status,
                 onSuccess: async (data) => {
                     setOpen(false);
                     reset();
@@ -117,24 +129,62 @@ export function CreateIssue({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid mt-2">
+                    <div className="grid">
+                        {statuses && statuses.length > 0 && (
+                            <div className="flex flex-col gap-2 mb-4">
+                                <Label>Status</Label>
+                                <StatusSelect
+                                    statuses={statuses}
+                                    value={status}
+                                    onChange={(newValue) => {
+                                        if (newValue.trim() === "") return; // TODO: handle this better
+                                        // unsure why an empty value is being sent, but preventing it this way for now
+                                        setStatus(newValue);
+                                    }}
+                                    trigger={({ isOpen, value }) => (
+                                        <SelectTrigger
+                                            className="group flex items-center w-min"
+                                            variant="unstyled"
+                                            chevronClassName="hidden"
+                                            isOpen={isOpen}
+                                        >
+                                            <StatusTag
+                                                status={value}
+                                                className="group-hover:bg-foreground/75"
+                                            />
+                                        </SelectTrigger>
+                                    )}
+                                />
+                            </div>
+                        )}
+
                         <Field
                             label="Title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                            validate={(v) =>
+                                v.trim() === ""
+                                    ? "Cannot be empty"
+                                    : v.trim().length > ISSUE_TITLE_MAX_LENGTH
+                                      ? `Too long (${ISSUE_TITLE_MAX_LENGTH} character limit)`
+                                      : undefined
+                            }
                             submitAttempted={submitAttempted}
                             placeholder="Demo Issue"
+                            maxLength={ISSUE_TITLE_MAX_LENGTH}
                         />
                         <Field
                             label="Description (optional)"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             validate={(v) =>
-                                v.trim().length > 2048 ? "Too long (2048 character limit)" : undefined
+                                v.trim().length > ISSUE_DESCRIPTION_MAX_LENGTH
+                                    ? `Too long (${ISSUE_DESCRIPTION_MAX_LENGTH} character limit)`
+                                    : undefined
                             }
                             submitAttempted={submitAttempted}
                             placeholder="Optional details"
+                            maxLength={ISSUE_DESCRIPTION_MAX_LENGTH}
                         />
 
                         {members && members.length > 0 && (
@@ -162,8 +212,10 @@ export function CreateIssue({
                                 type="submit"
                                 disabled={
                                     submitting ||
-                                    (title.trim() === "" && submitAttempted) ||
-                                    (description.trim().length > 2048 && submitAttempted)
+                                    ((title.trim() === "" || title.trim().length > ISSUE_TITLE_MAX_LENGTH) &&
+                                        submitAttempted) ||
+                                    (description.trim().length > ISSUE_DESCRIPTION_MAX_LENGTH &&
+                                        submitAttempted)
                                 }
                             >
                                 {submitting ? "Creating..." : "Create"}

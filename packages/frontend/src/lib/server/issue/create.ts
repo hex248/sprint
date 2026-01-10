@@ -6,6 +6,7 @@ export async function create({
     title,
     description,
     assigneeId,
+    status,
     onSuccess,
     onError,
 }: {
@@ -13,12 +14,14 @@ export async function create({
     title: string;
     description: string;
     assigneeId?: number | null;
+    status?: string;
 } & ServerQueryInput) {
     const url = new URL(`${getServerURL()}/issue/create`);
     url.searchParams.set("projectId", `${projectId}`);
     url.searchParams.set("title", title.trim());
     if (description.trim() !== "") url.searchParams.set("description", description.trim());
     if (assigneeId != null) url.searchParams.set("assigneeId", `${assigneeId}`);
+    if (status != null && status.trim() !== "") url.searchParams.set("status", status.trim());
 
     const csrfToken = getCsrfToken();
     const headers: HeadersInit = {};
