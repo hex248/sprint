@@ -215,6 +215,12 @@ export default function App() {
                     }
 
                     setSelectedProject(selected);
+                    if (selected) {
+                        updateUrlParams({
+                            projectKey: selected.Project.key.toLowerCase(),
+                            issueNumber: null,
+                        });
+                    }
                 },
                 onError: (error) => {
                     console.error("error fetching projects:", error);
