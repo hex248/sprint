@@ -7,7 +7,7 @@ import type {
     ProjectResponse,
     UserRecord,
 } from "@issue/shared";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDialog from "@/components/account-dialog";
 import { CreateIssue } from "@/components/create-issue";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
@@ -47,6 +47,28 @@ export default function App() {
 
     const [members, setMembers] = useState<UserRecord[]>([]);
 
+    const deepLinkParams = useMemo(() => {
+        const params = new URLSearchParams(window.location.search);
+        const orgSlug = params.get("o")?.trim().toLowerCase() ?? "";
+        const projectKey = params.get("p")?.trim().toLowerCase() ?? "";
+        const issueParam = params.get("i")?.trim() ?? "";
+        const issueNumber = issueParam === "" ? null : Number.parseInt(issueParam, 10);
+
+        return {
+            orgSlug,
+            projectKey,
+            issueNumber: issueNumber != null && Number.isNaN(issueNumber) ? null : issueNumber,
+        };
+    }, []);
+
+    const deepLinkStateRef = useRef({
+        appliedOrg: false,
+        appliedProject: false,
+        appliedIssue: false,
+        orgMatched: false,
+        projectMatched: false,
+    });
+
     const refetchOrganisations = async (options?: { selectOrganisationId?: number }) => {
         try {
             await organisation.byUser({
@@ -66,11 +88,28 @@ export default function App() {
                             selected = created;
                         }
                     } else {
-                        const savedId = localStorage.getItem("selectedOrganisationId");
-                        if (savedId) {
-                            const saved = organisations.find((o) => o.Organisation.id === Number(savedId));
-                            if (saved) {
-                                selected = saved;
+                        const deepLinkState = deepLinkStateRef.current;
+                        if (deepLinkParams.orgSlug && !deepLinkState.appliedOrg) {
+                            const match = organisations.find(
+                                (org) => org.Organisation.slug.toLowerCase() === deepLinkParams.orgSlug,
+                            );
+                            deepLinkState.appliedOrg = true;
+                            deepLinkState.orgMatched = Boolean(match);
+                            if (match) {
+                                selected = match;
+                                localStorage.setItem("selectedOrganisationId", `${match.Organisation.id}`);
+                            }
+                        }
+
+                        if (!selected) {
+                            const savedId = localStorage.getItem("selectedOrganisationId");
+                            if (savedId) {
+                                const saved = organisations.find(
+                                    (o) => o.Organisation.id === Number(savedId),
+                                );
+                                if (saved) {
+                                    selected = saved;
+                                }
                             }
                         }
                     }
@@ -113,11 +152,30 @@ export default function App() {
                             selected = created;
                         }
                     } else {
-                        const savedId = localStorage.getItem("selectedProjectId");
-                        if (savedId) {
-                            const saved = projects.find((p) => p.Project.id === Number(savedId));
-                            if (saved) {
-                                selected = saved;
+                        const deepLinkState = deepLinkStateRef.current;
+                        if (
+                            deepLinkParams.projectKey &&
+                            deepLinkState.orgMatched &&
+                            !deepLinkState.appliedProject
+                        ) {
+                            const match = projects.find(
+                                (proj) => proj.Project.key.toLowerCase() === deepLinkParams.projectKey,
+                            );
+                            deepLinkState.appliedProject = true;
+                            deepLinkState.projectMatched = Boolean(match);
+                            if (match) {
+                                selected = match;
+                                localStorage.setItem("selectedProjectId", `${match.Project.id}`);
+                            }
+                        }
+
+                        if (!selected) {
+                            const savedId = localStorage.getItem("selectedProjectId");
+                            if (savedId) {
+                                const saved = projects.find((p) => p.Project.id === Number(savedId));
+                                if (saved) {
+                                    selected = saved;
+                                }
                             }
                         }
                     }
@@ -179,6 +237,19 @@ export default function App() {
                     const issues = data as IssueResponse[];
                     issues.reverse(); // newest at the bottom, but if the order has been rearranged, respect that
                     setIssues(issues);
+
+                    const deepLinkState = deepLinkStateRef.current;
+                    if (
+                        deepLinkParams.issueNumber != null &&
+                        deepLinkState.projectMatched &&
+                        !deepLinkState.appliedIssue
+                    ) {
+                        const match = issues.find(
+                            (issue) => issue.Issue.number === deepLinkParams.issueNumber,
+                        );
+                        deepLinkState.appliedIssue = true;
+                        setSelectedIssue(match ?? null);
+                    }
                 },
                 onError: (error) => {
                     console.error("error fetching issues:", error);
