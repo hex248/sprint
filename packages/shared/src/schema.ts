@@ -186,3 +186,12 @@ export type OrganisationMemberResponse = {
     Organisation: OrganisationRecord;
     User: UserRecord;
 };
+
+export type TimerState = {
+    id: number;
+    workTimeMs: number;
+    breakTimeMs: number;
+    isRunning: boolean;
+    timestamps: string[];
+    endedAt: string | null;
+} | null;

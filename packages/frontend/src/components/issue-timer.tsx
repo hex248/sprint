@@ -1,31 +1,10 @@
+import type { TimerState } from "@issue/shared";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { timer } from "@/lib/server";
-import { cn } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 
-type TimerState = {
-    id: number;
-    workTimeMs: number;
-    breakTimeMs: number;
-    isRunning: boolean;
-    timestamps: string[];
-    endedAt: string | null;
-} | null;
-
-function formatTime(ms: number): string {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-}
-
-interface IssueTimerProps {
-    issueId: number;
-    onEnd?: (data: TimerState) => void;
-}
-
-export function IssueTimer({ issueId, onEnd }: IssueTimerProps) {
+export function IssueTimer({ issueId, onEnd }: { issueId: number; onEnd?: (data: TimerState) => void }) {
     const [timerState, setTimerState] = useState<TimerState>(null);
     const [displayTime, setDisplayTime] = useState(0);
     const [error, setError] = useState<string | null>(null);

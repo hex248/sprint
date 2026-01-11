@@ -28,6 +28,7 @@ export type {
     SessionRecord,
     TimedSessionInsert,
     TimedSessionRecord,
+    TimerState,
     UserInsert,
     UserRecord,
 } from "./schema";

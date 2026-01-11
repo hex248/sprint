@@ -72,6 +72,7 @@ const main = async () => {
             "/timer/toggle": withCors(withAuth(withCSRF(routes.timerToggle))),
             "/timer/end": withCors(withAuth(withCSRF(routes.timerEnd))),
             "/timer/get": withCors(withAuth(withCSRF(routes.timerGet))),
+            "/timer/get-inactive": withCors(withAuth(withCSRF(routes.timerGetInactive))),
             "/timers": withCors(withAuth(withCSRF(routes.timers))),
         },
     });

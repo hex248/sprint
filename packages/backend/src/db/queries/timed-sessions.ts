@@ -24,6 +24,15 @@ export async function getActiveTimedSession(userId: number, issueId: number) {
     return timedSession ?? null;
 }
 
+export async function getInactiveTimedSessions(issueId: number) {
+    const timedSessions = await db
+        .select()
+        .from(TimedSession)
+        .where(and(eq(TimedSession.issueId, issueId), isNotNull(TimedSession.endedAt)))
+        .orderBy(desc(TimedSession.createdAt));
+    return timedSessions ?? null;
+}
+
 export async function getTimedSessionById(id: number) {
     const [timedSession] = await db.select().from(TimedSession).where(eq(TimedSession.id, id));
     return timedSession ?? null;

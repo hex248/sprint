@@ -15,7 +15,6 @@
   - more than one assignee
   - edit title & description
 - time tracking:
-  - add current work time on detail pane for issues with time tracked
   - add overlay in the bottom left for active timers if there are any. this should be minimal with the issue key (API-005), the time, and a play/pause + end button
 - user preferences
   - "assign to me by default" option for new issues

@@ -5,6 +5,7 @@ import { useSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
 import { StatusSelect } from "@/components/status-select";
 import StatusTag from "@/components/status-tag";
+import { TimerDisplay } from "@/components/timer-display";
 import { TimerModal } from "@/components/timer-modal";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -192,11 +193,10 @@ export function IssueDetailPane({
                     <SmallUserDisplay user={issueData.Creator} className={"text-sm"} />
                 </div>
 
-                {user?.id === Number(assigneeId) && (
-                    <div>
-                        <TimerModal issueId={issueData.Issue.id} />
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    {user?.id === Number(assigneeId) && <TimerModal issueId={issueData.Issue.id} />}
+                    <TimerDisplay issueId={issueData.Issue.id} />
+                </div>
                 <ConfirmDialog
                     open={deleteOpen}
                     onOpenChange={setDeleteOpen}

@@ -28,6 +28,7 @@ import projectWithCreator from "./project/with-creator";
 import projectsWithCreators from "./project/with-creators";
 import timerEnd from "./timer/end";
 import timerGet from "./timer/get";
+import timerGetInactive from "./timer/get-inactive";
 import timerToggle from "./timer/toggle";
 import timers from "./timers";
 import userByUsername from "./user/by-username";
@@ -76,6 +77,7 @@ export const routes = {
 
     timerToggle,
     timerGet,
+    timerGetInactive,
     timerEnd,
     timers,
 };
