@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { RequireAuth, SessionProvider } from "@/components/session-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import App from "@/pages/App";
+import Font from "@/pages/Font";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                     <Routes>
                         {/* public routes */}
                         <Route path="/" element={<Landing />} />
+                        <Route path="/font" element={<Font />} />
                         <Route path="/login" element={<Login />} />
 
                         {/* authed routes */}
