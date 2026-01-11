@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
+import StatusTag from "@/components/status-tag";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import StatusTag from "./status-tag";
 
 export function StatusSelect({
     statuses,

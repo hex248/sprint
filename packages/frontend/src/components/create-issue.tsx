@@ -2,6 +2,7 @@ import { ISSUE_DESCRIPTION_MAX_LENGTH, ISSUE_TITLE_MAX_LENGTH, type UserRecord }
 import { type FormEvent, useState } from "react";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { StatusSelect } from "@/components/status-select";
+import StatusTag from "@/components/status-tag";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -13,11 +14,10 @@ import {
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
+import { SelectTrigger } from "@/components/ui/select";
 import { UserSelect } from "@/components/user-select";
 import { issue } from "@/lib/server";
 import { cn } from "@/lib/utils";
-import StatusTag from "./status-tag";
-import { SelectTrigger } from "./ui/select";
 
 export function CreateIssue({
     projectId,
