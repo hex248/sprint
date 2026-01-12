@@ -4,6 +4,7 @@ import type {
     IssueResponse,
     OrganisationMemberResponse,
     OrganisationResponse,
+    ProjectRecord,
     ProjectResponse,
     SprintRecord,
     UserRecord,
@@ -12,7 +13,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import AccountDialog from "@/components/account-dialog";
 import { CreateIssue } from "@/components/create-issue";
-import { CreateSprint } from "@/components/create-sprint";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssuesTable } from "@/components/issues-table";
 import LogOutButton from "@/components/log-out-button";
@@ -52,10 +52,6 @@ export default function App() {
 
     const [members, setMembers] = useState<UserRecord[]>([]);
     const [sprints, setSprints] = useState<SprintRecord[]>([]);
-
-    const isAdmin =
-        selectedOrganisation?.OrganisationMember.role === "owner" ||
-        selectedOrganisation?.OrganisationMember.role === "admin";
 
     const deepLinkParams = useMemo(() => {
         const params = new URLSearchParams(window.location.search);
@@ -394,6 +390,43 @@ export default function App() {
         }
     }, [deepLinkParams, selectedOrganisation, selectedProject]);
 
+    const handleProjectChange = (project: ProjectResponse | null) => {
+        setSelectedProject(project);
+        localStorage.setItem("selectedProjectId", `${project?.Project.id}`);
+        setSelectedIssue(null);
+        updateUrlParams({
+            projectKey: project?.Project.key.toLowerCase() ?? null,
+            issueNumber: null,
+        });
+    };
+
+    const handleProjectCreate = async (project: ProjectRecord) => {
+        if (!selectedOrganisation) return;
+
+        toast.success(`Created Project ${project.name}`, {
+            dismissible: false,
+        });
+
+        await refetchProjects(selectedOrganisation.Organisation.id, {
+            selectProjectId: project.id,
+        });
+    };
+
+    const handleSprintCreate = async (sprint: SprintRecord) => {
+        if (!selectedProject) return;
+
+        toast.success(
+            <>
+                Created sprint <span style={{ color: sprint.color }}>{sprint.name}</span>
+            </>,
+            {
+                dismissible: false,
+            },
+        );
+
+        await refetchSprints(selectedProject.Project.id);
+    };
+
     return (
         <main className={`w-full h-screen flex flex-col gap-${BREATHING_ROOM} p-${BREATHING_ROOM}`}>
             {/* header area */}
@@ -427,71 +460,33 @@ export default function App() {
                             projects={projects}
                             selectedProject={selectedProject}
                             organisationId={selectedOrganisation?.Organisation.id}
-                            onSelectedProjectChange={(project) => {
-                                setSelectedProject(project);
-                                localStorage.setItem("selectedProjectId", `${project?.Project.id}`);
-                                setSelectedIssue(null);
-                                updateUrlParams({
-                                    projectKey: project?.Project.key.toLowerCase() ?? null,
-                                    issueNumber: null,
-                                });
-                            }}
-                            onCreateProject={async (project) => {
-                                if (!selectedOrganisation) return;
-
-                                toast.success(`Created Project ${project.name}`, {
-                                    dismissible: false,
-                                });
-
-                                await refetchProjects(selectedOrganisation.Organisation.id, {
-                                    selectProjectId: project.id,
-                                });
-                            }}
+                            onSelectedProjectChange={handleProjectChange}
+                            onCreateProject={handleProjectCreate}
                             showLabel
                         />
                     )}
                     {selectedOrganisation && selectedProject && (
-                        <>
-                            <CreateIssue
-                                projectId={selectedProject?.Project.id}
-                                sprints={sprints}
-                                members={members}
-                                statuses={selectedOrganisation.Organisation.statuses}
-                                completeAction={async (issueNumber) => {
-                                    if (!selectedProject) return;
-                                    toast.success(
-                                        `Created ${issueID(selectedProject.Project.key, issueNumber)}`,
-                                        {
-                                            dismissible: false,
-                                        },
-                                    );
-                                    await refetchIssues();
-                                }}
-                                errorAction={async (errorMessage) => {
-                                    toast.error(`Error creating issue: ${errorMessage}`, {
+                        <CreateIssue
+                            projectId={selectedProject?.Project.id}
+                            sprints={sprints}
+                            members={members}
+                            statuses={selectedOrganisation.Organisation.statuses}
+                            completeAction={async (issueNumber) => {
+                                if (!selectedProject) return;
+                                toast.success(
+                                    `Created ${issueID(selectedProject.Project.key, issueNumber)}`,
+                                    {
                                         dismissible: false,
-                                    });
-                                }}
-                            />
-                            {isAdmin && (
-                                <CreateSprint
-                                    projectId={selectedProject?.Project.id}
-                                    completeAction={async (sprint) => {
-                                        if (!selectedProject) return;
-                                        toast.success(
-                                            <>
-                                                Created sprint{" "}
-                                                <span style={{ color: sprint.color }}>{sprint.name}</span>
-                                            </>,
-                                            {
-                                                dismissible: false,
-                                            },
-                                        );
-                                        await refetchSprints(selectedProject?.Project.id);
-                                    }}
-                                />
-                            )}
-                        </>
+                                    },
+                                );
+                                await refetchIssues();
+                            }}
+                            errorAction={async (errorMessage) => {
+                                toast.error(`Error creating issue: ${errorMessage}`, {
+                                    dismissible: false,
+                                });
+                            }}
+                        />
                     )}
                 </div>
                 <div className={`flex gap-${BREATHING_ROOM} items-center`}>
@@ -510,6 +505,12 @@ export default function App() {
                                     selectedOrganisation={selectedOrganisation}
                                     setSelectedOrganisation={setSelectedOrganisation}
                                     refetchOrganisations={refetchOrganisations}
+                                    projects={projects}
+                                    selectedProject={selectedProject}
+                                    sprints={sprints}
+                                    onSelectedProjectChange={handleProjectChange}
+                                    onCreateProject={handleProjectCreate}
+                                    onCreateSprint={handleSprintCreate}
                                 />
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild className="flex items-end justify-end">

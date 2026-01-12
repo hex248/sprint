@@ -116,13 +116,19 @@ export function CreateIssue({
                         console.error(actionErr);
                     }
                 },
-                onError: (error) => {
+                onError: async (error) => {
                     setError(error);
                     setSubmitting(false);
 
                     toast.error(`Error creating issue: ${error}`, {
                         dismissible: false,
                     });
+
+                    try {
+                        await errorAction?.(error);
+                    } catch (actionErr) {
+                        console.error(actionErr);
+                    }
                 },
             });
         } catch (err) {

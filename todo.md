@@ -1,10 +1,13 @@
 # HIGH PRIORITY
 
-- projects
-  - project management menu (will this be accessed from the organisations-dialog? or will it be a separate menu in the user select)
+- projects menu
+  - delete project
 - sprints
+  - prevent overlapping sprints in the same project
   - timeline display
   - display sprints
+  - edit sprint
+  - delete sprint
 - issues
   - sprint
   - edit title & description

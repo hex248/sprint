@@ -3,14 +3,19 @@ import {
     ISSUE_STATUS_MAX_LENGTH,
     type OrganisationMemberResponse,
     type OrganisationResponse,
+    type ProjectRecord,
+    type ProjectResponse,
+    type SprintRecord,
 } from "@issue/shared";
 import { ChevronDown, ChevronUp, EllipsisVertical, Plus, X } from "lucide-react";
-import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddMemberDialog } from "@/components/add-member-dialog";
+import { CreateSprint } from "@/components/create-sprint";
 import { OrganisationSelect } from "@/components/organisation-select";
+import { ProjectSelect } from "@/components/project-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
+import SmallSprintDisplay from "@/components/small-sprint-display";
 import SmallUserDisplay from "@/components/small-user-display";
 import StatusTag from "@/components/status-tag";
 import { Button } from "@/components/ui/button";
@@ -35,12 +40,24 @@ function OrganisationsDialog({
     selectedOrganisation,
     setSelectedOrganisation,
     refetchOrganisations,
+    projects,
+    selectedProject,
+    sprints,
+    onSelectedProjectChange,
+    onCreateProject,
+    onCreateSprint,
 }: {
     trigger?: ReactNode;
     organisations: OrganisationResponse[];
     selectedOrganisation: OrganisationResponse | null;
     setSelectedOrganisation: (organisation: OrganisationResponse | null) => void;
     refetchOrganisations: (options?: { selectOrganisationId?: number }) => Promise<void>;
+    projects: ProjectResponse[];
+    selectedProject: ProjectResponse | null;
+    sprints: SprintRecord[];
+    onSelectedProjectChange: (project: ProjectResponse | null) => void;
+    onCreateProject: (project: ProjectRecord) => void | Promise<void>;
+    onCreateSprint: (sprint: SprintRecord) => void | Promise<void>;
 }) {
     const { user } = useAuthenticatedSession();
 
@@ -78,6 +95,20 @@ function OrganisationsDialog({
     const isAdmin =
         selectedOrganisation?.OrganisationMember.role === "owner" ||
         selectedOrganisation?.OrganisationMember.role === "admin";
+
+    const formatDate = (value: Date | string) =>
+        new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const getSprintDateRange = (sprint: SprintRecord) => {
+        if (!sprint.startDate || !sprint.endDate) return "";
+        return `${formatDate(sprint.startDate)} - ${formatDate(sprint.endDate)}`;
+    };
+    const isCurrentSprint = (sprint: SprintRecord) => {
+        if (!sprint.startDate || !sprint.endDate) return false;
+        const today = new Date();
+        const start = new Date(sprint.startDate);
+        const end = new Date(sprint.endDate);
+        return start <= today && today <= end;
+    };
 
     const refetchMembers = useCallback(async () => {
         if (!selectedOrganisation) return;
@@ -436,15 +467,15 @@ function OrganisationsDialog({
                 )}
             </DialogTrigger>
 
-            <DialogContent className="max-w-lg w-full max-w-[calc(100vw-2rem)]">
+            <DialogContent className="max-w-sm">
                 <DialogHeader>
                     <DialogTitle>Organisations</DialogTitle>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-2">
                     {selectedOrganisation ? (
-                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                            <div className="flex gap-2 items-center">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0">
+                            <div className="flex flex-wrap gap-2 items-center w-full min-w-0">
                                 <OrganisationSelect
                                     organisations={organisations}
                                     selectedOrganisation={selectedOrganisation}
@@ -468,6 +499,7 @@ function OrganisationsDialog({
                                 <TabsList>
                                     <TabsTrigger value="info">Info</TabsTrigger>
                                     <TabsTrigger value="users">Users</TabsTrigger>
+                                    <TabsTrigger value="projects">Projects</TabsTrigger>
                                     <TabsTrigger value="issues">Issues</TabsTrigger>
                                 </TabsList>
                             </div>
@@ -582,6 +614,88 @@ function OrganisationsDialog({
                                 </div>
                             </TabsContent>
 
+                            <TabsContent value="projects">
+                                <div className="border p-2 min-w-0 overflow-hidden">
+                                    <div className="flex flex-col gap-3">
+                                        <ProjectSelect
+                                            projects={projects}
+                                            selectedProject={selectedProject}
+                                            organisationId={selectedOrganisation?.Organisation.id}
+                                            onSelectedProjectChange={onSelectedProjectChange}
+                                            onCreateProject={onCreateProject}
+                                            showLabel
+                                        />
+                                        <div className="flex gap-3 flex-col">
+                                            <div className="border p-2 min-w-0 overflow-hidden">
+                                                {selectedProject ? (
+                                                    <>
+                                                        <h2 className="text-xl font-600 mb-2 break-all">
+                                                            {selectedProject.Project.name}
+                                                        </h2>
+                                                        <div className="flex flex-col gap-1">
+                                                            <p className="text-sm text-muted-foreground break-all">
+                                                                Key: {selectedProject.Project.key}
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground break-all">
+                                                                Creator: {selectedProject.User.name}
+                                                            </p>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Select a project to view details.
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col gap-2 min-w-0 flex-1">
+                                                {selectedProject ? (
+                                                    <div className="flex flex-col gap-2 max-h-56 overflow-y-scroll">
+                                                        {sprints.map((sprint) => {
+                                                            const dateRange = getSprintDateRange(sprint);
+                                                            const isCurrent = isCurrentSprint(sprint);
+
+                                                            return (
+                                                                <div
+                                                                    key={sprint.id}
+                                                                    className={`flex items-center justify-between p-2 border ${
+                                                                        isCurrent
+                                                                            ? "border-emerald-500/60 bg-emerald-500/10"
+                                                                            : ""
+                                                                    }`}
+                                                                >
+                                                                    <SmallSprintDisplay sprint={sprint} />
+                                                                    {dateRange && (
+                                                                        <span className="text-xs text-muted-foreground">
+                                                                            {dateRange}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        {isAdmin && (
+                                                            <CreateSprint
+                                                                projectId={selectedProject?.Project.id}
+                                                                completeAction={onCreateSprint}
+                                                                trigger={
+                                                                    <Button variant="outline" size="sm">
+                                                                        Create sprint{" "}
+                                                                        <Plus className="size-4" />
+                                                                    </Button>
+                                                                }
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Select a project to view sprints.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TabsContent>
+
                             <TabsContent value="issues">
                                 <div className="border p-2 min-w-0 overflow-hidden">
                                     <h2 className="text-xl font-600 mb-2">Issue Statuses</h2>
@@ -659,7 +773,7 @@ function OrganisationsDialog({
                                         {isAdmin &&
                                             (isCreatingStatus ? (
                                                 <>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex gap-2 w-full min-w-0">
                                                         <Input
                                                             value={newStatusName}
                                                             maxLength={ISSUE_STATUS_MAX_LENGTH}
@@ -668,7 +782,7 @@ function OrganisationsDialog({
                                                                 if (statusError) setStatusError(null);
                                                             }}
                                                             placeholder="Status name"
-                                                            className="flex-1"
+                                                            className="flex-1 w-0 min-w-0"
                                                             onKeyDown={(e) => {
                                                                 if (e.key === "Enter") {
                                                                     void handleCreateStatus();
@@ -712,6 +826,7 @@ function OrganisationsDialog({
                                                         setIsCreatingStatus(true);
                                                         setStatusError(null);
                                                     }}
+                                                    className="flex gap-2 w-full min-w-0"
                                                 >
                                                     Create status <Plus className="size-4" />
                                                 </Button>
@@ -721,7 +836,7 @@ function OrganisationsDialog({
                             </TabsContent>
                         </Tabs>
                     ) : (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 w-full min-w-0">
                             <OrganisationSelect
                                 organisations={organisations}
                                 selectedOrganisation={selectedOrganisation}
