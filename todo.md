@@ -1,8 +1,12 @@
 # HIGH PRIORITY
 
+- projects
+  - project management menu (will this be accessed from the organisations-dialog? or will it be a separate menu in the user select)
 - sprints
   - timeline display
   - display sprints
+- calendar
+  - make today's date's border inside, or come up with another solution. different months are different DOM sizes because of this
 - add toasts app-wide
   - for almost every network interaction that is user prompted
   - the interface feels snappy but sometimes it's hard to tell if your changes are volatile or saved
