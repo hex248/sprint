@@ -5,6 +5,7 @@ import type {
     OrganisationMemberResponse,
     OrganisationResponse,
     ProjectResponse,
+    SprintRecord,
     UserRecord,
 } from "@issue/shared";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -30,7 +31,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "@/components/ui/resizable";
-import { issue, organisation, project } from "@/lib/server";
+import { issue, organisation, project, sprint } from "@/lib/server";
 
 const BREATHING_ROOM = 1;
 
@@ -48,6 +49,7 @@ export default function App() {
     const [selectedIssue, setSelectedIssue] = useState<IssueResponse | null>(null);
 
     const [members, setMembers] = useState<UserRecord[]>([]);
+    const [sprints, setSprints] = useState<SprintRecord[]>([]);
 
     const isAdmin =
         selectedOrganisation?.OrganisationMember.role === "owner" ||
@@ -255,6 +257,24 @@ export default function App() {
         }
     };
 
+    const refetchSprints = async (projectId: number) => {
+        try {
+            await sprint.byProject({
+                projectId,
+                onSuccess: (data: SprintRecord[]) => {
+                    setSprints(data);
+                },
+                onError: (error) => {
+                    console.error("error fetching sprints:", error);
+                    setSprints([]);
+                },
+            });
+        } catch (err) {
+            console.error("error fetching sprints:", err);
+            setSprints([]);
+        }
+    };
+
     // fetch projects when organisation is selected
     useEffect(() => {
         setProjects([]);
@@ -314,6 +334,7 @@ export default function App() {
         if (!selectedProject) return;
 
         void refetchIssues();
+        void refetchSprints(selectedProject.Project.id);
     }, [selectedProject]);
 
     useEffect(() => {
@@ -398,7 +419,15 @@ export default function App() {
                                     await refetchIssues();
                                 }}
                             />
-                            {isAdmin && <CreateSprint projectId={selectedProject?.Project.id} />}
+                            {isAdmin && (
+                                <CreateSprint
+                                    projectId={selectedProject?.Project.id}
+                                    completeAction={async () => {
+                                        if (!selectedProject) return;
+                                        await refetchSprints(selectedProject?.Project.id);
+                                    }}
+                                />
+                            )}
                         </>
                     )}
                 </div>
@@ -472,6 +501,7 @@ export default function App() {
                                 <div className="border">
                                     <IssueDetailPane
                                         project={selectedProject}
+                                        sprints={sprints}
                                         issueData={selectedIssue}
                                         members={members}
                                         statuses={selectedOrganisation.Organisation.statuses}
