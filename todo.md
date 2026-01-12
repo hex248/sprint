@@ -5,8 +5,6 @@
 - sprints
   - timeline display
   - display sprints
-- calendar
-  - make today's date's border inside, or come up with another solution. different months are different DOM sizes because of this
 - add toasts app-wide
   - for almost every network interaction that is user prompted
   - the interface feels snappy but sometimes it's hard to tell if your changes are volatile or saved
