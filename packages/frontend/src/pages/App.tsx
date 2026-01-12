@@ -156,6 +156,13 @@ export default function App() {
                     }
 
                     setSelectedOrganisation(selected);
+                    if (selected) {
+                        updateUrlParams({
+                            orgSlug: selected.Organisation.slug.toLowerCase(),
+                            projectKey: null,
+                            issueNumber: null,
+                        });
+                    }
                 },
                 onError: (error) => {
                     console.error("error fetching organisations:", error);
