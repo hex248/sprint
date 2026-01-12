@@ -13,6 +13,8 @@ import {
     USER_USERNAME_MAX_LENGTH,
 } from "./constants";
 
+export const DEFAULT_SPRINT_COLOUR = "#a1a1a1";
+
 export const DEFAULT_STATUS_COLOUR = "#a1a1a1";
 
 export const DEFAULT_STATUS_COLOURS: Record<string, string> = {
@@ -69,6 +71,18 @@ export const Project = pgTable("Project", {
         .references(() => User.id),
 });
 
+export const Sprint = pgTable("Sprint", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    projectId: integer()
+        .notNull()
+        .references(() => Project.id),
+    name: varchar({ length: 64 }).notNull(),
+    color: varchar({ length: 7 }).notNull().default(DEFAULT_SPRINT_COLOUR),
+    startDate: timestamp({ withTimezone: false }).notNull(),
+    endDate: timestamp({ withTimezone: false }).notNull(),
+    createdAt: timestamp({ withTimezone: false }).defaultNow(),
+});
+
 export const Session = pgTable("Session", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userId: integer()
@@ -108,6 +122,8 @@ export const Issue = pgTable(
             .notNull()
             .references(() => User.id),
         assigneeId: integer().references(() => User.id),
+
+        sprintId: integer().references(() => Sprint.id),
     },
     (t) => [
         // ensures unique numbers per project
@@ -128,6 +144,9 @@ export const OrganisationMemberInsertSchema = createInsertSchema(OrganisationMem
 
 export const ProjectSelectSchema = createSelectSchema(Project);
 export const ProjectInsertSchema = createInsertSchema(Project);
+
+export const SprintSelectSchema = createSelectSchema(Sprint);
+export const SprintInsertSchema = createInsertSchema(Sprint);
 
 export const IssueSelectSchema = createSelectSchema(Issue);
 export const IssueInsertSchema = createInsertSchema(Issue);
@@ -152,6 +171,9 @@ export type OrganisationMemberInsert = z.infer<typeof OrganisationMemberInsertSc
 
 export type ProjectRecord = z.infer<typeof ProjectSelectSchema>;
 export type ProjectInsert = z.infer<typeof ProjectInsertSchema>;
+
+export type SprintRecord = z.infer<typeof SprintSelectSchema>;
+export type SprintInsert = z.infer<typeof SprintInsertSchema>;
 
 export type IssueRecord = z.infer<typeof IssueSelectSchema>;
 export type IssueInsert = z.infer<typeof IssueInsertSchema>;

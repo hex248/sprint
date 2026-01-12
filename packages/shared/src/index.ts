@@ -26,6 +26,8 @@ export type {
     ProjectResponse,
     SessionInsert,
     SessionRecord,
+    SprintInsert,
+    SprintRecord,
     TimedSessionInsert,
     TimedSessionRecord,
     TimerState,
@@ -33,6 +35,7 @@ export type {
     UserRecord,
 } from "./schema";
 export {
+    DEFAULT_SPRINT_COLOUR,
     DEFAULT_STATUS_COLOUR,
     DEFAULT_STATUS_COLOURS,
     Issue,
@@ -50,6 +53,9 @@ export {
     Session,
     SessionInsertSchema,
     SessionSelectSchema,
+    Sprint,
+    SprintInsertSchema,
+    SprintSelectSchema,
     TimedSession,
     TimedSessionInsertSchema,
     TimedSessionSelectSchema,
