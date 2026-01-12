@@ -658,7 +658,7 @@ function OrganisationsDialog({
                                         </div>
                                         {isAdmin &&
                                             (isCreatingStatus ? (
-                                                <div className="flex flex-col gap-2">
+                                                <>
                                                     <div className="flex gap-2">
                                                         <Input
                                                             value={newStatusName}
@@ -684,6 +684,8 @@ function OrganisationsDialog({
                                                         <ColourPicker
                                                             colour={newStatusColour}
                                                             onChange={setNewStatusColour}
+                                                            asChild={false}
+                                                            className="w-9 h-9"
                                                         />
                                                         <Button
                                                             variant="outline"
@@ -702,7 +704,7 @@ function OrganisationsDialog({
                                                             {statusError}
                                                         </p>
                                                     )}
-                                                </div>
+                                                </>
                                             ) : (
                                                 <Button
                                                     variant="outline"

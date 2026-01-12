@@ -1,6 +1,5 @@
 # HIGH PRIORITY
 
-- fix colour picker alignment in new status form
 - projects
   - project management menu (will this be accessed from the organisations-dialog? or will it be a separate menu in the user select)
 - sprints

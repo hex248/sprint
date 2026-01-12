@@ -2,18 +2,27 @@ import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export default function ColourPicker({
     colour,
     onChange,
+    asChild = true,
+    className,
 }: {
     colour: string;
     onChange: (value: string) => void;
+    asChild?: boolean;
+    className?: string;
 }) {
     return (
         <Popover>
-            <PopoverTrigger asChild>
-                <Button type="button" className="w-8 h-8" style={{ backgroundColor: colour }} />
+            <PopoverTrigger asChild={asChild}>
+                <Button
+                    type="button"
+                    className={cn("w-8 h-8", className)}
+                    style={{ backgroundColor: colour }}
+                />
             </PopoverTrigger>
             <PopoverContent className="w-fit grid gap-2 p-2" align="start" side={"top"}>
                 <HexColorPicker color={colour} onChange={onChange} className="p-0 m-0" />
