@@ -5,6 +5,7 @@ export async function update({
     issueId,
     title,
     description,
+    sprintId,
     assigneeId,
     status,
     onSuccess,
@@ -13,6 +14,7 @@ export async function update({
     issueId: number;
     title?: string;
     description?: string;
+    sprintId?: number | null;
     assigneeId?: number | null;
     status?: string;
 } & ServerQueryInput) {
@@ -20,6 +22,9 @@ export async function update({
     url.searchParams.set("id", `${issueId}`);
     if (title !== undefined) url.searchParams.set("title", title);
     if (description !== undefined) url.searchParams.set("description", description);
+    if (sprintId !== undefined) {
+        url.searchParams.set("sprintId", sprintId === null ? "null" : `${sprintId}`);
+    }
     if (assigneeId !== undefined) {
         url.searchParams.set("assigneeId", assigneeId === null ? "null" : `${assigneeId}`);
     }

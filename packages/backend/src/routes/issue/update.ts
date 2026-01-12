@@ -12,10 +12,18 @@ export default async function issueUpdate(req: BunRequest) {
 
     const title = url.searchParams.get("title") || undefined;
     const description = url.searchParams.get("description") || undefined;
+    const sprintIdParam = url.searchParams.get("sprintId");
     const assigneeIdParam = url.searchParams.get("assigneeId");
     const status = url.searchParams.get("status") || undefined;
 
-    // Parse assigneeId: "null" means unassign, number means assign, undefined means no change
+    // parse sprintId: "null" means unassign, number means assign, undefined means no change
+    let sprintId: number | null | undefined;
+    if (sprintIdParam === "null") {
+        sprintId = null;
+    } else if (sprintIdParam) {
+        sprintId = Number(sprintIdParam);
+    }
+    // same for assigneeId
     let assigneeId: number | null | undefined;
     if (assigneeIdParam === "null") {
         assigneeId = null;
@@ -23,13 +31,14 @@ export default async function issueUpdate(req: BunRequest) {
         assigneeId = Number(assigneeIdParam);
     }
 
-    if (!title && !description && assigneeId === undefined && !status) {
+    if (!title && !description && sprintId === undefined && assigneeId === undefined && !status) {
         return new Response("no updates provided", { status: 400 });
     }
 
     const issue = await updateIssue(Number(id), {
         title,
         description,
+        sprintId,
         assigneeId,
         status,
     });
