@@ -9,7 +9,6 @@
   - edit sprint
   - delete sprint
 - issues
-  - sprint
   - edit title & description
   - more than one assignee
 - user preferences
