@@ -1,5 +1,6 @@
 import { DEFAULT_SPRINT_COLOUR, type SprintRecord } from "@issue/shared";
 import { type FormEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -134,9 +135,13 @@ export function CreateSprint({
                         console.error(actionErr);
                     }
                 },
-                onError: (message) => {
-                    setError(message);
+                onError: (error) => {
+                    setError(error);
                     setSubmitting(false);
+
+                    toast.error(`Error creating sprint: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (submitError) {

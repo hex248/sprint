@@ -1,5 +1,6 @@
 import type { TimerState } from "@issue/shared";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { timer } from "@/lib/server";
 import { formatTime } from "@/lib/utils";
 
@@ -24,9 +25,13 @@ export function TimerDisplay({ issueId }: { issueId: number }) {
                     setWorkTimeMs(data?.workTimeMs ?? 0);
                     setError(null);
                 },
-                onError: (message) => {
+                onError: (error) => {
                     if (!isMounted) return;
-                    setError(message);
+                    setError(error);
+
+                    toast.error(`Error fetching timer data: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
 
@@ -42,9 +47,13 @@ export function TimerDisplay({ issueId }: { issueId: number }) {
                     setInactiveWorkTimeMs(totalWorkTime);
                     setError(null);
                 },
-                onError: (message) => {
+                onError: (error) => {
                     if (!isMounted) return;
-                    setError(message);
+                    setError(error);
+
+                    toast.error(`Error fetching timer data: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         };

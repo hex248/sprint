@@ -14,6 +14,7 @@ import { SelectTrigger } from "@/components/ui/select";
 import { UserSelect } from "@/components/user-select";
 import { issue } from "@/lib/server";
 import { issueID } from "@/lib/utils";
+import SmallSprintDisplay from "./small-sprint-display";
 import { SprintSelect } from "./sprint-select";
 
 export function IssueDetailPane({
@@ -68,10 +69,40 @@ export function IssueDetailPane({
             sprintId: newSprintId,
             onSuccess: () => {
                 onIssueUpdate?.();
+
+                toast.success(
+                    <>
+                        Successfully updated sprint to{" "}
+                        {value === "unassigned" ? (
+                            "Unassigned"
+                        ) : (
+                            <SmallSprintDisplay sprint={sprints.find((s) => s.id === newSprintId)} />
+                        )}{" "}
+                        for {issueID(project.Project.key, issueData.Issue.number)}
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
             },
             onError: (error) => {
                 console.error("error updating sprint:", error);
                 setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
+
+                toast.error(
+                    <>
+                        Error updating sprint to{" "}
+                        {value === "unassigned" ? (
+                            "Unassigned"
+                        ) : (
+                            <SmallSprintDisplay sprint={sprints.find((s) => s.id === newSprintId)} />
+                        )}{" "}
+                        for {issueID(project.Project.key, issueData.Issue.number)}
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
             },
         });
     };
@@ -96,6 +127,10 @@ export function IssueDetailPane({
             onError: (error) => {
                 console.error("error updating assignee:", error);
                 setAssigneeId(issueData.Issue.assigneeId?.toString() ?? "unassigned");
+
+                toast.error(`Error updating assignee: ${error}`, {
+                    dismissible: false,
+                });
             },
         });
     };
@@ -119,6 +154,10 @@ export function IssueDetailPane({
             onError: (error) => {
                 console.error("error updating status:", error);
                 setStatus(issueData.Issue.status);
+
+                toast.error(`Error updating status: ${error}`, {
+                    dismissible: false,
+                });
             },
         });
     };
@@ -148,9 +187,23 @@ export function IssueDetailPane({
             issueId: issueData.Issue.id,
             onSuccess: async () => {
                 await onIssueDelete?.(issueData.Issue.id);
+
+                toast.success(`Deleted issue ${issueID(project.Project.key, issueData.Issue.number)}`, {
+                    dismissible: false,
+                });
             },
             onError: (error) => {
-                console.error("error deleting issue:", error);
+                console.error(
+                    `error deleting issue ${issueID(project.Project.key, issueData.Issue.number)}`,
+                    error,
+                );
+
+                toast.error(
+                    `Error deleting issue ${issueID(project.Project.key, issueData.Issue.number)}: ${error}`,
+                    {
+                        dismissible: false,
+                    },
+                );
             },
         });
         setDeleteOpen(false);

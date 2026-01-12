@@ -168,6 +168,12 @@ export default function App() {
                 },
                 onError: (error) => {
                     console.error("error fetching organisations:", error);
+                    setOrganisations([]);
+                    setSelectedOrganisation(null);
+
+                    toast.error(`Error fetching organisations: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {
@@ -240,6 +246,12 @@ export default function App() {
                 },
                 onError: (error) => {
                     console.error("error fetching projects:", error);
+                    setProjects([]);
+                    setSelectedProject(null);
+
+                    toast.error(`Error fetching projects: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {
@@ -258,6 +270,10 @@ export default function App() {
                 onError: (error) => {
                     console.error("error fetching members:", error);
                     setMembers([]);
+
+                    toast.error(`Error fetching members: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {
@@ -276,6 +292,10 @@ export default function App() {
                 onError: (error) => {
                     console.error("error fetching sprints:", error);
                     setSprints([]);
+
+                    toast.error(`Error fetching sprints: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {
@@ -324,6 +344,11 @@ export default function App() {
                 onError: (error) => {
                     console.error("error fetching issues:", error);
                     setIssues([]);
+                    setSelectedIssue(null);
+
+                    toast.error(`Error fetching issues: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {
@@ -413,9 +438,11 @@ export default function App() {
                             }}
                             onCreateProject={async (project) => {
                                 if (!selectedOrganisation) return;
+
                                 toast.success(`Created Project ${project.name}`, {
                                     dismissible: false,
                                 });
+
                                 await refetchProjects(selectedOrganisation.Organisation.id, {
                                     selectProjectId: project.id,
                                 });
@@ -439,6 +466,11 @@ export default function App() {
                                         },
                                     );
                                     await refetchIssues();
+                                }}
+                                errorAction={async (errorMessage) => {
+                                    toast.error(`Error creating issue: ${errorMessage}`, {
+                                        dismissible: false,
+                                    });
                                 }}
                             />
                             {isAdmin && (

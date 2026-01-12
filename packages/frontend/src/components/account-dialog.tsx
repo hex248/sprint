@@ -50,14 +50,18 @@ function AccountDialog({ trigger }: { trigger?: ReactNode }) {
                 setUser(data);
                 setPassword("");
                 setOpen(false);
-            },
-            onError: (errorMessage) => {
-                setError(errorMessage);
-            },
-        });
 
-        toast.success(`Account updated successfully`, {
-            dismissible: false,
+                toast.success(`Account updated successfully`, {
+                    dismissible: false,
+                });
+            },
+            onError: (error) => {
+                setError(error);
+
+                toast.error(`Error updating account: ${error}`, {
+                    dismissible: false,
+                });
+            },
         });
     };
 

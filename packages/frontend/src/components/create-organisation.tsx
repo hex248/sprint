@@ -31,9 +31,11 @@ const slugify = (value: string) =>
 export function CreateOrganisation({
     trigger,
     completeAction,
+    errorAction,
 }: {
     trigger?: React.ReactNode;
     completeAction?: (org: OrganisationRecord) => void | Promise<void>;
+    errorAction?: (errorMessage: string) => void | Promise<void>;
 }) {
     const { user } = useAuthenticatedSession();
 
@@ -93,9 +95,14 @@ export function CreateOrganisation({
                         console.error(actionErr);
                     }
                 },
-                onError: (err) => {
+                onError: async (err) => {
                     setError(err || "failed to create organisation");
                     setSubmitting(false);
+                    try {
+                        await errorAction?.(err || "failed to create organisation");
+                    } catch (actionErr) {
+                        console.error(actionErr);
+                    }
                 },
             });
         } catch (err) {

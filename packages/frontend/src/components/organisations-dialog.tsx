@@ -98,6 +98,10 @@ function OrganisationsDialog({
                 onError: (error) => {
                     console.error(error);
                     setMembers([]);
+
+                    toast.error(`Error fetching members: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {
@@ -125,15 +129,23 @@ function OrganisationsDialog({
                         role: newRole,
                         onSuccess: () => {
                             closeConfirmDialog();
+
+                            toast.success(`${capitalise(action)}d ${memberName} to ${newRole} successfully`, {
+                                dismissible: false,
+                            });
+
                             void refetchMembers();
                         },
                         onError: (error) => {
                             console.error(error);
-                        },
-                    });
 
-                    toast.success(`${capitalise(action)}d ${memberName} to ${newRole} successfully`, {
-                        dismissible: false,
+                            toast.error(
+                                `Error ${action.slice(0, -1)}ing ${memberName} to ${newRole}: ${error}`,
+                                {
+                                    dismissible: false,
+                                },
+                            );
+                        },
                     });
                 } catch (err) {
                     console.error(err);
@@ -162,19 +174,27 @@ function OrganisationsDialog({
                         userId: memberUserId,
                         onSuccess: () => {
                             closeConfirmDialog();
+
+                            toast.success(
+                                `Removed ${memberName} from ${selectedOrganisation.Organisation.name} successfully`,
+                                {
+                                    dismissible: false,
+                                },
+                            );
+
                             void refetchMembers();
                         },
                         onError: (error) => {
                             console.error(error);
+
+                            toast.error(
+                                `Error removing member from ${selectedOrganisation.Organisation.name}: ${error}`,
+                                {
+                                    dismissible: false,
+                                },
+                            );
                         },
                     });
-
-                    toast.success(
-                        `Removed ${memberName} from ${selectedOrganisation.Organisation.name} successfully`,
-                        {
-                            dismissible: false,
-                        },
-                    );
                 } catch (err) {
                     console.error(err);
                 }
@@ -191,6 +211,8 @@ function OrganisationsDialog({
     const updateStatuses = async (
         newStatuses: Record<string, string>,
         statusRemoved?: { name: string; colour: string },
+        statusAdded?: { name: string; colour: string },
+        statusMoved?: { name: string; colour: string; currentIndex: number; nextIndex: number },
     ) => {
         if (!selectedOrganisation) return;
 
@@ -200,11 +222,32 @@ function OrganisationsDialog({
                 statuses: newStatuses,
                 onSuccess: () => {
                     setStatuses(newStatuses);
-                    if (statusRemoved) {
+                    if (statusAdded) {
+                        toast.success(
+                            <>
+                                Created <StatusTag status={statusAdded.name} colour={statusAdded.colour} />{" "}
+                                status successfully
+                            </>,
+                            {
+                                dismissible: false,
+                            },
+                        );
+                    } else if (statusRemoved) {
                         toast.success(
                             <>
                                 Removed{" "}
                                 <StatusTag status={statusRemoved.name} colour={statusRemoved.colour} /> status
+                                successfully
+                            </>,
+                            {
+                                dismissible: false,
+                            },
+                        );
+                    } else if (statusMoved) {
+                        toast.success(
+                            <>
+                                Moved <StatusTag status={statusMoved.name} colour={statusMoved.colour} /> from
+                                position {statusMoved.currentIndex + 1} to {statusMoved.nextIndex + 1}{" "}
                                 successfully
                             </>,
                             {
@@ -216,6 +259,42 @@ function OrganisationsDialog({
                 },
                 onError: (error) => {
                     console.error("error updating statuses:", error);
+
+                    if (statusAdded) {
+                        toast.error(
+                            <>
+                                Error adding{" "}
+                                <StatusTag status={statusAdded.name} colour={statusAdded.colour} /> to{" "}
+                                {selectedOrganisation.Organisation.name}: {error}
+                            </>,
+                            {
+                                dismissible: false,
+                            },
+                        );
+                    } else if (statusRemoved) {
+                        toast.error(
+                            <>
+                                Error removing{" "}
+                                <StatusTag status={statusRemoved.name} colour={statusRemoved.colour} /> from{" "}
+                                {selectedOrganisation.Organisation.name}: {error}
+                            </>,
+                            {
+                                dismissible: false,
+                            },
+                        );
+                    } else if (statusMoved) {
+                        toast.error(
+                            <>
+                                Error moving{" "}
+                                <StatusTag status={statusMoved.name} colour={statusMoved.colour} />
+                                from position {statusMoved.currentIndex + 1} to {statusMoved.nextIndex + 1}{" "}
+                                {selectedOrganisation.Organisation.name}: {error}
+                            </>,
+                            {
+                                dismissible: false,
+                            },
+                        );
+                    }
                 },
             });
         } catch (err) {
@@ -240,17 +319,7 @@ function OrganisationsDialog({
         }
         const newStatuses = { ...statuses };
         newStatuses[trimmed] = newStatusColour;
-        await updateStatuses(newStatuses);
-
-        toast.success(
-            <>
-                Created <StatusTag status={newStatusName.trim()} colour={newStatusColour} /> status
-                successfully
-            </>,
-            {
-                dismissible: false,
-            },
-        );
+        await updateStatuses(newStatuses, undefined, { name: trimmed, colour: newStatusColour });
 
         setNewStatusName("");
         setNewStatusColour(DEFAULT_STATUS_COLOUR);
@@ -282,6 +351,16 @@ function OrganisationsDialog({
                 },
                 onError: (error) => {
                     console.error("error checking status usage:", error);
+
+                    toast.error(
+                        <>
+                            Error checking status usage for{" "}
+                            <StatusTag status={status} colour={statuses[status]} />: {error}
+                        </>,
+                        {
+                            dismissible: false,
+                        },
+                    );
                 },
             });
         } catch (err) {
@@ -301,15 +380,11 @@ function OrganisationsDialog({
             nextStatuses[currentIndex],
         ];
 
-        await updateStatuses(Object.fromEntries(nextStatuses.map((status) => [status, statuses[status]])));
-        toast.success(
-            <>
-                Moved <StatusTag status={status} colour={statuses[status]} /> from position {currentIndex + 1}{" "}
-                to {nextIndex + 1} successfully
-            </>,
-            {
-                dismissible: false,
-            },
+        await updateStatuses(
+            Object.fromEntries(nextStatuses.map((status) => [status, statuses[status]])),
+            undefined,
+            undefined,
+            { name: status, colour: statuses[status], currentIndex, nextIndex },
         );
     };
 
@@ -331,6 +406,17 @@ function OrganisationsDialog({
             },
             onError: (error) => {
                 console.error("error replacing status:", error);
+
+                toast.error(
+                    <>
+                        Error removing <StatusTag status={statusToRemove} colour={statuses[statusToRemove]} />{" "}
+                        from
+                        {selectedOrganisation.Organisation.name}: {error}{" "}
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
             },
         });
     };
@@ -482,6 +568,7 @@ function OrganisationsDialog({
                                                             dismissible: false,
                                                         },
                                                     );
+
                                                     refetchMembers();
                                                 }}
                                                 trigger={

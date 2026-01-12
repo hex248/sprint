@@ -1,5 +1,6 @@
 import type { UserRecord } from "@issue/shared";
 import { type FormEvent, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -67,9 +68,13 @@ export function AddMemberDialog({
                     userData = data;
                     userId = data.id;
                 },
-                onError: (err) => {
-                    setError(err || "user not found");
+                onError: (error) => {
+                    setError(error || "user not found");
                     setSubmitting(false);
+
+                    toast.error(`Error adding member: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
 
@@ -90,9 +95,13 @@ export function AddMemberDialog({
                         console.error(actionErr);
                     }
                 },
-                onError: (err) => {
-                    setError(err || "failed to add member");
+                onError: (error) => {
+                    setError(error || "failed to add member");
                     setSubmitting(false);
+
+                    toast.error(`Error adding member: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {

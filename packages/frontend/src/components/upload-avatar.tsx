@@ -38,15 +38,25 @@ export function UploadAvatar({
             onSuccess: (url) => {
                 onAvatarUploaded(url);
                 setUploading(false);
-            },
-            onError: (msg) => {
-                setError(msg);
-                setUploading(false);
-            },
-        });
 
-        toast.success(`Avatar uploaded successfully`, {
-            dismissible: false,
+                toast.success(
+                    <div className="flex flex-col items-center gap-4">
+                        <img src={url} alt="Avatar" className="w-32 h-32" />
+                        Avatar uploaded successfully
+                    </div>,
+                    {
+                        dismissible: false,
+                    },
+                );
+            },
+            onError: (error) => {
+                setError(error);
+                setUploading(false);
+
+                toast.error(`Error uploading avatar: ${error}`, {
+                    dismissible: false,
+                });
+            },
         });
     };
 

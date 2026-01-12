@@ -6,6 +6,7 @@ import {
 } from "@issue/shared";
 
 import { type FormEvent, useState } from "react";
+import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { StatusSelect } from "@/components/status-select";
 import StatusTag from "@/components/status-tag";
@@ -33,6 +34,7 @@ export function CreateIssue({
     statuses,
     trigger,
     completeAction,
+    errorAction,
 }: {
     projectId?: number;
     sprints?: SprintRecord[];
@@ -40,6 +42,7 @@ export function CreateIssue({
     statuses: Record<string, string>;
     trigger?: React.ReactNode;
     completeAction?: (issueNumber: number) => void | Promise<void>;
+    errorAction?: (errorMessage: string) => void | Promise<void>;
 }) {
     const { user } = useAuthenticatedSession();
 
@@ -113,9 +116,13 @@ export function CreateIssue({
                         console.error(actionErr);
                     }
                 },
-                onError: (message) => {
-                    setError(message);
+                onError: (error) => {
+                    setError(error);
                     setSubmitting(false);
+
+                    toast.error(`Error creating issue: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {

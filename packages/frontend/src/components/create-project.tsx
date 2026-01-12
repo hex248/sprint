@@ -1,5 +1,6 @@
 import { PROJECT_NAME_MAX_LENGTH, type ProjectRecord } from "@issue/shared";
 import { type FormEvent, useState } from "react";
+import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,9 +99,13 @@ export function CreateProject({
                         console.error(actionErr);
                     }
                 },
-                onError: (message) => {
-                    setError(message);
+                onError: (error) => {
+                    setError(error);
                     setSubmitting(false);
+
+                    toast.error(`Error creating project: ${error}`, {
+                        dismissible: false,
+                    });
                 },
             });
         } catch (err) {

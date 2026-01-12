@@ -1,5 +1,6 @@
 import type { OrganisationRecord, OrganisationResponse } from "@issue/shared";
 import { useState } from "react";
+import { toast } from "sonner";
 import { CreateOrganisation } from "@/components/create-organisation";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,6 +86,11 @@ export function OrganisationSelect({
                         } catch (err) {
                             console.error(err);
                         }
+                    }}
+                    errorAction={async (errorMessage) => {
+                        toast.error(`Error creating organisation: ${errorMessage}`, {
+                            dismissible: false,
+                        });
                     }}
                 />
             </SelectContent>
