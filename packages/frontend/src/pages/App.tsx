@@ -10,6 +10,7 @@ import type {
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDialog from "@/components/account-dialog";
 import { CreateIssue } from "@/components/create-issue";
+import { CreateSprint } from "@/components/create-sprint";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssuesTable } from "@/components/issues-table";
 import LogOutButton from "@/components/log-out-button";
@@ -47,6 +48,10 @@ export default function App() {
     const [selectedIssue, setSelectedIssue] = useState<IssueResponse | null>(null);
 
     const [members, setMembers] = useState<UserRecord[]>([]);
+
+    const isAdmin =
+        selectedOrganisation?.OrganisationMember.role === "owner" ||
+        selectedOrganisation?.OrganisationMember.role === "admin";
 
     const deepLinkParams = useMemo(() => {
         const params = new URLSearchParams(window.location.search);
@@ -383,15 +388,18 @@ export default function App() {
                         />
                     )}
                     {selectedOrganisation && selectedProject && (
-                        <CreateIssue
-                            projectId={selectedProject?.Project.id}
-                            members={members}
-                            statuses={selectedOrganisation.Organisation.statuses}
-                            completeAction={async () => {
-                                if (!selectedProject) return;
-                                await refetchIssues();
-                            }}
-                        />
+                        <>
+                            <CreateIssue
+                                projectId={selectedProject?.Project.id}
+                                members={members}
+                                statuses={selectedOrganisation.Organisation.statuses}
+                                completeAction={async () => {
+                                    if (!selectedProject) return;
+                                    await refetchIssues();
+                                }}
+                            />
+                            {isAdmin && <CreateSprint projectId={selectedProject?.Project.id} />}
+                        </>
                     )}
                 </div>
                 <div className={`flex gap-${BREATHING_ROOM} items-center`}>
