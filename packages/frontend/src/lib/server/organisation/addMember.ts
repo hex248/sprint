@@ -1,35 +1,28 @@
+import type { OrgAddMemberRequest, OrganisationMemberRecord } from "@issue/shared";
+import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
-export async function addMember({
-    organisationId,
-    userId,
-    role = "member",
-    onSuccess,
-    onError,
-}: {
-    organisationId: number;
-    userId: number;
-    role?: string;
-} & ServerQueryInput) {
-    const url = new URL(`${getServerURL()}/organisation/add-member`);
-    url.searchParams.set("organisationId", `${organisationId}`);
-    url.searchParams.set("userId", `${userId}`);
-    url.searchParams.set("role", role);
-
+export async function addMember(request: OrgAddMemberRequest & ServerQueryInput<OrganisationMemberRecord>) {
+    const { onSuccess, onError, ...body } = request;
     const csrfToken = getCsrfToken();
-    const headers: HeadersInit = {};
-    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
-    const res = await fetch(url.toString(), {
+    const res = await fetch(`${getServerURL()}/organisation/add-member`, {
         method: "POST",
-        headers,
+        headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+        },
+        body: JSON.stringify(body),
         credentials: "include",
     });
 
     if (!res.ok) {
-        const error = await res.text();
-        onError?.(error || `failed to add member (${res.status})`);
+        const error = await res.json().catch(() => res.text());
+        const message =
+            typeof error === "string" ? error : error.error || `failed to add member (${res.status})`;
+        toast.error(message);
+        onError?.(error);
     } else {
         const data = await res.json();
         onSuccess?.(data, res);

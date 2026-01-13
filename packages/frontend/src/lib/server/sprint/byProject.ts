@@ -1,3 +1,4 @@
+import type { SprintRecord } from "@issue/shared";
 import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
@@ -7,7 +8,7 @@ export async function byProject({
     onError,
 }: {
     projectId: number;
-} & ServerQueryInput) {
+} & ServerQueryInput<SprintRecord[]>) {
     const url = new URL(`${getServerURL()}/sprints/by-project`);
     url.searchParams.set("projectId", `${projectId}`);
 

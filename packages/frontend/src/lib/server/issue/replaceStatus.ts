@@ -1,34 +1,30 @@
+import type { IssuesReplaceStatusRequest, ReplaceStatusResponse } from "@issue/shared";
+import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
-export async function replaceStatus({
-    organisationId,
-    oldStatus,
-    newStatus,
-    onSuccess,
-    onError,
-}: {
-    organisationId: number;
-    oldStatus: string;
-    newStatus: string;
-} & ServerQueryInput) {
-    const url = new URL(`${getServerURL()}/issues/replace-status`);
-    url.searchParams.set("organisationId", `${organisationId}`);
-    url.searchParams.set("oldStatus", oldStatus);
-    url.searchParams.set("newStatus", newStatus);
-
+export async function replaceStatus(
+    request: IssuesReplaceStatusRequest & ServerQueryInput<ReplaceStatusResponse>,
+) {
+    const { onSuccess, onError, ...body } = request;
     const csrfToken = getCsrfToken();
-    const headers: HeadersInit = {};
-    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
-    const res = await fetch(url.toString(), {
-        headers,
+    const res = await fetch(`${getServerURL()}/issues/replace-status`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+        },
+        body: JSON.stringify(body),
         credentials: "include",
     });
 
     if (!res.ok) {
-        const error = await res.text();
-        onError?.(error || `failed to replace status (${res.status})`);
+        const error = await res.json().catch(() => res.text());
+        const message =
+            typeof error === "string" ? error : error.error || `failed to replace status (${res.status})`;
+        toast.error(message);
+        onError?.(error);
     } else {
         const data = await res.json();
         onSuccess?.(data, res);

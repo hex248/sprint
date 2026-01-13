@@ -1,3 +1,5 @@
+import type { OrganisationRecord } from "@issue/shared";
+import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
@@ -15,28 +17,33 @@ export async function update({
     description?: string;
     slug?: string;
     statuses?: Record<string, string>;
-} & ServerQueryInput) {
-    const url = new URL(`${getServerURL()}/organisation/update`);
-    url.searchParams.set("id", `${organisationId}`);
-    if (name !== undefined) url.searchParams.set("name", name);
-    if (description !== undefined) url.searchParams.set("description", description);
-    if (slug !== undefined) url.searchParams.set("slug", slug);
-    if (statuses !== undefined) {
-        url.searchParams.set("statuses", JSON.stringify(statuses));
-    }
-
+} & ServerQueryInput<OrganisationRecord>) {
     const csrfToken = getCsrfToken();
-    const headers: HeadersInit = {};
-    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
-    const res = await fetch(url.toString(), {
-        headers,
+    const res = await fetch(`${getServerURL()}/organisation/update`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+        },
+        body: JSON.stringify({
+            id: organisationId,
+            name,
+            description,
+            slug,
+            statuses,
+        }),
         credentials: "include",
     });
 
     if (!res.ok) {
-        const error = await res.text();
-        onError?.(error || `failed to update organisation (${res.status})`);
+        const error = await res.json().catch(() => res.text());
+        const message =
+            typeof error === "string"
+                ? error
+                : error.error || `failed to update organisation (${res.status})`;
+        toast.error(message);
+        onError?.(error);
     } else {
         const data = await res.json();
         onSuccess?.(data, res);

@@ -1,3 +1,5 @@
+import type { SuccessResponse } from "@issue/shared";
+import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
@@ -7,24 +9,27 @@ export async function remove({
     onError,
 }: {
     issueId: number;
-} & ServerQueryInput) {
-    const url = new URL(`${getServerURL()}/issue/delete`);
-    url.searchParams.set("id", `${issueId}`);
-
+} & ServerQueryInput<SuccessResponse>) {
     const csrfToken = getCsrfToken();
-    const headers: HeadersInit = {};
-    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
-    const res = await fetch(url.toString(), {
-        headers,
+    const res = await fetch(`${getServerURL()}/issue/delete`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+        },
+        body: JSON.stringify({ id: issueId }),
         credentials: "include",
     });
 
     if (!res.ok) {
-        const error = await res.text();
-        onError?.(error || `failed to delete issue (${res.status})`);
+        const error = await res.json().catch(() => res.text());
+        const message =
+            typeof error === "string" ? error : error.error || `failed to delete issue (${res.status})`;
+        toast.error(message);
+        onError?.(error);
     } else {
-        const data = await res.text();
+        const data = await res.json();
         onSuccess?.(data, res);
     }
 }

@@ -1,3 +1,5 @@
+import type { IssueRecord } from "@issue/shared";
+import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 
@@ -17,31 +19,32 @@ export async function update({
     sprintId?: number | null;
     assigneeId?: number | null;
     status?: string;
-} & ServerQueryInput) {
-    const url = new URL(`${getServerURL()}/issue/update`);
-    url.searchParams.set("id", `${issueId}`);
-    if (title !== undefined) url.searchParams.set("title", title);
-    if (description !== undefined) url.searchParams.set("description", description);
-    if (sprintId !== undefined) {
-        url.searchParams.set("sprintId", sprintId === null ? "null" : `${sprintId}`);
-    }
-    if (assigneeId !== undefined) {
-        url.searchParams.set("assigneeId", assigneeId === null ? "null" : `${assigneeId}`);
-    }
-    if (status !== undefined) url.searchParams.set("status", status);
-
+} & ServerQueryInput<IssueRecord>) {
     const csrfToken = getCsrfToken();
-    const headers: HeadersInit = {};
-    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
-    const res = await fetch(url.toString(), {
-        headers,
+    const res = await fetch(`${getServerURL()}/issue/update`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+        },
+        body: JSON.stringify({
+            id: issueId,
+            title,
+            description,
+            sprintId,
+            assigneeId,
+            status,
+        }),
         credentials: "include",
     });
 
     if (!res.ok) {
-        const error = await res.text();
-        onError?.(error || `failed to update issue (${res.status})`);
+        const error = await res.json().catch(() => res.text());
+        const message =
+            typeof error === "string" ? error : error.error || `failed to update issue (${res.status})`;
+        toast.error(message);
+        onError?.(error);
     } else {
         const data = await res.json();
         onSuccess?.(data, res);

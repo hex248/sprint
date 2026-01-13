@@ -8,7 +8,7 @@ export async function members({
     onError,
 }: {
     organisationId: number;
-} & ServerQueryInput) {
+} & ServerQueryInput<OrganisationMemberResponse[]>) {
     const url = new URL(`${getServerURL()}/organisation/members`);
     url.searchParams.set("organisationId", `${organisationId}`);
 

@@ -7,7 +7,7 @@ export async function uploadAvatar({
     onError,
 }: {
     file: File;
-} & ServerQueryInput) {
+} & ServerQueryInput<string>) {
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
@@ -36,8 +36,10 @@ export async function uploadAvatar({
     });
 
     if (!res.ok) {
-        const error = await res.text();
-        onError?.(error || `Failed to upload avatar (${res.status})`);
+        const error = await res.json().catch(() => res.text());
+        const message =
+            typeof error === "string" ? error : error.error || `Failed to upload avatar (${res.status})`;
+        onError?.(message);
         return;
     }
 
