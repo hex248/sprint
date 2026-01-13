@@ -1,7 +1,7 @@
 import type { TimerState } from "@issue/shared";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { timer } from "@/lib/server";
+import { parseError, timer } from "@/lib/server";
 import { formatTime } from "@/lib/utils";
 
 const FALLBACK_TIME = "--:--:--";
@@ -25,11 +25,12 @@ export function TimerDisplay({ issueId }: { issueId: number }) {
                     setWorkTimeMs(data?.workTimeMs ?? 0);
                     setError(null);
                 },
-                onError: (error) => {
+                onError: (err) => {
                     if (!isMounted) return;
-                    setError(error);
+                    const message = parseError(err);
+                    setError(message);
 
-                    toast.error(`Error fetching timer data: ${error}`, {
+                    toast.error(`Error fetching timer data: ${message}`, {
                         dismissible: false,
                     });
                 },
@@ -39,19 +40,19 @@ export function TimerDisplay({ issueId }: { issueId: number }) {
                 issueId,
                 onSuccess: (data) => {
                     if (!isMounted) return;
-                    const sessions = (data ?? []) as TimerState[];
-                    const totalWorkTime = sessions.reduce(
+                    const totalWorkTime = data.reduce(
                         (total, session) => total + (session?.workTimeMs ?? 0),
                         0,
                     );
                     setInactiveWorkTimeMs(totalWorkTime);
                     setError(null);
                 },
-                onError: (error) => {
+                onError: (err) => {
                     if (!isMounted) return;
-                    setError(error);
+                    const message = parseError(err);
+                    setError(message);
 
-                    toast.error(`Error fetching timer data: ${error}`, {
+                    toast.error(`Error fetching timer data: ${message}`, {
                         dismissible: false,
                     });
                 },

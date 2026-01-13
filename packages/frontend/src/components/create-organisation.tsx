@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
-import { organisation } from "@/lib/server";
+import { organisation, parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 const slugify = (value: string) =>
@@ -85,7 +85,6 @@ export function CreateOrganisation({
                 name,
                 slug,
                 description,
-                userId: user.id,
                 onSuccess: async (data) => {
                     setOpen(false);
                     reset();
@@ -96,10 +95,11 @@ export function CreateOrganisation({
                     }
                 },
                 onError: async (err) => {
-                    setError(err || "failed to create organisation");
+                    const message = parseError(err);
+                    setError(message || "failed to create organisation");
                     setSubmitting(false);
                     try {
-                        await errorAction?.(err || "failed to create organisation");
+                        await errorAction?.(message || "failed to create organisation");
                     } catch (actionErr) {
                         console.error(actionErr);
                     }

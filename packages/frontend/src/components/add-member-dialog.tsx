@@ -11,7 +11,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
-import { organisation, user } from "@/lib/server";
+import { organisation, parseError, user } from "@/lib/server";
 
 export function AddMemberDialog({
     organisationId,
@@ -68,11 +68,12 @@ export function AddMemberDialog({
                     userData = data;
                     userId = data.id;
                 },
-                onError: (error) => {
-                    setError(error || "user not found");
+                onError: (err) => {
+                    const message = parseError(err);
+                    setError(message || "user not found");
                     setSubmitting(false);
 
-                    toast.error(`Error adding member: ${error}`, {
+                    toast.error(`Error adding member: ${message}`, {
                         dismissible: false,
                     });
                 },
@@ -95,11 +96,12 @@ export function AddMemberDialog({
                         console.error(actionErr);
                     }
                 },
-                onError: (error) => {
-                    setError(error || "failed to add member");
+                onError: (err) => {
+                    const message = parseError(err);
+                    setError(message || "failed to add member");
                     setSubmitting(false);
 
-                    toast.error(`Error adding member: ${error}`, {
+                    toast.error(`Error adding member: ${message}`, {
                         dismissible: false,
                     });
                 },

@@ -1,7 +1,7 @@
 import type { TimerState } from "@issue/shared";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { timer } from "@/lib/server";
+import { parseError, timer } from "@/lib/server";
 import { cn, formatTime } from "@/lib/utils";
 
 export function IssueTimer({ issueId, onEnd }: { issueId: number; onEnd?: (data: TimerState) => void }) {
@@ -19,7 +19,7 @@ export function IssueTimer({ issueId, onEnd }: { issueId: number; onEnd?: (data:
                     setDisplayTime(data.workTimeMs);
                 }
             },
-            onError: setError,
+            onError: (err) => setError(parseError(err)),
         });
     }, [issueId]);
 
@@ -41,11 +41,13 @@ export function IssueTimer({ issueId, onEnd }: { issueId: number; onEnd?: (data:
         timer.toggle({
             issueId,
             onSuccess: (data) => {
-                setTimerState(data);
-                setDisplayTime(data.workTimeMs);
+                if (data) {
+                    setTimerState(data);
+                    setDisplayTime(data.workTimeMs);
+                }
                 setError(null);
             },
-            onError: setError,
+            onError: (err) => setError(parseError(err)),
         });
     };
 
@@ -53,12 +55,14 @@ export function IssueTimer({ issueId, onEnd }: { issueId: number; onEnd?: (data:
         timer.end({
             issueId,
             onSuccess: (data) => {
-                setTimerState(data);
-                setDisplayTime(data.workTimeMs);
+                if (data) {
+                    setTimerState(data);
+                    setDisplayTime(data.workTimeMs);
+                    onEnd?.(data);
+                }
                 setError(null);
-                onEnd?.(data);
             },
-            onError: setError,
+            onError: (err) => setError(parseError(err)),
         });
     };
 

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
-import { project } from "@/lib/server";
+import { parseError, project } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 const keyify = (value: string) =>
@@ -86,24 +86,24 @@ export function CreateProject({
             await project.create({
                 key,
                 name,
-                creatorId: user.id,
                 organisationId,
                 onSuccess: async (data) => {
-                    const project = data as ProjectRecord;
+                    const proj = data as ProjectRecord;
 
                     setOpen(false);
                     reset();
                     try {
-                        await completeAction?.(project);
+                        await completeAction?.(proj);
                     } catch (actionErr) {
                         console.error(actionErr);
                     }
                 },
-                onError: (error) => {
-                    setError(error);
+                onError: (err) => {
+                    const message = parseError(err);
+                    setError(message);
                     setSubmitting(false);
 
-                    toast.error(`Error creating project: ${error}`, {
+                    toast.error(`Error creating project: ${message}`, {
                         dismissible: false,
                     });
                 },

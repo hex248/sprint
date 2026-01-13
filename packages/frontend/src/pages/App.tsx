@@ -2,7 +2,6 @@
 
 import type {
     IssueResponse,
-    OrganisationMemberResponse,
     OrganisationResponse,
     ProjectRecord,
     ProjectResponse,
@@ -107,25 +106,21 @@ export default function App() {
     const refetchOrganisations = async (options?: { selectOrganisationId?: number }) => {
         try {
             await organisation.byUser({
-                userId: user.id,
                 onSuccess: (data) => {
-                    const organisations = data as OrganisationResponse[];
-                    organisations.sort((a, b) => a.Organisation.name.localeCompare(b.Organisation.name));
-                    setOrganisations(organisations);
+                    data.sort((a, b) => a.Organisation.name.localeCompare(b.Organisation.name));
+                    setOrganisations(data);
 
                     let selected: OrganisationResponse | null = null;
 
                     if (options?.selectOrganisationId) {
-                        const created = organisations.find(
-                            (o) => o.Organisation.id === options.selectOrganisationId,
-                        );
+                        const created = data.find((o) => o.Organisation.id === options.selectOrganisationId);
                         if (created) {
                             selected = created;
                         }
                     } else {
                         const deepLinkState = deepLinkStateRef.current;
                         if (deepLinkParams.orgSlug && !deepLinkState.appliedOrg) {
-                            const match = organisations.find(
+                            const match = data.find(
                                 (org) => org.Organisation.slug.toLowerCase() === deepLinkParams.orgSlug,
                             );
                             deepLinkState.appliedOrg = true;
@@ -139,9 +134,7 @@ export default function App() {
                         if (!selected) {
                             const savedId = localStorage.getItem("selectedOrganisationId");
                             if (savedId) {
-                                const saved = organisations.find(
-                                    (o) => o.Organisation.id === Number(savedId),
-                                );
+                                const saved = data.find((o) => o.Organisation.id === Number(savedId));
                                 if (saved) {
                                     selected = saved;
                                 }
@@ -150,7 +143,7 @@ export default function App() {
                     }
 
                     if (!selected) {
-                        selected = organisations[0] || null;
+                        selected = data[0] || null;
                     }
 
                     setSelectedOrganisation(selected);
@@ -260,7 +253,7 @@ export default function App() {
         try {
             await organisation.members({
                 organisationId,
-                onSuccess: (data: OrganisationMemberResponse[]) => {
+                onSuccess: (data) => {
                     setMembers(data.map((m) => m.User));
                 },
                 onError: (error) => {
@@ -282,7 +275,7 @@ export default function App() {
         try {
             await sprint.byProject({
                 projectId,
-                onSuccess: (data: SprintRecord[]) => {
+                onSuccess: (data) => {
                     setSprints(data);
                 },
                 onError: (error) => {

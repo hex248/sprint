@@ -23,7 +23,7 @@ import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { SelectTrigger } from "@/components/ui/select";
 import { UserSelect } from "@/components/user-select";
-import { issue } from "@/lib/server";
+import { issue, parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 import { SprintSelect } from "./sprint-select";
 
@@ -116,16 +116,17 @@ export function CreateIssue({
                         console.error(actionErr);
                     }
                 },
-                onError: async (error) => {
-                    setError(error);
+                onError: async (err) => {
+                    const message = parseError(err);
+                    setError(message);
                     setSubmitting(false);
 
-                    toast.error(`Error creating issue: ${error}`, {
+                    toast.error(`Error creating issue: ${message}`, {
                         dismissible: false,
                     });
 
                     try {
-                        await errorAction?.(error);
+                        await errorAction?.(message);
                     } catch (actionErr) {
                         console.error(actionErr);
                     }

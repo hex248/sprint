@@ -16,7 +16,7 @@ import {
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { sprint } from "@/lib/server";
+import { parseError, sprint } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 const SPRINT_NAME_MAX_LENGTH = 64;
@@ -135,11 +135,12 @@ export function CreateSprint({
                         console.error(actionErr);
                     }
                 },
-                onError: (error) => {
-                    setError(error);
+                onError: (err) => {
+                    const message = parseError(err);
+                    setError(message);
                     setSubmitting(false);
 
-                    toast.error(`Error creating sprint: ${error}`, {
+                    toast.error(`Error creating sprint: ${message}`, {
                         dismissible: false,
                     });
                 },

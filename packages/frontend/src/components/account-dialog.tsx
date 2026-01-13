@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { UploadAvatar } from "@/components/upload-avatar";
-import { user } from "@/lib/server";
+import { parseError, user } from "@/lib/server";
 
 function AccountDialog({ trigger }: { trigger?: ReactNode }) {
     const { user: currentUser, setUser } = useAuthenticatedSession();
@@ -41,9 +41,8 @@ function AccountDialog({ trigger }: { trigger?: ReactNode }) {
         }
 
         await user.update({
-            id: currentUser.id,
             name: name.trim(),
-            password: password.trim(),
+            password: password.trim() || undefined,
             avatarURL,
             onSuccess: (data) => {
                 setError("");
@@ -55,10 +54,11 @@ function AccountDialog({ trigger }: { trigger?: ReactNode }) {
                     dismissible: false,
                 });
             },
-            onError: (error) => {
-                setError(error);
+            onError: (err) => {
+                const message = parseError(err);
+                setError(message);
 
-                toast.error(`Error updating account: ${error}`, {
+                toast.error(`Error updating account: ${message}`, {
                     dismissible: false,
                 });
             },

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import Avatar from "@/components/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { user } from "@/lib/server";
+import { parseError, user } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 export function UploadAvatar({
@@ -49,11 +49,12 @@ export function UploadAvatar({
                     },
                 );
             },
-            onError: (error) => {
-                setError(error);
+            onError: (err) => {
+                const message = parseError(err);
+                setError(message);
                 setUploading(false);
 
-                toast.error(`Error uploading avatar: ${error}`, {
+                toast.error(`Error uploading avatar: ${message}`, {
                     dismissible: false,
                 });
             },
