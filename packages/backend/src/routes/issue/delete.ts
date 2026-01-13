@@ -1,18 +1,18 @@
+import { IssueDeleteRequestSchema } from "@issue/shared";
 import type { BunRequest } from "bun";
 import { deleteIssue } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /issue/delete?id=1
 export default async function issueDelete(req: BunRequest) {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
-    if (!id) {
-        return new Response("missing issue id", { status: 400 });
-    }
+    const parsed = await parseJsonBody(req, IssueDeleteRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    const result = await deleteIssue(Number(id));
+    const { id } = parsed.data;
+
+    const result = await deleteIssue(id);
     if (result.rowCount === 0) {
-        return new Response(`no issue with id ${id} found`, { status: 404 });
+        return errorResponse(`no issue with id ${id} found`, "ISSUE_NOT_FOUND", 404);
     }
 
-    return new Response(`issue with id ${id} deleted`, { status: 200 });
+    return Response.json({ success: true });
 }

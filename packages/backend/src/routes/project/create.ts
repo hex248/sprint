@@ -1,33 +1,25 @@
-import type { BunRequest } from "bun";
+import { ProjectCreateRequestSchema } from "@issue/shared";
+import type { AuthedRequest } from "../../auth/middleware";
 import { createProject, getProjectByKey, getUserById } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /project/create?key=KEY&name=Testing&creatorId=1&organisationId=1
-export default async function projectCreate(req: BunRequest) {
-    const url = new URL(req.url);
-    const key = url.searchParams.get("key");
-    const name = url.searchParams.get("name");
-    const creatorId = url.searchParams.get("creatorId");
-    const organisationId = url.searchParams.get("organisationId");
+export default async function projectCreate(req: AuthedRequest) {
+    const parsed = await parseJsonBody(req, ProjectCreateRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!key || !name || !creatorId || !organisationId) {
-        return new Response(
-            `missing parameters: ${!key ? "key " : ""}${!name ? "name " : ""}${!creatorId ? "creatorId " : ""}${!organisationId ? "organisationId" : ""}`,
-            { status: 400 },
-        );
-    }
+    const { key, name, organisationId } = parsed.data;
 
-    // check if project with key already exists in the organisation
     const existingProject = await getProjectByKey(key);
-    if (existingProject?.organisationId === parseInt(organisationId, 10)) {
-        return new Response(`project with key ${key} already exists`, { status: 400 });
+    if (existingProject?.organisationId === organisationId) {
+        return errorResponse(`project with key ${key} already exists in this organisation`, "KEY_TAKEN", 400);
     }
 
-    const creator = await getUserById(parseInt(creatorId, 10));
+    const creator = await getUserById(req.userId);
     if (!creator) {
-        return new Response(`creator with id ${creatorId} not found`, { status: 404 });
+        return errorResponse(`creator not found`, "CREATOR_NOT_FOUND", 404);
     }
 
-    const project = await createProject(key, name, creator.id, parseInt(organisationId, 10));
+    const project = await createProject(key, name, creator.id, organisationId);
 
     return Response.json(project);
 }

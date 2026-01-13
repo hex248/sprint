@@ -1,21 +1,20 @@
-import { calculateBreakTimeMs, calculateWorkTimeMs } from "@issue/shared";
+import { calculateBreakTimeMs, calculateWorkTimeMs, TimerEndRequestSchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { endTimedSession, getActiveTimedSession } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// POST /timer/end
 export default async function timerEnd(req: AuthedRequest) {
-    const url = new URL(req.url);
-    const issueId = url.searchParams.get("issueId");
-    if (!issueId || Number.isNaN(Number(issueId))) {
-        return new Response("missing issue id", { status: 400 });
-    }
-    const activeSession = await getActiveTimedSession(req.userId, Number(issueId));
+    const parsed = await parseJsonBody(req, TimerEndRequestSchema);
+    if ("error" in parsed) return parsed.error;
+
+    const { issueId } = parsed.data;
+
+    const activeSession = await getActiveTimedSession(req.userId, issueId);
 
     if (!activeSession) {
-        return new Response("no active timer", { status: 400 });
+        return errorResponse("no active timer", "NO_ACTIVE_TIMER", 400);
     }
 
-    // already ended - return existing without modification
     if (activeSession.endedAt) {
         return Response.json({
             ...activeSession,
@@ -27,7 +26,7 @@ export default async function timerEnd(req: AuthedRequest) {
 
     const ended = await endTimedSession(activeSession.id, activeSession.timestamps);
     if (!ended) {
-        return new Response("failed to end timer", { status: 500 });
+        return errorResponse("failed to end timer", "END_FAILED", 500);
     }
 
     return Response.json({

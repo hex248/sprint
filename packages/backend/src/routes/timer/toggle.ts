@@ -1,20 +1,23 @@
-import { calculateBreakTimeMs, calculateWorkTimeMs, isTimerRunning } from "@issue/shared";
+import {
+    calculateBreakTimeMs,
+    calculateWorkTimeMs,
+    isTimerRunning,
+    TimerToggleRequestSchema,
+} from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { appendTimestamp, createTimedSession, getActiveTimedSession } from "../../db/queries";
+import { parseJsonBody } from "../../validation";
 
-// POST /timer/toggle?issueId=123
 export default async function timerToggle(req: AuthedRequest) {
-    const url = new URL(req.url);
-    const issueId = url.searchParams.get("issueId");
-    if (!issueId || Number.isNaN(Number(issueId))) {
-        return new Response("missing issue id", { status: 400 });
-    }
+    const parsed = await parseJsonBody(req, TimerToggleRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    const activeSession = await getActiveTimedSession(req.userId, Number(issueId));
+    const { issueId } = parsed.data;
+
+    const activeSession = await getActiveTimedSession(req.userId, issueId);
 
     if (!activeSession) {
-        // no active session, create new one with first timestamp
-        const newSession = await createTimedSession(req.userId, Number(issueId));
+        const newSession = await createTimedSession(req.userId, issueId);
         return Response.json({
             ...newSession,
             workTimeMs: 0,
@@ -23,10 +26,9 @@ export default async function timerToggle(req: AuthedRequest) {
         });
     }
 
-    // active session exists, append timestamp (toggle)
     const updated = await appendTimestamp(activeSession.id, activeSession.timestamps);
     if (!updated) {
-        return new Response("failed to update timer", { status: 500 });
+        return Response.json({ error: "failed to update timer", code: "UPDATE_FAILED" }, { status: 500 });
     }
 
     const running = isTimerRunning(updated.timestamps);

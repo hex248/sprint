@@ -1,45 +1,46 @@
+import { ProjectUpdateRequestSchema } from "@issue/shared";
 import type { BunRequest } from "bun";
 import { getProjectByID, getProjectByKey, getUserById, updateProject } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /project/update?id=1&key=NEW&name=new%20name&creatorId=1&organisationId=1
 export default async function projectUpdate(req: BunRequest) {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
-    const key = url.searchParams.get("key") || undefined;
-    const name = url.searchParams.get("name") || undefined;
-    const creatorId = url.searchParams.get("creatorId") || undefined;
-    const organisationId = url.searchParams.get("organisationId") || undefined;
+    const parsed = await parseJsonBody(req, ProjectUpdateRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!id) {
-        return new Response(`project id is required`, { status: 400 });
-    }
+    const { id, key, name, creatorId, organisationId } = parsed.data;
 
-    const existingProject = await getProjectByID(Number(id));
+    const existingProject = await getProjectByID(id);
     if (!existingProject) {
-        return new Response(`project with id ${id} does not exist`, { status: 404 });
+        return errorResponse(`project with id ${id} does not exist`, "PROJECT_NOT_FOUND", 404);
     }
 
     if (!key && !name && !creatorId && !organisationId) {
-        return new Response(`at least one of key, name, creatorId, or organisationId must be provided`, {
-            status: 400,
-        });
+        return errorResponse(
+            "at least one of key, name, creatorId, or organisationId must be provided",
+            "NO_UPDATES",
+            400,
+        );
     }
 
-    const projectWithKey = key ? await getProjectByKey(key) : null;
-    if (projectWithKey && projectWithKey.id !== Number(id)) {
-        return new Response(`a project with key "${key}" already exists`, { status: 400 });
+    if (key) {
+        const projectWithKey = await getProjectByKey(key);
+        if (projectWithKey && projectWithKey.id !== id) {
+            return errorResponse(`a project with key "${key}" already exists`, "KEY_TAKEN", 400);
+        }
     }
 
-    const newCreator = creatorId ? await getUserById(Number(creatorId)) : null;
-    if (creatorId && !newCreator) {
-        return new Response(`user with id ${creatorId} does not exist`, { status: 400 });
+    if (creatorId) {
+        const newCreator = await getUserById(creatorId);
+        if (!newCreator) {
+            return errorResponse(`user with id ${creatorId} does not exist`, "USER_NOT_FOUND", 400);
+        }
     }
 
-    const project = await updateProject(Number(id), {
+    const project = await updateProject(id, {
         key,
         name,
-        creatorId: newCreator?.id,
-        organisationId: organisationId ? Number(organisationId) : undefined,
+        creatorId,
+        organisationId,
     });
 
     return Response.json(project);

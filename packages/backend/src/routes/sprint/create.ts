@@ -1,63 +1,29 @@
+import { SprintCreateRequestSchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { createSprint, getOrganisationMemberRole, getProjectByID } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /sprint/create?projectId=1&name=Sprint%201&startDate=2025-01-01T00:00:00.000Z&endDate=2025-01-14T23:59:00.000Z
 export default async function sprintCreate(req: AuthedRequest) {
-    const url = new URL(req.url);
-    const projectId = url.searchParams.get("projectId");
-    const name = url.searchParams.get("name");
-    const color = url.searchParams.get("color") || undefined;
-    const startDateParam = url.searchParams.get("startDate");
-    const endDateParam = url.searchParams.get("endDate");
+    const parsed = await parseJsonBody(req, SprintCreateRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!projectId || !name || !startDateParam || !endDateParam) {
-        return new Response(
-            `missing parameters: ${!projectId ? "projectId " : ""}${!name ? "name " : ""}${
-                !startDateParam ? "startDate " : ""
-            }${!endDateParam ? "endDate" : ""}`,
-            { status: 400 },
-        );
-    }
+    const { projectId, name, color, startDate, endDate } = parsed.data;
 
-    const projectIdNumber = Number(projectId);
-    if (!Number.isInteger(projectIdNumber)) {
-        return new Response("projectId must be an integer", { status: 400 });
-    }
-
-    const project = await getProjectByID(projectIdNumber);
+    const project = await getProjectByID(projectId);
     if (!project) {
-        return new Response(`project not found: provided ${projectId}`, { status: 404 });
+        return errorResponse(`project not found: ${projectId}`, "PROJECT_NOT_FOUND", 404);
     }
 
     const membership = await getOrganisationMemberRole(project.organisationId, req.userId);
     if (!membership) {
-        return new Response("not a member of this organisation", { status: 403 });
+        return errorResponse("not a member of this organisation", "NOT_MEMBER", 403);
     }
 
     if (membership.role !== "owner" && membership.role !== "admin") {
-        return new Response("only owners and admins can create sprints", { status: 403 });
+        return errorResponse("only owners and admins can create sprints", "PERMISSION_DENIED", 403);
     }
 
-    const trimmedName = name.trim();
-    if (trimmedName === "") {
-        return new Response("name cannot be empty", { status: 400 });
-    }
-
-    const startDate = new Date(startDateParam);
-    if (Number.isNaN(startDate.valueOf())) {
-        return new Response("startDate must be a valid date", { status: 400 });
-    }
-
-    const endDate = new Date(endDateParam);
-    if (Number.isNaN(endDate.valueOf())) {
-        return new Response("endDate must be a valid date", { status: 400 });
-    }
-
-    if (startDate > endDate) {
-        return new Response("endDate must be after startDate", { status: 400 });
-    }
-
-    const sprint = await createSprint(project.id, trimmedName, color, startDate, endDate);
+    const sprint = await createSprint(project.id, name, color, new Date(startDate), new Date(endDate));
 
     return Response.json(sprint);
 }

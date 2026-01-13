@@ -1,41 +1,26 @@
+import { IssueUpdateRequestSchema } from "@issue/shared";
 import type { BunRequest } from "bun";
 import { updateIssue } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /issue/update?id=1&title=Testing&description=Description&assigneeId=2&status=IN%20PROGRESS
-// assigneeId can be "null" to unassign
 export default async function issueUpdate(req: BunRequest) {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
-    if (!id) {
-        return new Response("missing issue id", { status: 400 });
+    const parsed = await parseJsonBody(req, IssueUpdateRequestSchema);
+    if ("error" in parsed) return parsed.error;
+
+    const { id, title, description, status, assigneeId, sprintId } = parsed.data;
+
+    // check that at least one field is being updated
+    if (
+        title === undefined &&
+        description === undefined &&
+        status === undefined &&
+        assigneeId === undefined &&
+        sprintId === undefined
+    ) {
+        return errorResponse("no updates provided", "NO_UPDATES", 400);
     }
 
-    const title = url.searchParams.get("title") || undefined;
-    const description = url.searchParams.get("description") || undefined;
-    const sprintIdParam = url.searchParams.get("sprintId");
-    const assigneeIdParam = url.searchParams.get("assigneeId");
-    const status = url.searchParams.get("status") || undefined;
-
-    // parse sprintId: "null" means unassign, number means assign, undefined means no change
-    let sprintId: number | null | undefined;
-    if (sprintIdParam === "null") {
-        sprintId = null;
-    } else if (sprintIdParam) {
-        sprintId = Number(sprintIdParam);
-    }
-    // same for assigneeId
-    let assigneeId: number | null | undefined;
-    if (assigneeIdParam === "null") {
-        assigneeId = null;
-    } else if (assigneeIdParam) {
-        assigneeId = Number(assigneeIdParam);
-    }
-
-    if (!title && !description && sprintId === undefined && assigneeId === undefined && !status) {
-        return new Response("no updates provided", { status: 400 });
-    }
-
-    const issue = await updateIssue(Number(id), {
+    const issue = await updateIssue(id, {
         title,
         description,
         sprintId,

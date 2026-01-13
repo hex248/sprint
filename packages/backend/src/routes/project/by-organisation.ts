@@ -1,33 +1,27 @@
+import { ProjectByOrgQuerySchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationById, getOrganisationsByUserId, getProjectsByOrganisationId } from "../../db/queries";
+import { errorResponse, parseQueryParams } from "../../validation";
 
-// /projects/by-organisation?organisationId=1
 export default async function projectsByOrganisation(req: AuthedRequest) {
     const url = new URL(req.url);
-    const organisationId = url.searchParams.get("organisationId");
+    const parsed = parseQueryParams(url, ProjectByOrgQuerySchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!organisationId) {
-        return new Response("organisationId is required", { status: 400 });
-    }
+    const { organisationId } = parsed.data;
 
-    const orgIdNumber = Number(organisationId);
-    if (!Number.isInteger(orgIdNumber)) {
-        return new Response("organisationId must be an integer", { status: 400 });
-    }
-
-    const organisation = await getOrganisationById(orgIdNumber);
+    const organisation = await getOrganisationById(organisationId);
     if (!organisation) {
-        return new Response(`organisation with id ${organisationId} not found`, { status: 404 });
+        return errorResponse(`organisation with id ${organisationId} not found`, "ORG_NOT_FOUND", 404);
     }
 
-    // Check if user has access to this organisation
     const userOrganisations = await getOrganisationsByUserId(req.userId);
-    const hasAccess = userOrganisations.some((item) => item.Organisation.id === orgIdNumber);
+    const hasAccess = userOrganisations.some((item) => item.Organisation.id === organisationId);
     if (!hasAccess) {
-        return new Response("Access denied: you are not a member of this organisation", { status: 403 });
+        return errorResponse("access denied: you are not a member of this organisation", "NOT_MEMBER", 403);
     }
 
-    const projects = await getProjectsByOrganisationId(orgIdNumber);
+    const projects = await getProjectsByOrganisationId(organisationId);
 
     return Response.json(projects);
 }

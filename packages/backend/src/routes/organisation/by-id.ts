@@ -1,23 +1,18 @@
+import { OrgByIdQuerySchema } from "@issue/shared";
 import type { BunRequest } from "bun";
 import { getOrganisationById } from "../../db/queries";
+import { errorResponse, parseQueryParams } from "../../validation";
 
-// /organisation/by-id?id=1
 export default async function organisationById(req: BunRequest) {
     const url = new URL(req.url);
-    const id = url.searchParams.get("id");
+    const parsed = parseQueryParams(url, OrgByIdQuerySchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!id) {
-        return new Response("organisation id is required", { status: 400 });
-    }
+    const { id } = parsed.data;
 
-    const organisationId = Number(id);
-    if (!Number.isInteger(organisationId)) {
-        return new Response("organisation id must be an integer", { status: 400 });
-    }
-
-    const organisation = await getOrganisationById(organisationId);
+    const organisation = await getOrganisationById(id);
     if (!organisation) {
-        return new Response(`organisation with id ${id} not found`, { status: 404 });
+        return errorResponse(`organisation with id ${id} not found`, "ORG_NOT_FOUND", 404);
     }
 
     return Response.json(organisation);

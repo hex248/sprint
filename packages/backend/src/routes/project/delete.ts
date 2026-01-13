@@ -1,21 +1,20 @@
+import { ProjectDeleteRequestSchema } from "@issue/shared";
 import type { BunRequest } from "bun";
 import { deleteProject, getProjectByID } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /project/delete?id=1
 export default async function projectDelete(req: BunRequest) {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
+    const parsed = await parseJsonBody(req, ProjectDeleteRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!id) {
-        return new Response(`project id is required`, { status: 400 });
-    }
+    const { id } = parsed.data;
 
-    const existingProject = await getProjectByID(Number(id));
+    const existingProject = await getProjectByID(id);
     if (!existingProject) {
-        return new Response(`project with id ${id} does not exist`, { status: 404 });
+        return errorResponse(`project with id ${id} does not exist`, "PROJECT_NOT_FOUND", 404);
     }
 
-    await deleteProject(Number(id));
+    await deleteProject(id);
 
-    return new Response(`project with id ${id} deleted successfully`, { status: 200 });
+    return Response.json({ success: true });
 }

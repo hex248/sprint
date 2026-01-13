@@ -1,35 +1,28 @@
+import { IssueCreateRequestSchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
-import { createIssue, getProjectByID, getProjectByKey } from "../../db/queries";
+import { createIssue, getProjectByID } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /issue/create?projectId=1&title=Testing&description=Description&status=TO%20DO
-// OR
-// /issue/create?projectKey=projectKey&title=Testing&description=Description&status=TO%20DO
 export default async function issueCreate(req: AuthedRequest) {
-    const url = new URL(req.url);
-    const projectId = url.searchParams.get("projectId");
-    const projectKey = url.searchParams.get("projectKey");
+    const parsed = await parseJsonBody(req, IssueCreateRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    let project = null;
-    if (projectId) {
-        project = await getProjectByID(Number(projectId));
-    } else if (projectKey) {
-        project = await getProjectByKey(projectKey);
-    } else {
-        return new Response("missing project key or project id", { status: 400 });
-    }
+    const { projectId, title, description = "", status, assigneeId, sprintId } = parsed.data;
+
+    const project = await getProjectByID(projectId);
     if (!project) {
-        return new Response(`project not found: provided ${projectId ?? projectKey}`, { status: 404 });
+        return errorResponse(`project not found: ${projectId}`, "PROJECT_NOT_FOUND", 404);
     }
 
-    const title = url.searchParams.get("title") || "Untitled Issue";
-    const description = url.searchParams.get("description") || "";
-    const sprintIdParam = url.searchParams.get("sprintId");
-    const sprintId = sprintIdParam ? Number(sprintIdParam) : undefined;
-    const assigneeIdParam = url.searchParams.get("assigneeId");
-    const assigneeId = assigneeIdParam ? Number(assigneeIdParam) : undefined;
-    const status = url.searchParams.get("status") || undefined;
-
-    const issue = await createIssue(project.id, title, description, req.userId, sprintId, assigneeId, status);
+    const issue = await createIssue(
+        project.id,
+        title,
+        description,
+        req.userId,
+        sprintId ?? undefined,
+        assigneeId ?? undefined,
+        status,
+    );
 
     return Response.json(issue);
 }

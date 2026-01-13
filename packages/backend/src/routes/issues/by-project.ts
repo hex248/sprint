@@ -1,14 +1,20 @@
+import { IssuesByProjectQuerySchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getIssuesWithUsersByProject, getProjectByID } from "../../db/queries";
+import { errorResponse, parseQueryParams } from "../../validation";
 
 export default async function issuesByProject(req: AuthedRequest) {
     const url = new URL(req.url);
-    const projectId = url.searchParams.get("projectId");
+    const parsed = parseQueryParams(url, IssuesByProjectQuerySchema);
+    if ("error" in parsed) return parsed.error;
 
-    const project = await getProjectByID(Number(projectId));
+    const { projectId } = parsed.data;
+
+    const project = await getProjectByID(projectId);
     if (!project) {
-        return new Response(`project not found: provided ${projectId}`, { status: 404 });
+        return errorResponse(`project not found: ${projectId}`, "PROJECT_NOT_FOUND", 404);
     }
+
     const issues = await getIssuesWithUsersByProject(project.id);
 
     return Response.json(issues);

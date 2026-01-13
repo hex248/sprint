@@ -1,18 +1,18 @@
+import { UserByUsernameQuerySchema } from "@issue/shared";
 import type { BunRequest } from "bun";
 import { getUserByUsername } from "../../db/queries";
+import { errorResponse, parseQueryParams } from "../../validation";
 
-// /user/by-username?username=someusername
 export default async function userByUsername(req: BunRequest) {
     const url = new URL(req.url);
-    const username = url.searchParams.get("username");
+    const parsed = parseQueryParams(url, UserByUsernameQuerySchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!username) {
-        return new Response("username is required", { status: 400 });
-    }
+    const { username } = parsed.data;
 
     const user = await getUserByUsername(username);
     if (!user) {
-        return new Response(`User with username '${username}' not found`, { status: 404 });
+        return errorResponse(`user with username '${username}' not found`, "USER_NOT_FOUND", 404);
     }
 
     return Response.json(user);

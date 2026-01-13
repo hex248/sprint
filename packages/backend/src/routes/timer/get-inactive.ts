@@ -1,17 +1,18 @@
-import { calculateBreakTimeMs, calculateWorkTimeMs } from "@issue/shared";
+import { calculateBreakTimeMs, calculateWorkTimeMs, TimerGetQuerySchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getInactiveTimedSessions } from "../../db/queries";
+import { parseQueryParams } from "../../validation";
 
-// GET /timer?issueId=123
 export default async function timerGetInactive(req: AuthedRequest) {
     const url = new URL(req.url);
-    const issueId = url.searchParams.get("issueId");
-    if (!issueId || Number.isNaN(Number(issueId))) {
-        return new Response("missing issue id", { status: 400 });
-    }
-    const sessions = await getInactiveTimedSessions(Number(issueId));
+    const parsed = parseQueryParams(url, TimerGetQuerySchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!sessions[0] || !sessions) {
+    const { issueId } = parsed.data;
+
+    const sessions = await getInactiveTimedSessions(issueId);
+
+    if (!sessions || sessions.length === 0) {
         return Response.json(null);
     }
 

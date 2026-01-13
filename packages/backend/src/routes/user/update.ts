@@ -1,25 +1,28 @@
-import type { UserRecord } from "@issue/shared";
+import { UserUpdateRequestSchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { hashPassword } from "../../auth/utils";
 import { getUserById } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /user/update?id=1&name=NewName&password=NewPassword&avatarURL=...
 export default async function update(req: AuthedRequest) {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
-    if (!id) {
-        return new Response("id is required", { status: 400 });
-    }
+    const parsed = await parseJsonBody(req, UserUpdateRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    const user = await getUserById(Number(id));
+    const { name, password, avatarURL } = parsed.data;
+
+    const user = await getUserById(req.userId);
     if (!user) {
-        return new Response("user not found", { status: 404 });
+        return errorResponse("user not found", "USER_NOT_FOUND", 404);
     }
 
-    const name = url.searchParams.get("name") || undefined;
-    const password = url.searchParams.get("password") || undefined;
-    const avatarURL =
-        url.searchParams.get("avatarURL") === "null" ? null : url.searchParams.get("avatarURL") || undefined;
+    if (!name && !password && avatarURL === undefined) {
+        return errorResponse(
+            "at least one of name, password, or avatarURL must be provided",
+            "NO_UPDATES",
+            400,
+        );
+    }
+
     let passwordHash: string | undefined;
     if (password !== undefined) {
         passwordHash = await hashPassword(password);
@@ -29,8 +32,8 @@ export default async function update(req: AuthedRequest) {
     const updatedUser = await updateById(user.id, { name, passwordHash, avatarURL });
 
     if (!updatedUser) {
-        return new Response("failed to update user", { status: 500 });
+        return errorResponse("failed to update user", "UPDATE_FAILED", 500);
     }
 
-    return Response.json(updatedUser as UserRecord);
+    return Response.json(updatedUser);
 }

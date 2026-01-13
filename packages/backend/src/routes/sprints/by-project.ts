@@ -1,28 +1,23 @@
+import { SprintsByProjectQuerySchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationMemberRole, getProjectByID, getSprintsByProject } from "../../db/queries";
+import { errorResponse, parseQueryParams } from "../../validation";
 
-// /sprints/by-project?projectId=1
 export default async function sprintsByProject(req: AuthedRequest) {
     const url = new URL(req.url);
-    const projectId = url.searchParams.get("projectId");
+    const parsed = parseQueryParams(url, SprintsByProjectQuerySchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!projectId) {
-        return new Response("missing projectId", { status: 400 });
-    }
+    const { projectId } = parsed.data;
 
-    const projectIdNumber = Number(projectId);
-    if (!Number.isInteger(projectIdNumber)) {
-        return new Response("projectId must be an integer", { status: 400 });
-    }
-
-    const project = await getProjectByID(projectIdNumber);
+    const project = await getProjectByID(projectId);
     if (!project) {
-        return new Response(`project not found: provided ${projectId}`, { status: 404 });
+        return errorResponse(`project not found: ${projectId}`, "PROJECT_NOT_FOUND", 404);
     }
 
     const membership = await getOrganisationMemberRole(project.organisationId, req.userId);
     if (!membership) {
-        return new Response("not a member of this organisation", { status: 403 });
+        return errorResponse("not a member of this organisation", "NOT_MEMBER", 403);
     }
 
     const sprints = await getSprintsByProject(project.id);

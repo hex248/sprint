@@ -1,50 +1,38 @@
+import { OrgRemoveMemberRequestSchema } from "@issue/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationById, getOrganisationMemberRole, removeOrganisationMember } from "../../db/queries";
+import { errorResponse, parseJsonBody } from "../../validation";
 
-// /organisation/remove-member?organisationId=1&userId=2
 export default async function organisationRemoveMember(req: AuthedRequest) {
-    const url = new URL(req.url);
-    const organisationId = url.searchParams.get("organisationId");
-    const userId = url.searchParams.get("userId");
+    const parsed = await parseJsonBody(req, OrgRemoveMemberRequestSchema);
+    if ("error" in parsed) return parsed.error;
 
-    if (!organisationId || !userId) {
-        return new Response(
-            `missing parameters: ${!organisationId ? "organisationId " : ""}${!userId ? "userId" : ""}`,
-            { status: 400 },
-        );
-    }
+    const { organisationId, userId } = parsed.data;
 
-    const orgIdNumber = Number(organisationId);
-    const userIdNumber = Number(userId);
-
-    if (!Number.isInteger(orgIdNumber) || !Number.isInteger(userIdNumber)) {
-        return new Response("organisationId and userId must be integers", { status: 400 });
-    }
-
-    const organisation = await getOrganisationById(orgIdNumber);
+    const organisation = await getOrganisationById(organisationId);
     if (!organisation) {
-        return new Response(`organisation with id ${organisationId} not found`, { status: 404 });
+        return errorResponse(`organisation with id ${organisationId} not found`, "ORG_NOT_FOUND", 404);
     }
 
-    const memberToRemove = await getOrganisationMemberRole(orgIdNumber, userIdNumber);
+    const memberToRemove = await getOrganisationMemberRole(organisationId, userId);
     if (!memberToRemove) {
-        return new Response("User is not a member of this organisation", { status: 404 });
+        return errorResponse("user is not a member of this organisation", "NOT_MEMBER", 404);
     }
 
     if (memberToRemove.role === "owner") {
-        return new Response("Cannot remove the organisation owner", { status: 403 });
+        return errorResponse("cannot remove the organisation owner", "CANNOT_REMOVE_OWNER", 403);
     }
 
-    const requesterMember = await getOrganisationMemberRole(orgIdNumber, req.userId);
+    const requesterMember = await getOrganisationMemberRole(organisationId, req.userId);
     if (!requesterMember) {
-        return new Response("You are not a member of this organisation", { status: 403 });
+        return errorResponse("you are not a member of this organisation", "NOT_MEMBER", 403);
     }
 
     if (requesterMember.role !== "owner" && requesterMember.role !== "admin") {
-        return new Response("Only owners and admins can remove members", { status: 403 });
+        return errorResponse("only owners and admins can remove members", "PERMISSION_DENIED", 403);
     }
 
-    await removeOrganisationMember(orgIdNumber, userIdNumber);
+    await removeOrganisationMember(organisationId, userId);
 
     return Response.json({ success: true });
 }
