@@ -25,7 +25,7 @@ export type ApiError = z.infer<typeof ApiErrorSchema>;
 
 export const LoginRequestSchema = z.object({
     username: z.string().min(1, "username is required").max(USER_USERNAME_MAX_LENGTH),
-    password: z.string().min(8, "password must be at least 8 characters"),
+    password: z.string().min(1, "password is required"),
 });
 
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
