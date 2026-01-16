@@ -2,6 +2,7 @@ import type { IssueResponse, ProjectResponse, SprintRecord, UserRecord } from "@
 import { Check, Link, Trash, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
 import { StatusSelect } from "@/components/status-select";
@@ -11,11 +12,19 @@ import { TimerModal } from "@/components/timer-modal";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SelectTrigger } from "@/components/ui/select";
-import { UserSelect } from "@/components/user-select";
 import { issue } from "@/lib/server";
 import { issueID } from "@/lib/utils";
 import SmallSprintDisplay from "./small-sprint-display";
 import { SprintSelect } from "./sprint-select";
+
+function assigneesToStringArray(assignees: UserRecord[]): string[] {
+    if (assignees.length === 0) return ["unassigned"];
+    return assignees.map((a) => a.id.toString());
+}
+
+function stringArrayToAssigneeIds(assigneeIds: string[]): number[] {
+    return assigneeIds.filter((id) => id !== "unassigned").map((id) => Number(id));
+}
 
 export function IssueDetailPane({
     project,
@@ -37,9 +46,7 @@ export function IssueDetailPane({
     onIssueDelete?: (issueId: number) => void | Promise<void>;
 }) {
     const { user } = useSession();
-    const [assigneeId, setAssigneeId] = useState<string>(
-        issueData.Issue.assigneeId?.toString() ?? "unassigned",
-    );
+    const [assigneeIds, setAssigneeIds] = useState<string[]>(assigneesToStringArray(issueData.Assignees));
     const [sprintId, setSprintId] = useState<string>(issueData.Issue.sprintId?.toString() ?? "unassigned");
     const [status, setStatus] = useState<string>(issueData.Issue.status);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -48,9 +55,9 @@ export function IssueDetailPane({
 
     useEffect(() => {
         setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
-        setAssigneeId(issueData.Issue.assigneeId?.toString() ?? "unassigned");
+        setAssigneeIds(assigneesToStringArray(issueData.Assignees));
         setStatus(issueData.Issue.status);
-    }, [issueData.Issue.sprintId, issueData.Issue.assigneeId, issueData.Issue.status]);
+    }, [issueData.Issue.sprintId, issueData.Assignees, issueData.Issue.status]);
 
     useEffect(() => {
         return () => {
@@ -107,19 +114,36 @@ export function IssueDetailPane({
         });
     };
 
-    const handleAssigneeChange = async (value: string) => {
-        setAssigneeId(value);
-        const newAssigneeId = value === "unassigned" ? null : Number(value);
+    const handleAssigneeChange = async (newAssigneeIds: string[]) => {
+        const previousAssigneeIds = assigneeIds;
+        setAssigneeIds(newAssigneeIds);
+
+        const newAssigneeIdNumbers = stringArrayToAssigneeIds(newAssigneeIds);
+        const previousAssigneeIdNumbers = stringArrayToAssigneeIds(previousAssigneeIds);
+
+        const hasChanged =
+            newAssigneeIdNumbers.length !== previousAssigneeIdNumbers.length ||
+            !newAssigneeIdNumbers.every((id) => previousAssigneeIdNumbers.includes(id));
+
+        if (!hasChanged) {
+            return;
+        }
 
         await issue.update({
             issueId: issueData.Issue.id,
-            assigneeId: newAssigneeId,
+            assigneeIds: newAssigneeIdNumbers,
             onSuccess: () => {
-                const user = members.find((member) => member.id === newAssigneeId);
+                const assignedUsers = members.filter((m) => newAssigneeIdNumbers.includes(m.id));
+                const displayText =
+                    assignedUsers.length === 0
+                        ? "Unassigned"
+                        : assignedUsers.length === 1
+                          ? assignedUsers[0].name
+                          : `${assignedUsers.length} assignees`;
                 toast.success(
                     <div className={"flex items-center gap-2"}>
-                        Assigned {user ? <SmallUserDisplay user={user} className={"text-sm"} /> : "unknown"}{" "}
-                        to {issueID(project.Project.key, issueData.Issue.number)}
+                        Updated assignees to {displayText} for{" "}
+                        {issueID(project.Project.key, issueData.Issue.number)}
                     </div>,
                     {
                         dismissible: false,
@@ -128,10 +152,10 @@ export function IssueDetailPane({
                 onIssueUpdate?.();
             },
             onError: (error) => {
-                console.error("error updating assignee:", error);
-                setAssigneeId(issueData.Issue.assigneeId?.toString() ?? "unassigned");
+                console.error("error updating assignees:", error);
+                setAssigneeIds(previousAssigneeIds);
 
-                toast.error(`Error updating assignee: ${error}`, {
+                toast.error(`Error updating assignees: ${error}`, {
                     dismissible: false,
                 });
             },
@@ -276,13 +300,13 @@ export function IssueDetailPane({
                     <SprintSelect sprints={sprints} value={sprintId} onChange={handleSprintChange} />
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="text-sm">Assignee:</span>
-                    <UserSelect
+                <div className="flex items-start gap-2">
+                    <span className="text-sm pt-2">Assignees:</span>
+                    <MultiAssigneeSelect
                         users={members}
-                        value={assigneeId}
+                        assigneeIds={assigneeIds}
                         onChange={handleAssigneeChange}
-                        fallbackUser={issueData.Assignee}
+                        fallbackUsers={issueData.Assignees}
                     />
                 </div>
 
@@ -292,7 +316,9 @@ export function IssueDetailPane({
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {user?.id === Number(assigneeId) && <TimerModal issueId={issueData.Issue.id} />}
+                    {assigneeIds.some((id) => user?.id === Number(id)) && (
+                        <TimerModal issueId={issueData.Issue.id} />
+                    )}
                     <TimerDisplay issueId={issueData.Issue.id} />
                 </div>
                 <ConfirmDialog

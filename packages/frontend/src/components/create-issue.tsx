@@ -7,6 +7,7 @@ import {
 
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
+import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { StatusSelect } from "@/components/status-select";
 import StatusTag from "@/components/status-tag";
@@ -22,7 +23,6 @@ import {
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { SelectTrigger } from "@/components/ui/select";
-import { UserSelect } from "@/components/user-select";
 import { issue, parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 import { SprintSelect } from "./sprint-select";
@@ -50,7 +50,7 @@ export function CreateIssue({
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [sprintId, setSprintId] = useState<string>("unassigned");
-    const [assigneeId, setAssigneeId] = useState<string>("unassigned");
+    const [assigneeIds, setAssigneeIds] = useState<string[]>(["unassigned"]);
     const [status, setStatus] = useState<string>(Object.keys(statuses)[0] ?? "");
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -60,7 +60,7 @@ export function CreateIssue({
         setTitle("");
         setDescription("");
         setSprintId("unassigned");
-        setAssigneeId("unassigned");
+        setAssigneeIds(["unassigned"]);
         setStatus(statuses?.[0] ?? "");
         setSubmitAttempted(false);
         setSubmitting(false);
@@ -105,7 +105,7 @@ export function CreateIssue({
                 title,
                 description,
                 sprintId: sprintId === "unassigned" ? null : Number(sprintId),
-                assigneeId: assigneeId === "unassigned" ? null : Number(assigneeId),
+                assigneeIds: assigneeIds.filter((id) => id !== "unassigned").map((id) => Number(id)),
                 status: status.trim() === "" ? undefined : status,
                 onSuccess: async (data) => {
                     setOpen(false);
@@ -222,9 +222,13 @@ export function CreateIssue({
                         )}
 
                         {members && members.length > 0 && (
-                            <div className="flex items-center gap-2 mt-4">
-                                <Label className="text-sm">Assignee</Label>
-                                <UserSelect users={members} value={assigneeId} onChange={setAssigneeId} />
+                            <div className="flex items-start gap-2 mt-4">
+                                <Label className="text-sm pt-2">Assignees</Label>
+                                <MultiAssigneeSelect
+                                    users={members}
+                                    assigneeIds={assigneeIds}
+                                    onChange={setAssigneeIds}
+                                />
                             </div>
                         )}
 
