@@ -34,7 +34,7 @@ export function getServerURL() {
     let serverURL =
         localStorage.getItem("serverURL") || // user-defined server URL
         ENV_SERVER_URL || // environment variable
-        "https://eussi.ob248.com"; // fallback
+        "https://tnirps.ob248.com"; // fallback
     if (serverURL.endsWith("/")) {
         serverURL = serverURL.slice(0, -1);
     }

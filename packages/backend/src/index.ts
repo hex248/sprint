@@ -24,7 +24,7 @@ const main = async () => {
     const server = Bun.serve({
         port: Number(PORT),
         routes: {
-            "/": withCors(() => new Response(`title: eussi\ndev-mode: ${DEV}\nport: ${PORT}`)),
+            "/": withCors(() => new Response(`title: tnirps\ndev-mode: ${DEV}\nport: ${PORT}`)),
             "/health": withCors(() => new Response("OK")),
 
             // routes that modify state require withCSRF middleware
@@ -80,7 +80,7 @@ const main = async () => {
         },
     });
 
-    console.log(`eussi (issue server) listening on ${server.url}`);
+    console.log(`tnirps (sprint server) listening on ${server.url}`);
     await testDB();
     startSessionCleanup();
 };
