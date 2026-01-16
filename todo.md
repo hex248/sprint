@@ -11,7 +11,13 @@
   - delete sprint
 - issues
   - edit title & description
-  - more than one assignee
+  - assignee "note" for extra context on their role in the task
+  - issue type (options stored on Organisation)
+  - issue type icons
+- org settings
+  - manage issue types, default is [bug, feature]
+    - create, edit, delete
+    - assign icons to issue types
 - user preferences
   - "assign to me by default" option for new issues
 
