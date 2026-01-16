@@ -1,4 +1,4 @@
-import { ProjectDeleteRequestSchema } from "@issue/shared";
+import { ProjectDeleteRequestSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { deleteProject, getProjectByID } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

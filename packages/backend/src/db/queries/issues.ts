@@ -1,4 +1,4 @@
-import { Issue, User } from "@issue/shared";
+import { Issue, User } from "@sprint/shared";
 import { aliasedTable, and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../client";
 
@@ -80,7 +80,7 @@ export async function getIssueByNumber(projectId: number, number: number) {
 }
 
 export async function getIssueStatusCountByOrganisation(organisationId: number, status: string) {
-    const { Project } = await import("@issue/shared");
+    const { Project } = await import("@sprint/shared");
 
     const projects = await db
         .select({ id: Project.id })
@@ -99,7 +99,7 @@ export async function getIssueStatusCountByOrganisation(organisationId: number, 
 }
 
 export async function replaceIssueStatus(organisationId: number, oldStatus: string, newStatus: string) {
-    const { Project } = await import("@issue/shared");
+    const { Project } = await import("@sprint/shared");
 
     // get all project IDs for this organisation
     const projects = await db

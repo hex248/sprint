@@ -1,4 +1,4 @@
-import { ProjectByCreatorQuerySchema } from "@issue/shared";
+import { ProjectByCreatorQuerySchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { getProjectsByCreatorID, getUserById } from "../../db/queries";
 import { errorResponse, parseQueryParams } from "../../validation";

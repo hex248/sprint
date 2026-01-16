@@ -1,4 +1,4 @@
-import { User, type UserRecord } from "@issue/shared";
+import { User, type UserRecord } from "@sprint/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 

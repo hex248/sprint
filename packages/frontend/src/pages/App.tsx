@@ -7,7 +7,7 @@ import type {
     ProjectResponse,
     SprintRecord,
     UserRecord,
-} from "@issue/shared";
+} from "@sprint/shared";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import AccountDialog from "@/components/account-dialog";

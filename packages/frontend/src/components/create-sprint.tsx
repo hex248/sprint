@@ -1,4 +1,4 @@
-import { DEFAULT_SPRINT_COLOUR, type SprintRecord } from "@issue/shared";
+import { DEFAULT_SPRINT_COLOUR, type SprintRecord } from "@sprint/shared";
 import { type FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";

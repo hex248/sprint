@@ -1,4 +1,4 @@
-import type { UserRecord } from "@issue/shared";
+import type { UserRecord } from "@sprint/shared";
 import { useState } from "react";
 import SmallUserDisplay from "@/components/small-user-display";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

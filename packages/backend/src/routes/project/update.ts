@@ -1,4 +1,4 @@
-import { ProjectUpdateRequestSchema } from "@issue/shared";
+import { ProjectUpdateRequestSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { getProjectByID, getProjectByKey, getUserById, updateProject } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

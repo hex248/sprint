@@ -1,4 +1,4 @@
-import { OrgUpdateMemberRoleRequestSchema } from "@issue/shared";
+import { OrgUpdateMemberRoleRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     getOrganisationById,

@@ -1,4 +1,4 @@
-import type { UserRecord } from "@issue/shared";
+import type { UserRecord } from "@sprint/shared";
 import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 

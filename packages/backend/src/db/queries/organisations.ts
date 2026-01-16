@@ -1,4 +1,4 @@
-import { Organisation, OrganisationMember, User } from "@issue/shared";
+import { Organisation, OrganisationMember, User } from "@sprint/shared";
 import { and, eq } from "drizzle-orm";
 import { db } from "../client";
 

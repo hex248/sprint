@@ -3,7 +3,7 @@ import {
     calculateWorkTimeMs,
     isTimerRunning,
     TimerToggleRequestSchema,
-} from "@issue/shared";
+} from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { appendTimestamp, createTimedSession, getActiveTimedSession } from "../../db/queries";
 import { parseJsonBody } from "../../validation";

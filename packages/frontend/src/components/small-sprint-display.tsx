@@ -1,4 +1,4 @@
-import { DEFAULT_SPRINT_COLOUR, type SprintRecord } from "@issue/shared";
+import { DEFAULT_SPRINT_COLOUR, type SprintRecord } from "@sprint/shared";
 import { cn, DARK_TEXT_COLOUR, isLight } from "@/lib/utils";
 
 export default function SmallSprintDisplay({

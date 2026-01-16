@@ -1,5 +1,5 @@
 {
-    "name": "issue-monorepo",
+    "name": "sprint-monorepo",
     "version": "0.1.0",
     "devDependencies": {
         "typescript": "~5.8.3",
@@ -7,12 +7,12 @@
     },
     "private": true,
     "scripts": {
-        "dev:frontend": "bun --filter @issue/frontend dev",
-        "dev:frontend:tauri": "bun --filter @issue/frontend tauri",
-        "dev:backend": "bun --filter @issue/backend dev",
+        "dev:frontend": "bun --filter @sprint/frontend dev",
+        "dev:frontend:tauri": "bun --filter @sprint/frontend tauri",
+        "dev:backend": "bun --filter @sprint/backend dev",
         "dev": "concurrently -n FRONTEND,BACKEND -c blue,green \"bun dev:frontend\" \"bun dev:backend\"",
         "dev:desktop": "concurrently -n TAURI,BACKEND -c magenta,green \"bun dev:frontend:tauri\" \"bun dev:backend\"",
-        "reset-and-seed": "bun --filter @issue/backend db:reset && bun --filter @issue/backend db:seed"
+        "reset-and-seed": "bun --filter @sprint/backend db:reset && bun --filter @sprint/backend db:seed"
     },
     "workspaces": [
         "packages/*"

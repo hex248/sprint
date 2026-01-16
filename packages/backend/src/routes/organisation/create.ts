@@ -1,4 +1,4 @@
-import { OrgCreateRequestSchema } from "@issue/shared";
+import { OrgCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { createOrganisationWithOwner, getOrganisationBySlug } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

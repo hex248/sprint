@@ -3,7 +3,7 @@ import {
     ISSUE_TITLE_MAX_LENGTH,
     type SprintRecord,
     type UserRecord,
-} from "@issue/shared";
+} from "@sprint/shared";
 
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";

@@ -1,4 +1,4 @@
-import type { UserRecord } from "@issue/shared";
+import type { UserRecord } from "@sprint/shared";
 import Avatar from "@/components/avatar";
 import { cn } from "@/lib/utils";
 

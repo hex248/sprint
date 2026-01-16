@@ -1,4 +1,4 @@
-import { RegisterRequestSchema } from "@issue/shared";
+import { RegisterRequestSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { buildAuthCookie, generateToken, hashPassword } from "../../auth/utils";
 import { createSession, createUser, getUserByUsername } from "../../db/queries";

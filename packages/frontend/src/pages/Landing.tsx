@@ -10,7 +10,7 @@ export default function Landing() {
     return (
         <div className="min-h-screen flex flex-col">
             <header className="relative flex items-center justify-center p-2 border-b">
-                <div className="text-3xl font-basteleur font-700">Issue</div>
+                <div className="text-3xl font-basteleur font-700">Sprint</div>
                 <nav className="absolute right-2 flex items-center gap-4">
                     <ThemeToggle />
                     {!isLoading && user ? (
@@ -38,7 +38,7 @@ export default function Landing() {
                         Need a snappy project management tool?
                     </h1>
                     <p className="text-[24px] font-goudy text-muted-foreground">
-                        Build your next project with <span className="font-goudy font-700">Issue.</span>
+                        Build your next project with <span className="font-goudy font-700">Sprint.</span>
                     </p>
                     <p className="text-[18px] font-goudy text-muted-foreground font-700">
                         Sick of Jira? Say hello to your new favorite project management tool.

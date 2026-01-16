@@ -1,4 +1,4 @@
-import { Issue, Organisation, Project, User } from "@issue/shared";
+import { Issue, Organisation, Project, User } from "@sprint/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 

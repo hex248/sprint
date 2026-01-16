@@ -1,4 +1,4 @@
-import { PROJECT_NAME_MAX_LENGTH, type ProjectRecord } from "@issue/shared";
+import { PROJECT_NAME_MAX_LENGTH, type ProjectRecord } from "@sprint/shared";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";

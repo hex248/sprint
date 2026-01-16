@@ -1,4 +1,4 @@
-import { IssueCreateRequestSchema } from "@issue/shared";
+import { IssueCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { createIssue, getProjectByID } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

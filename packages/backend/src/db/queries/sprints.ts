@@ -1,4 +1,4 @@
-import { Sprint } from "@issue/shared";
+import { Sprint } from "@sprint/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 

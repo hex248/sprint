@@ -1,4 +1,4 @@
-import { UserUpdateRequestSchema } from "@issue/shared";
+import { UserUpdateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { hashPassword } from "../../auth/utils";
 import { getUserById } from "../../db/queries";

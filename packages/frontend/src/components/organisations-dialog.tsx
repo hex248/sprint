@@ -6,7 +6,7 @@ import {
     type ProjectRecord,
     type ProjectResponse,
     type SprintRecord,
-} from "@issue/shared";
+} from "@sprint/shared";
 import { ChevronDown, ChevronUp, EllipsisVertical, Plus, X } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";

@@ -1,4 +1,4 @@
-import { OrgAddMemberRequestSchema } from "@issue/shared";
+import { OrgAddMemberRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     createOrganisationMember,

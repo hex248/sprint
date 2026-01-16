@@ -1,4 +1,4 @@
-import type { OrganisationResponse } from "@issue/shared";
+import type { OrganisationResponse } from "@sprint/shared";
 import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 

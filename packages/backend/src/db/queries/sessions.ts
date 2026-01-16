@@ -1,4 +1,4 @@
-import { Session } from "@issue/shared";
+import { Session } from "@sprint/shared";
 import { eq, lt } from "drizzle-orm";
 import { db } from "../client";
 

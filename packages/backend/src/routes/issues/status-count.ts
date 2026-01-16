@@ -1,4 +1,4 @@
-import { IssuesStatusCountQuerySchema } from "@issue/shared";
+import { IssuesStatusCountQuerySchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getIssueStatusCountByOrganisation, getOrganisationMemberRole } from "../../db/queries";
 import { errorResponse, parseQueryParams } from "../../validation";

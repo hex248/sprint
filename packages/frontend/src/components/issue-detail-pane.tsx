@@ -1,4 +1,4 @@
-import type { IssueResponse, ProjectResponse, SprintRecord, UserRecord } from "@issue/shared";
+import type { IssueResponse, ProjectResponse, SprintRecord, UserRecord } from "@sprint/shared";
 import { Check, Link, Trash, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";

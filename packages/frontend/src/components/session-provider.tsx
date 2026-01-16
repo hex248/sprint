@@ -1,4 +1,4 @@
-import type { UserRecord } from "@issue/shared";
+import type { UserRecord } from "@sprint/shared";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import Loading from "@/components/loading";

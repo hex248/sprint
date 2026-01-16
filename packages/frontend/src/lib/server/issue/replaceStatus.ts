@@ -1,4 +1,4 @@
-import type { IssuesReplaceStatusRequest, ReplaceStatusResponse } from "@issue/shared";
+import type { IssuesReplaceStatusRequest, ReplaceStatusResponse } from "@sprint/shared";
 import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";

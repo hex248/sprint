@@ -1,4 +1,4 @@
-import { UserByUsernameQuerySchema } from "@issue/shared";
+import { UserByUsernameQuerySchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { getUserByUsername } from "../../db/queries";
 import { errorResponse, parseQueryParams } from "../../validation";

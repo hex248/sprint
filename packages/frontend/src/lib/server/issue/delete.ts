@@ -1,4 +1,4 @@
-import type { SuccessResponse } from "@issue/shared";
+import type { SuccessResponse } from "@sprint/shared";
 import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";

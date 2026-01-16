@@ -1,4 +1,4 @@
-import type { SprintRecord } from "@issue/shared";
+import type { SprintRecord } from "@sprint/shared";
 import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 

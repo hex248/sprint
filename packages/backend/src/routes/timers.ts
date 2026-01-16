@@ -1,4 +1,4 @@
-import { calculateBreakTimeMs, calculateWorkTimeMs, isTimerRunning } from "@issue/shared";
+import { calculateBreakTimeMs, calculateWorkTimeMs, isTimerRunning } from "@sprint/shared";
 import type { AuthedRequest } from "../auth/middleware";
 import { getUserTimedSessions } from "../db/queries";
 

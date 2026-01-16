@@ -1,4 +1,4 @@
-import type { TimerState } from "@issue/shared";
+import type { TimerState } from "@sprint/shared";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { parseError, timer } from "@/lib/server";

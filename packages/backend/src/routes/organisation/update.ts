@@ -1,4 +1,4 @@
-import { OrgUpdateRequestSchema } from "@issue/shared";
+import { OrgUpdateRequestSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { getOrganisationById, updateOrganisation } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

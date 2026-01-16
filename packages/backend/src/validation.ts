@@ -1,4 +1,4 @@
-import type { ApiError } from "@issue/shared";
+import type { ApiError } from "@sprint/shared";
 import type { z } from "zod";
 
 type ZodSchema<T> = z.ZodSchema<T>;

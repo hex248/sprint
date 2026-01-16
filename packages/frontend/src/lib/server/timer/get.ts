@@ -1,4 +1,4 @@
-import type { TimerState } from "@issue/shared";
+import type { TimerState } from "@sprint/shared";
 import { getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";
 

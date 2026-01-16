@@ -1,4 +1,4 @@
-import { SprintsByProjectQuerySchema } from "@issue/shared";
+import { SprintsByProjectQuerySchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationMemberRole, getProjectByID, getSprintsByProject } from "../../db/queries";
 import { errorResponse, parseQueryParams } from "../../validation";

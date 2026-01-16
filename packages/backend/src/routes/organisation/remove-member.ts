@@ -1,4 +1,4 @@
-import { OrgRemoveMemberRequestSchema } from "@issue/shared";
+import { OrgRemoveMemberRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationById, getOrganisationMemberRole, removeOrganisationMember } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

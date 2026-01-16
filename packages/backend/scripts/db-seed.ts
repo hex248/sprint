@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Issue, Organisation, OrganisationMember, Project, User } from "@issue/shared";
+import { Issue, Organisation, OrganisationMember, Project, User } from "@sprint/shared";
 import bcrypt from "bcrypt";
 import { drizzle } from "drizzle-orm/node-postgres";
 

@@ -1,6 +1,6 @@
 # eussi
 
-The server for Issue Project Manager
+The server for Sprint
 
 To install dependencies:
 ```bash

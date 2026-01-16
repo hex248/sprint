@@ -1,4 +1,4 @@
-import { calculateBreakTimeMs, calculateWorkTimeMs, TimerGetQuerySchema } from "@issue/shared";
+import { calculateBreakTimeMs, calculateWorkTimeMs, TimerGetQuerySchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getInactiveTimedSessions } from "../../db/queries";
 import { parseQueryParams } from "../../validation";

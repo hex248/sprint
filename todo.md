@@ -1,5 +1,6 @@
 # HIGH PRIORITY
 
+- FIX: server configuration dialog is screen width
 - projects menu
   - delete project
 - sprints

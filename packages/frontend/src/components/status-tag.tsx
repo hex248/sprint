@@ -1,4 +1,4 @@
-import { DEFAULT_STATUS_COLOUR } from "@issue/shared";
+import { DEFAULT_STATUS_COLOUR } from "@sprint/shared";
 import { cn, DARK_TEXT_COLOUR, isLight } from "@/lib/utils";
 
 export default function StatusTag({

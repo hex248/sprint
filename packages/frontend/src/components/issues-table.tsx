@@ -1,4 +1,4 @@
-import type { IssueResponse } from "@issue/shared";
+import type { IssueResponse } from "@sprint/shared";
 import Avatar from "@/components/avatar";
 import StatusTag from "@/components/status-tag";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

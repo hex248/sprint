@@ -1,4 +1,4 @@
-import type { UserRecord } from "@issue/shared";
+import type { UserRecord } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getUserById } from "../../db/queries";
 

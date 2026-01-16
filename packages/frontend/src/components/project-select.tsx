@@ -1,4 +1,4 @@
-import type { ProjectRecord, ProjectResponse } from "@issue/shared";
+import type { ProjectRecord, ProjectResponse } from "@sprint/shared";
 import { useState } from "react";
 import { CreateProject } from "@/components/create-project";
 import { Button } from "@/components/ui/button";

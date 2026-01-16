@@ -1,4 +1,4 @@
-import { OrgDeleteRequestSchema } from "@issue/shared";
+import { OrgDeleteRequestSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { deleteOrganisation, getOrganisationById } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

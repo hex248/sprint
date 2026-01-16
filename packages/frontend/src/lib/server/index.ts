@@ -1,4 +1,4 @@
-import type { ApiError } from "@issue/shared";
+import type { ApiError } from "@sprint/shared";
 
 export * as issue from "@/lib/server/issue";
 export * as organisation from "@/lib/server/organisation";

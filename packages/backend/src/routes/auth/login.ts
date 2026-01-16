@@ -1,4 +1,4 @@
-import { LoginRequestSchema } from "@issue/shared";
+import { LoginRequestSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { buildAuthCookie, generateToken, verifyPassword } from "../../auth/utils";
 import { createSession, getUserByUsername } from "../../db/queries";

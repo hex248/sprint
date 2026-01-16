@@ -1,4 +1,4 @@
-import { IssuesReplaceStatusRequestSchema } from "@issue/shared";
+import { IssuesReplaceStatusRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationMemberRole, replaceIssueStatus } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

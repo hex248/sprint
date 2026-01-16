@@ -1,4 +1,4 @@
-import type { OrganisationRecord, OrganisationResponse } from "@issue/shared";
+import type { OrganisationRecord, OrganisationResponse } from "@sprint/shared";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CreateOrganisation } from "@/components/create-organisation";

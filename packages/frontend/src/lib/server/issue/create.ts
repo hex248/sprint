@@ -1,4 +1,4 @@
-import type { IssueCreateRequest, IssueRecord } from "@issue/shared";
+import type { IssueCreateRequest, IssueRecord } from "@sprint/shared";
 import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";

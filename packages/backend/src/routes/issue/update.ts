@@ -1,4 +1,4 @@
-import { IssueUpdateRequestSchema } from "@issue/shared";
+import { IssueUpdateRequestSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { updateIssue } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";

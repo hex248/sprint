@@ -1,4 +1,4 @@
-import { OrgByIdQuerySchema } from "@issue/shared";
+import { OrgByIdQuerySchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { getOrganisationById } from "../../db/queries";
 import { errorResponse, parseQueryParams } from "../../validation";

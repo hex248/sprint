@@ -3,7 +3,7 @@ import {
     ORG_NAME_MAX_LENGTH,
     ORG_SLUG_MAX_LENGTH,
     type OrganisationRecord,
-} from "@issue/shared";
+} from "@sprint/shared";
 import { type FormEvent, useState } from "react";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";

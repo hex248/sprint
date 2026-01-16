@@ -1,4 +1,4 @@
-import type { OrgRemoveMemberRequest, SuccessResponse } from "@issue/shared";
+import type { OrgRemoveMemberRequest, SuccessResponse } from "@sprint/shared";
 import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";

@@ -1,5 +1,5 @@
 {
-    "name": "@issue/backend",
+    "name": "@sprint/backend",
     "version": "0.1.0",
     "type": "module",
     "engines": {
@@ -27,7 +27,7 @@
         "typescript": "^5"
     },
     "dependencies": {
-        "@issue/shared": "workspace:*",
+        "@sprint/shared": "workspace:*",
         "bcrypt": "^6.0.0",
         "dotenv": "^17.2.3",
         "drizzle-orm": "^0.45.0",

@@ -1,4 +1,4 @@
-import type { OrgAddMemberRequest, OrganisationMemberRecord } from "@issue/shared";
+import type { OrgAddMemberRequest, OrganisationMemberRecord } from "@sprint/shared";
 import { toast } from "sonner";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 import type { ServerQueryInput } from "..";

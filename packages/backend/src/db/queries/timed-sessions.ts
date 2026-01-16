@@ -1,4 +1,4 @@
-import { TimedSession } from "@issue/shared";
+import { TimedSession } from "@sprint/shared";
 import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { db } from "../client";
 

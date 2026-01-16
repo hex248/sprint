@@ -3,7 +3,7 @@ const path = require("node:path");
 module.exports = {
     apps: [
         {
-            name: "issue-backend",
+            name: "sprint-backend",
             cwd: path.join(__dirname, "packages", "backend"),
             script: "bun",
             args: "dev",
@@ -18,7 +18,7 @@ module.exports = {
             time: true,
         },
         {
-            name: "issue-frontend",
+            name: "sprint-frontend",
             cwd: path.join(__dirname, "packages", "frontend"),
             script: "bun",
             args: "dev",
