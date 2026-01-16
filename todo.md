@@ -13,7 +13,7 @@
   - edit title & description
   - assignee "note" for extra context on their role in the task
   - issue type (options stored on Organisation)
-  - issue type icons
+  - issue type icons (ensure each available icon is in EACH icon set)
 - org settings
   - manage issue types, default is [bug, feature]
     - create, edit, delete
@@ -47,3 +47,10 @@
     - HugeIcons - https://hugeicons.com/icons?style=Stroke&type=Rounded
   - colour scheme
 - import existing jira data
+- git integration
+  - issue fields:
+    - branch
+    - commits
+    - pull request (github/gitlab/bitbucket)
+    - view:
+      - open git diff in a new tab
