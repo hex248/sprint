@@ -22,7 +22,7 @@ export default defineConfig(async () => ({
     server: {
         port: 1420,
         strictPort: true,
-        allowedHosts: ["issue.ob248.com"],
+        allowedHosts: ["sprint.ob248.com"],
         host: host || false,
         hmr: host
             ? {
