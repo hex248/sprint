@@ -64,13 +64,24 @@ export function IssuesTable({
                         )}
                         {(columns.assignee == null || columns.assignee === true) && (
                             <TableCell className={"flex items-center justify-end px-1 py-0 h-[32px]"}>
-                                {issueData.Assignee && (
-                                    <Avatar
-                                        name={issueData.Assignee?.name}
-                                        username={issueData.Assignee?.username}
-                                        avatarURL={issueData.Assignee?.avatarURL}
-                                        textClass="text-xs"
-                                    />
+                                {issueData.Assignees && issueData.Assignees.length > 0 && (
+                                    <div className="flex items-center -space-x-2">
+                                        {issueData.Assignees.slice(0, 3).map((assignee) => (
+                                            <Avatar
+                                                key={assignee.id}
+                                                name={assignee.name}
+                                                username={assignee.username}
+                                                avatarURL={assignee.avatarURL}
+                                                textClass="text-xs"
+                                                className="ring-2 ring-background"
+                                            />
+                                        ))}
+                                        {issueData.Assignees.length > 3 && (
+                                            <span className="flex items-center justify-center w-6 h-6 text-[10px] font-medium bg-muted text-muted-foreground rounded-full ring-2 ring-background">
+                                                +{issueData.Assignees.length - 3}
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </TableCell>
                         )}
