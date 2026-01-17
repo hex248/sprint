@@ -49,7 +49,7 @@ export function MultiAssigneeSelect({
     const canAddMore = selectedCount < users.length && lastRowHasSelection;
 
     return (
-        <div className="grid grid-cols-2 gap-1">
+        <div className="flex flex-wrap gap-1">
             {assigneeIds.map((assigneeId, index) => (
                 <>
                     <div key={`assignee-${index}-${assigneeId}`} className="flex items-center gap-1">
