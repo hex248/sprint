@@ -33,7 +33,13 @@ export default async function login(req: BunRequest) {
 
     return new Response(
         JSON.stringify({
-            user: { id: user.id, name: user.name, username: user.username, avatarURL: user.avatarURL },
+            user: {
+                id: user.id,
+                name: user.name,
+                username: user.username,
+                avatarURL: user.avatarURL,
+                iconPreference: user.iconPreference,
+            },
             csrfToken: session.csrfToken,
         }),
         {

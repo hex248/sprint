@@ -1,4 +1,4 @@
-import { User, type UserRecord } from "@sprint/shared";
+import { type IconStyle, User, type UserRecord } from "@sprint/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 
@@ -23,6 +23,7 @@ export async function updateById(
         name?: string;
         passwordHash?: string;
         avatarURL?: string | null;
+        iconPreference?: IconStyle;
     },
 ): Promise<UserRecord | undefined> {
     const [user] = await db.update(User).set(updates).where(eq(User.id, id)).returning();
