@@ -66,28 +66,33 @@ const issues = [
     { title: "Add batch processing", description: "Need to process large datasets efficiently." },
 ];
 
+const passwordHash = await hashPassword("a");
+const users = [
+    { name: "user 1", username: "u1", passwordHash, avatarURL: null },
+    { name: "user 2", username: "u2", passwordHash, avatarURL: null },
+    // anything past here is just to have more users to assign issues to
+    { name: "user 3", username: "u3", passwordHash, avatarURL: null },
+    { name: "user 4", username: "u4", passwordHash, avatarURL: null },
+    { name: "user 5", username: "u5", passwordHash, avatarURL: null },
+    { name: "user 6", username: "u6", passwordHash, avatarURL: null },
+    { name: "user 7", username: "u7", passwordHash, avatarURL: null },
+    { name: "user 8", username: "u8", passwordHash, avatarURL: null },
+];
+
 async function seed() {
     console.log("seeding database with demo data...");
 
     try {
-        const passwordHash = await hashPassword("a");
-
         // create 2 users
         console.log("creating users...");
-        const users = await db
-            .insert(User)
-            .values([
-                { name: "user 1", username: "u1", passwordHash, avatarURL: null },
-                { name: "user 2", username: "u2", passwordHash, avatarURL: null },
-            ])
-            .returning();
+        const usersDB = await db.insert(User).values(users).returning();
 
-        if (users.length < 2 || !users[0] || !users[1]) {
+        if (users.length < 2 || !usersDB[0] || !usersDB[1]) {
             throw new Error("failed to create users");
         }
-        const [u1, u2] = users;
+        const [u1, u2] = [usersDB[0], usersDB[1]];
 
-        console.log(`created ${users.length} users`);
+        console.log(`created ${usersDB.length} users`);
 
         // create 2 orgs per user (4 total)
         console.log("creating organisations...");
@@ -154,8 +159,6 @@ async function seed() {
                 if (!creator) {
                     throw new Error("failed to select issue creator");
                 }
-                const assignee =
-                    Math.random() > 0.25 ? allUsers[Math.floor(Math.random() * allUsers.length)] : null;
                 const issue = issues[issueIndex % issues.length];
                 if (!issue) {
                     throw new Error("failed to select issue");
@@ -168,7 +171,6 @@ async function seed() {
                     title: issue.title,
                     description: issue.description,
                     creatorId: creator.id,
-                    assigneeId: assignee?.id ?? null,
                 });
             }
         }
