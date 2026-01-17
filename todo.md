@@ -3,7 +3,6 @@
 - projects menu
   - delete project
 - sprints
-  - prevent overlapping sprints in the same project
   - timeline display
   - display sprints
   - edit sprint
