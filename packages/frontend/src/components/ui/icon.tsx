@@ -157,8 +157,14 @@ export default function Icon({
     color?: string;
 } & React.ComponentProps<"svg">) {
     const session = useSessionSafe();
-    const resolvedStyle = (iconStyle ?? session?.user?.iconPreference ?? "lucide") as IconStyle;
+    const resolvedStyle = (iconStyle ??
+        session?.user?.iconPreference ??
+        localStorage.getItem("iconPreference") ??
+        "lucide") as IconStyle;
     const IconComponent = icons[icon]?.[resolvedStyle];
+
+    if (localStorage.getItem("iconPreference") !== resolvedStyle)
+        localStorage.setItem("iconPreference", resolvedStyle);
 
     if (!IconComponent) {
         return null;
