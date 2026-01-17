@@ -49,27 +49,29 @@ export function MultiAssigneeSelect({
     const canAddMore = selectedCount < users.length && lastRowHasSelection;
 
     return (
-        <div className="flex flex-col gap-1">
+        <div className="grid grid-cols-2 gap-1">
             {assigneeIds.map((assigneeId, index) => (
-                <div key={`assignee-${index}-${assigneeId}`} className="flex items-center gap-1">
-                    <UserSelect
-                        users={getAvailableUsers(index)}
-                        value={assigneeId}
-                        onChange={(value) => handleAssigneeChange(index, value)}
-                        fallbackUser={getFallbackUser(assigneeId)}
-                    />
+                <>
+                    <div key={`assignee-${index}-${assigneeId}`} className="flex items-center gap-1">
+                        <UserSelect
+                            users={getAvailableUsers(index)}
+                            value={assigneeId}
+                            onChange={(value) => handleAssigneeChange(index, value)}
+                            fallbackUser={getFallbackUser(assigneeId)}
+                        />
+                    </div>
                     {index === assigneeIds.length - 1 && canAddMore && (
                         <Button
-                            variant="ghost"
+                            variant="dummy"
                             size="icon"
-                            className="h-7 w-7 shrink-0"
+                            className="h-7 w-7 shrink-0 h-9"
                             onClick={handleAddAssignee}
                             title="Add assignee"
                         >
                             <Plus className="h-4 w-4" />
                         </Button>
                     )}
-                </div>
+                </>
             ))}
         </div>
     );

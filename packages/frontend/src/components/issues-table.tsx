@@ -36,7 +36,7 @@ export function IssuesTable({
                 {issuesData.map((issueData) => (
                     <TableRow
                         key={issueData.Issue.id}
-                        className="cursor-pointer"
+                        className="cursor-pointer max-w-full"
                         onClick={() => {
                             issueSelectAction?.(issueData);
                         }}
@@ -48,7 +48,7 @@ export function IssuesTable({
                         )}
                         {(columns.title == null || columns.title === true) && (
                             <TableCell>
-                                <span className="flex items-center gap-2 max-w-full truncate">
+                                <span className="flex items-center gap-2 truncate">
                                     {(columns.status == null || columns.status === true) && (
                                         <StatusTag
                                             status={issueData.Issue.status}
@@ -73,11 +73,11 @@ export function IssuesTable({
                                                 username={assignee.username}
                                                 avatarURL={assignee.avatarURL}
                                                 textClass="text-xs"
-                                                className="ring-2 ring-background"
+                                                className="ring-1 ring-background"
                                             />
                                         ))}
                                         {issueData.Assignees.length > 3 && (
-                                            <span className="flex items-center justify-center w-6 h-6 text-[10px] font-medium bg-muted text-muted-foreground rounded-full ring-2 ring-background">
+                                            <span className="flex items-center justify-center w-6 h-6 text-[10px] font-medium bg-muted text-muted-foreground rounded-full ring-1 ring-background">
                                                 +{issueData.Assignees.length - 3}
                                             </span>
                                         )}
