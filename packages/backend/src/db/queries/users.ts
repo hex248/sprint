@@ -2,7 +2,12 @@ import { type IconStyle, User, type UserRecord } from "@sprint/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 
-export async function createUser(name: string, username: string, passwordHash: string, avatarURL?: string) {
+export async function createUser(
+    name: string,
+    username: string,
+    passwordHash: string,
+    avatarURL?: string | null,
+) {
     const [user] = await db.insert(User).values({ name, username, passwordHash, avatarURL }).returning();
     return user;
 }

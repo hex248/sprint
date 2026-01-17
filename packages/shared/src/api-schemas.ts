@@ -43,7 +43,7 @@ export const RegisterRequestSchema = z.object({
         .regex(/[A-Z]/, "Password must contain an uppercase letter")
         .regex(/[a-z]/, "Password must contain a lowercase letter")
         .regex(/[0-9]/, "Password must contain a number"),
-    avatarURL: z.string().url().nullable(),
+    avatarURL: z.string().url().nullable().optional(),
 });
 
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
