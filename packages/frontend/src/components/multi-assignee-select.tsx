@@ -1,6 +1,6 @@
 import type { UserRecord } from "@sprint/shared";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { UserSelect } from "@/components/user-select";
 
 export function MultiAssigneeSelect({
@@ -61,15 +61,9 @@ export function MultiAssigneeSelect({
                         />
                     </div>
                     {index === assigneeIds.length - 1 && canAddMore && (
-                        <Button
-                            variant="dummy"
-                            size="icon"
-                            className="h-7 w-7 shrink-0 h-9"
-                            onClick={handleAddAssignee}
-                            title="Add assignee"
-                        >
+                        <IconButton onClick={handleAddAssignee} title={"Add assignee"} className="w-9 h-9">
                             <Plus className="h-4 w-4" />
-                        </Button>
+                        </IconButton>
                     )}
                 </>
             ))}

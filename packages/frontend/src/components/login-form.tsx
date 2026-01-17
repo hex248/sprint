@@ -10,6 +10,7 @@ import { useSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
+import { IconButton } from "@/components/ui/icon-button";
 import { Label } from "@/components/ui/label";
 import { UploadAvatar } from "@/components/upload-avatar";
 import { capitalise, cn, getServerURL, setCsrfToken } from "@/lib/utils";
@@ -144,9 +145,8 @@ export default function LogInForm() {
             {/* under construction warning */}
             {showWarning && (
                 <div className="relative flex flex-col border p-4 items-center border-border/50 bg-border/10 gap-2 max-w-lg">
-                    <Button
-                        variant="dummy"
-                        size="icon"
+                    <IconButton
+                        size="md"
                         className="absolute top-2 right-2"
                         onClick={() => {
                             localStorage.setItem("hide-under-construction", "true");
@@ -154,7 +154,7 @@ export default function LogInForm() {
                         }}
                     >
                         <X />
-                    </Button>
+                    </IconButton>
                     <AlertTriangle className="w-16 h-16 text-yellow-500" strokeWidth={1.5} />
                     <div className="text-center text-sm text-muted-foreground font-500">
                         <p>

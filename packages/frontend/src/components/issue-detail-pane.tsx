@@ -9,13 +9,13 @@ import { StatusSelect } from "@/components/status-select";
 import StatusTag from "@/components/status-tag";
 import { TimerDisplay } from "@/components/timer-display";
 import { TimerModal } from "@/components/timer-modal";
-import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SelectTrigger } from "@/components/ui/select";
 import { issue } from "@/lib/server";
 import { issueID } from "@/lib/utils";
 import SmallSprintDisplay from "./small-sprint-display";
 import { SprintSelect } from "./sprint-select";
+import { IconButton } from "./ui/icon-button";
 
 function assigneesToStringArray(assignees: UserRecord[]): string[] {
     if (assignees.length === 0) return ["unassigned"];
@@ -245,24 +245,15 @@ export function IssueDetailPane({
                     </p>
                 </span>
                 <div className="flex items-center">
-                    <Button
-                        variant="dummy"
-                        onClick={handleCopyLink}
-                        className="px-0 py-0 w-6 h-6 hover:text-foreground/70"
-                        title={linkCopied ? "Copied" : "Copy link"}
-                    >
+                    <IconButton onClick={handleCopyLink} title={linkCopied ? "Copied" : "Copy link"}>
                         {linkCopied ? <Check /> : <Link />}
-                    </Button>
-                    <Button
-                        variant="dummy"
-                        onClick={handleDelete}
-                        className="px-0 py-0 w-6 h-6 text-destructive hover:text-destructive/70"
-                    >
+                    </IconButton>
+                    <IconButton variant="destructive" onClick={handleDelete} title={"Delete issue"}>
                         <Trash />
-                    </Button>
-                    <Button variant={"dummy"} onClick={close} className="px-0 py-0 w-6 h-6">
+                    </IconButton>
+                    <IconButton onClick={close} title={"Close"}>
                         <X />
-                    </Button>
+                    </IconButton>
                 </div>
             </div>
 

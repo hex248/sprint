@@ -1,6 +1,6 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
-import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
 
 function ThemeToggle({ className }: { className?: string }) {
@@ -14,16 +14,14 @@ function ThemeToggle({ className }: { className?: string }) {
     const isDark = resolvedTheme === "dark";
 
     return (
-        <Button
-            type="button"
-            variant="dummy"
-            size="icon"
+        <IconButton
+            size="md"
             className={cn("hover:text-muted-foreground", className)}
             onClick={() => setTheme(isDark ? "light" : "dark")}
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
         >
             {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-        </Button>
+        </IconButton>
     );
 }
 

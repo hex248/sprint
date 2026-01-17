@@ -1,8 +1,8 @@
 import { CheckIcon, ServerIcon, Undo2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getServerURL } from "@/lib/utils";
@@ -113,14 +113,13 @@ export function ServerConfigurationDialog({ trigger }: { trigger?: ReactNode }) 
             <Dialog open={open} onOpenChange={handleOpenChange}>
                 <DialogTrigger asChild>
                     {trigger || (
-                        <Button
-                            variant="ghost"
-                            size="icon"
+                        <IconButton
+                            size="lg"
                             className="absolute top-2 right-2"
-                            title="Server Configuration"
+                            title={"Server Configuration"}
                         >
                             <ServerIcon className="size-4" />
-                        </Button>
+                        </IconButton>
                     )}
                 </DialogTrigger>
 
@@ -147,25 +146,23 @@ export function ServerConfigurationDialog({ trigger }: { trigger?: ReactNode }) 
                                     className={!isValid ? "border-destructive" : ""}
                                     spellCheck={false}
                                 />
-                                <Button
-                                    type="button"
-                                    size="icon"
-                                    variant={canSave ? "default" : "outline"}
+                                <IconButton
+                                    variant={canSave ? "primary" : "outline"}
+                                    size="md"
                                     disabled={!canSave || isCheckingHealth}
                                     onClick={handleSave}
                                 >
                                     <CheckIcon className="size-4" />
-                                </Button>
-                                <Button
-                                    type="button"
-                                    size="icon"
+                                </IconButton>
+                                <IconButton
                                     variant="secondary"
+                                    size="md"
                                     disabled={!isNotDefault || isCheckingHealth}
                                     onClick={handleResetToDefault}
                                     title="Reset to default"
                                 >
                                     <Undo2 className="size-4" />
-                                </Button>
+                                </IconButton>
                             </div>
                             {!isValid && (
                                 <Label className="text-destructive text-sm">Please enter a valid URL</Label>

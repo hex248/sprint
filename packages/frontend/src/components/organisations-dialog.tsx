@@ -28,6 +28,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -552,9 +553,7 @@ function OrganisationsDialog({
                                                             member.OrganisationMember.role !== "owner" &&
                                                             member.User.id !== user.id && (
                                                                 <>
-                                                                    <Button
-                                                                        variant="dummy"
-                                                                        size="none"
+                                                                    <IconButton
                                                                         onClick={() =>
                                                                             handleRoleChange(
                                                                                 member.User.id,
@@ -563,17 +562,22 @@ function OrganisationsDialog({
                                                                                     .role,
                                                                             )
                                                                         }
+                                                                        variant={
+                                                                            member.OrganisationMember.role ===
+                                                                            "admin"
+                                                                                ? "yellow"
+                                                                                : "green"
+                                                                        }
                                                                     >
                                                                         {member.OrganisationMember.role ===
                                                                         "admin" ? (
-                                                                            <ChevronDown className="size-5 text-yellow-500" />
+                                                                            <ChevronDown className="size-5" />
                                                                         ) : (
-                                                                            <ChevronUp className="size-5 text-green-500" />
+                                                                            <ChevronUp className="size-5" />
                                                                         )}
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="dummy"
-                                                                        size="none"
+                                                                    </IconButton>
+                                                                    <IconButton
+                                                                        variant="destructive"
                                                                         onClick={() =>
                                                                             handleRemoveMember(
                                                                                 member.User.id,
@@ -581,8 +585,8 @@ function OrganisationsDialog({
                                                                             )
                                                                         }
                                                                     >
-                                                                        <X className="size-5 text-destructive" />
-                                                                    </Button>
+                                                                        <X className="size-5" />
+                                                                    </IconButton>
                                                                 </>
                                                             )}
                                                     </div>
@@ -802,9 +806,9 @@ function OrganisationsDialog({
                                                             asChild={false}
                                                             className="w-9 h-9"
                                                         />
-                                                        <Button
+                                                        <IconButton
                                                             variant="outline"
-                                                            size="icon"
+                                                            size="md"
                                                             onClick={() => void handleCreateStatus()}
                                                             disabled={
                                                                 newStatusName.trim().length >
@@ -812,7 +816,7 @@ function OrganisationsDialog({
                                                             }
                                                         >
                                                             <Plus className="size-4" />
-                                                        </Button>
+                                                        </IconButton>
                                                     </div>
                                                     {statusError && (
                                                         <p className="text-xs text-destructive">
