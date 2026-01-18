@@ -1,7 +1,7 @@
 import type { OrganisationRecord, OrganisationResponse } from "@sprint/shared";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CreateOrganisation } from "@/components/create-organisation";
+import { OrganisationModal } from "@/components/organisation-modal";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -74,7 +74,7 @@ export function OrganisationSelect({
                     {organisations.length > 0 && <SelectSeparator />}
                 </SelectGroup>
 
-                <CreateOrganisation
+                <OrganisationModal
                     trigger={
                         <Button variant="ghost" className={"w-full"} size={"sm"}>
                             Create Organisation

@@ -195,13 +195,13 @@ function CalendarDayButton({
                 {
                     ...style,
                     "--sprint-color": sprint?.color ? sprint.color : null,
-                    "border-left":
+                    borderLeft:
                         sprint && day.date.getUTCDate() === new Date(sprint.startDate).getUTCDate()
                             ? `1px solid ${sprint?.color}`
                             : day.date.getDay() === 0 // sunday (left side)
                               ? `1px dashed ${sprint?.color}`
                               : `0px`,
-                    "border-right":
+                    borderRight:
                         sprint && day.date.getUTCDate() === new Date(sprint.endDate).getUTCDate()
                             ? `1px solid ${sprint?.color}`
                             : day.date.getDay() === 6 // saturday (right side)

@@ -194,8 +194,9 @@ export const ProjectCreateRequestSchema = z.object({
     name: z.string().min(1, "Name is required").max(PROJECT_NAME_MAX_LENGTH),
     key: z
         .string()
-        .length(4, "Key must be exactly 4 characters")
-        .regex(/^[A-Z]{4}$/, "Key must be 4 uppercase letters"),
+        .min(1, "Key is required")
+        .max(4, "Key must be 4 characters or less")
+        .regex(/^[A-Za-z]{1,4}$/, "Key must be only letters A-Z"),
     organisationId: z.number().int().positive("organisationId must be a positive integer"),
 });
 
@@ -206,8 +207,9 @@ export const ProjectUpdateRequestSchema = z.object({
     name: z.string().min(1, "Name must be at least 1 character").max(PROJECT_NAME_MAX_LENGTH).optional(),
     key: z
         .string()
-        .length(4, "Key must be exactly 4 characters")
-        .regex(/^[A-Z]{4}$/, "Key must be 4 uppercase letters")
+        .min(1, "Key is required")
+        .max(4, "Key must be 4 characters or less")
+        .regex(/^[A-Za-z]{1,4}$/, "Key must be only letters A-Z")
         .optional(),
     creatorId: z.number().int().positive().optional(),
     organisationId: z.number().int().positive().optional(),
@@ -258,6 +260,38 @@ export const SprintCreateRequestSchema = z
     });
 
 export type SprintCreateRequest = z.infer<typeof SprintCreateRequestSchema>;
+
+export const SprintUpdateRequestSchema = z
+    .object({
+        id: z.number().int().positive("id must be a positive integer"),
+        name: z.string().min(1, "Name is required").max(64, "Name must be at most 64 characters").optional(),
+        color: z
+            .string()
+            .regex(/^#[0-9a-fA-F]{6}$/, "Color must be a valid hex color")
+            .optional(),
+        startDate: z.string().datetime("Start date must be a valid date").optional(),
+        endDate: z.string().datetime("End date must be a valid date").optional(),
+    })
+    .refine(
+        (data) => {
+            if (data.startDate && data.endDate) {
+                return new Date(data.startDate) <= new Date(data.endDate);
+            }
+            return true;
+        },
+        {
+            message: "End date must be after start date",
+            path: ["endDate"],
+        },
+    );
+
+export type SprintUpdateRequest = z.infer<typeof SprintUpdateRequestSchema>;
+
+export const SprintDeleteRequestSchema = z.object({
+    id: z.number().int().positive("id must be a positive integer"),
+});
+
+export type SprintDeleteRequest = z.infer<typeof SprintDeleteRequestSchema>;
 
 export const SprintsByProjectQuerySchema = z.object({
     projectId: z.coerce.number().int().positive("projectId must be a positive integer"),

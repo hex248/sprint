@@ -1,6 +1,6 @@
 import type { ProjectRecord, ProjectResponse } from "@sprint/shared";
 import { useState } from "react";
-import { CreateProject } from "@/components/create-project";
+import { ProjectModal } from "@/components/project-modal";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -68,7 +68,7 @@ export function ProjectSelect({
                     ))}
                     {projects.length > 0 && <SelectSeparator />}
                 </SelectGroup>
-                <CreateProject
+                <ProjectModal
                     organisationId={organisationId}
                     trigger={
                         <Button size={"sm"} variant="ghost" className={"w-full"} disabled={!organisationId}>

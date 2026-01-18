@@ -1,4 +1,4 @@
-import { Issue, Organisation, Project, User } from "@sprint/shared";
+import { Issue, Organisation, Project, Sprint, User } from "@sprint/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 
@@ -26,6 +26,8 @@ export async function updateProject(
 export async function deleteProject(projectId: number) {
     // delete all of the project's issues first
     await db.delete(Issue).where(eq(Issue.projectId, projectId));
+    // delete all of the project's sprints
+    await db.delete(Sprint).where(eq(Sprint.projectId, projectId));
     // delete actual project
     await db.delete(Project).where(eq(Project.id, projectId));
 }

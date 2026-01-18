@@ -11,8 +11,8 @@ import type {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import AccountDialog from "@/components/account-dialog";
-import { CreateIssue } from "@/components/create-issue";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
+import { IssueModal } from "@/components/issue-modal";
 import { IssuesTable } from "@/components/issues-table";
 import LogOutButton from "@/components/log-out-button";
 import { OrganisationSelect } from "@/components/organisation-select";
@@ -459,7 +459,7 @@ export default function App() {
                         />
                     )}
                     {selectedOrganisation && selectedProject && (
-                        <CreateIssue
+                        <IssueModal
                             projectId={selectedProject?.Project.id}
                             sprints={sprints}
                             members={members}

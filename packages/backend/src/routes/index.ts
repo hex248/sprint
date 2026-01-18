@@ -27,6 +27,8 @@ import projectUpdate from "./project/update";
 import projectWithCreator from "./project/with-creator";
 import projectsWithCreators from "./project/with-creators";
 import sprintCreate from "./sprint/create";
+import sprintDelete from "./sprint/delete";
+import sprintUpdate from "./sprint/update";
 import sprintsByProject from "./sprints/by-project";
 import timerEnd from "./timer/end";
 import timerGet from "./timer/get";
@@ -78,6 +80,8 @@ export const routes = {
     projectsWithCreators,
 
     sprintCreate,
+    sprintUpdate,
+    sprintDelete,
     sprintsByProject,
 
     timerToggle,

@@ -1,0 +1,43 @@
+import type { ProjectRecord } from "@sprint/shared";
+import { toast } from "sonner";
+import { getCsrfToken, getServerURL } from "@/lib/utils";
+import type { ServerQueryInput } from "..";
+
+export async function update({
+    projectId,
+    key,
+    name,
+    onSuccess,
+    onError,
+}: {
+    projectId: number;
+    key?: string;
+    name?: string;
+} & ServerQueryInput<ProjectRecord>) {
+    const csrfToken = getCsrfToken();
+
+    const res = await fetch(`${getServerURL()}/project/update`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+        },
+        body: JSON.stringify({
+            id: projectId,
+            key,
+            name,
+        }),
+        credentials: "include",
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => res.text());
+        const message =
+            typeof error === "string" ? error : error.error || `failed to update project (${res.status})`;
+        toast.error(message);
+        onError?.(error);
+    } else {
+        const data = await res.json();
+        onSuccess?.(data, res);
+    }
+}

@@ -1,5 +1,5 @@
-import { Sprint } from "@sprint/shared";
-import { and, eq, gte, lte } from "drizzle-orm";
+import { Issue, Sprint } from "@sprint/shared";
+import { and, desc, eq, gte, lte, ne } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createSprint(
@@ -22,21 +22,55 @@ export async function createSprint(
     return sprint;
 }
 
-export async function getSprintsByProject(projectId: number) {
-    return await db.select().from(Sprint).where(eq(Sprint.projectId, projectId));
+export async function getSprintById(sprintId: number) {
+    const [sprint] = await db.select().from(Sprint).where(eq(Sprint.id, sprintId));
+    return sprint;
 }
 
-export async function hasOverlappingSprints(projectId: number, startDate: Date, endDate: Date) {
+export async function getSprintsByProject(projectId: number) {
+    return await db
+        .select()
+        .from(Sprint)
+        .where(eq(Sprint.projectId, projectId))
+        .orderBy(desc(Sprint.startDate));
+}
+
+export async function hasOverlappingSprints(
+    projectId: number,
+    startDate: Date,
+    endDate: Date,
+    excludeSprintId?: number,
+) {
+    const conditions = [
+        eq(Sprint.projectId, projectId),
+        lte(Sprint.startDate, endDate),
+        gte(Sprint.endDate, startDate),
+    ];
+
+    if (excludeSprintId !== undefined) {
+        console.log("Excluding sprint ID:", excludeSprintId);
+        conditions.push(ne(Sprint.id, excludeSprintId));
+    }
+
     const overlapping = await db
         .select({ id: Sprint.id })
         .from(Sprint)
-        .where(
-            and(
-                eq(Sprint.projectId, projectId),
-                lte(Sprint.startDate, endDate),
-                gte(Sprint.endDate, startDate),
-            ),
-        )
+        .where(and(...conditions))
         .limit(1);
+
+    console.log(overlapping);
     return overlapping.length > 0;
+}
+
+export async function updateSprint(
+    sprintId: number,
+    updates: { name?: string; color?: string; startDate?: Date; endDate?: Date },
+) {
+    const [sprint] = await db.update(Sprint).set(updates).where(eq(Sprint.id, sprintId)).returning();
+    return sprint;
+}
+
+export async function deleteSprint(sprintId: number) {
+    await db.update(Issue).set({ sprintId: null }).where(eq(Issue.sprintId, sprintId));
+    await db.delete(Sprint).where(eq(Sprint.id, sprintId));
 }

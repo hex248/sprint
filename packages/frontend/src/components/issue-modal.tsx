@@ -27,7 +27,7 @@ import { issue, parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 import { SprintSelect } from "./sprint-select";
 
-export function CreateIssue({
+export function IssueModal({
     projectId,
     sprints,
     members,

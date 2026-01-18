@@ -70,6 +70,8 @@ const main = async () => {
             "/projects/with-creators": withCors(withAuth(routes.projectsWithCreators)),
 
             "/sprint/create": withCors(withAuth(withCSRF(routes.sprintCreate))),
+            "/sprint/update": withCors(withAuth(withCSRF(routes.sprintUpdate))),
+            "/sprint/delete": withCors(withAuth(withCSRF(routes.sprintDelete))),
             "/sprints/by-project": withCors(withAuth(routes.sprintsByProject)),
 
             "/timer/toggle": withCors(withAuth(withCSRF(routes.timerToggle))),

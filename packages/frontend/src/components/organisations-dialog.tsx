@@ -10,12 +10,14 @@ import {
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddMemberDialog } from "@/components/add-member-dialog";
-import { CreateSprint } from "@/components/create-sprint";
+import { OrganisationModal } from "@/components/organisation-modal";
 import { OrganisationSelect } from "@/components/organisation-select";
+import { ProjectModal } from "@/components/project-modal";
 import { ProjectSelect } from "@/components/project-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallSprintDisplay from "@/components/small-sprint-display";
 import SmallUserDisplay from "@/components/small-user-display";
+import { SprintModal } from "@/components/sprint-modal";
 import StatusTag from "@/components/status-tag";
 import { Button } from "@/components/ui/button";
 import ColourPicker from "@/components/ui/colour-picker";
@@ -32,7 +34,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { issue, organisation } from "@/lib/server";
+import { issue, organisation, project, sprint } from "@/lib/server";
 import { capitalise } from "@/lib/utils";
 
 function OrganisationsDialog({
@@ -75,6 +77,12 @@ function OrganisationsDialog({
     const [issuesUsingStatus, setIssuesUsingStatus] = useState<number>(0);
     const [reassignToStatus, setReassignToStatus] = useState<string>("");
 
+    // edit/delete state for organisations, projects, and sprints
+    const [editOrgOpen, setEditOrgOpen] = useState(false);
+    const [editProjectOpen, setEditProjectOpen] = useState(false);
+    const [editSprintOpen, setEditSprintOpen] = useState(false);
+    const [editingSprint, setEditingSprint] = useState<SprintRecord | null>(null);
+
     const [confirmDialog, setConfirmDialog] = useState<{
         open: boolean;
         title: string;
@@ -96,6 +104,10 @@ function OrganisationsDialog({
     const isAdmin =
         selectedOrganisation?.OrganisationMember.role === "owner" ||
         selectedOrganisation?.OrganisationMember.role === "admin";
+
+    const isOwner = selectedOrganisation?.OrganisationMember.role === "owner";
+
+    const canDeleteProject = isOwner || (selectedProject && selectedProject.Project.creatorId === user?.id);
 
     const formatDate = (value: Date | string) =>
         new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -527,7 +539,67 @@ function OrganisationsDialog({
                                             </p>
                                         )}
                                     </div>
+                                    {isAdmin && (
+                                        <div className="flex gap-2 mt-3">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setEditOrgOpen(true)}
+                                            >
+                                                <Icon icon="edit" className="size-4" />
+                                                Edit
+                                            </Button>
+                                            {isOwner && (
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setConfirmDialog({
+                                                            open: true,
+                                                            title: "Delete Organisation",
+                                                            message: `Are you sure you want to delete "${selectedOrganisation.Organisation.name}"? This action cannot be undone and will delete all projects, sprints, and issues.`,
+                                                            confirmText: "Delete",
+                                                            processingText: "Deleting...",
+                                                            variant: "destructive",
+                                                            onConfirm: async () => {
+                                                                await organisation.remove({
+                                                                    organisationId:
+                                                                        selectedOrganisation.Organisation.id,
+                                                                    onSuccess: async () => {
+                                                                        closeConfirmDialog();
+                                                                        toast.success(
+                                                                            `Deleted organisation "${selectedOrganisation.Organisation.name}"`,
+                                                                        );
+                                                                        setSelectedOrganisation(null);
+                                                                        await refetchOrganisations();
+                                                                    },
+                                                                    onError: (error) => {
+                                                                        console.error(error);
+                                                                    },
+                                                                });
+                                                            },
+                                                        });
+                                                    }}
+                                                >
+                                                    <Icon icon="trash" className="size-4" />
+                                                    Delete
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
+
+                                <OrganisationModal
+                                    mode="edit"
+                                    existingOrganisation={selectedOrganisation.Organisation}
+                                    open={editOrgOpen}
+                                    onOpenChange={setEditOrgOpen}
+                                    completeAction={async () => {
+                                        await refetchOrganisations({
+                                            selectOrganisationId: selectedOrganisation.Organisation.id,
+                                        });
+                                    }}
+                                />
                             </TabsContent>
 
                             <TabsContent value="users">
@@ -650,6 +722,63 @@ function OrganisationsDialog({
                                                                 Creator: {selectedProject.User.name}
                                                             </p>
                                                         </div>
+                                                        {isAdmin && (
+                                                            <div className="flex gap-2 mt-3">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => setEditProjectOpen(true)}
+                                                                >
+                                                                    <Icon icon="edit" className="size-4" />
+                                                                    Edit
+                                                                </Button>
+                                                                {canDeleteProject && (
+                                                                    <Button
+                                                                        variant="destructive"
+                                                                        size="sm"
+                                                                        onClick={() => {
+                                                                            setConfirmDialog({
+                                                                                open: true,
+                                                                                title: "Delete Project",
+                                                                                message: `Are you sure you want to delete "${selectedProject.Project.name}"? This will delete all sprints and issues in this project.`,
+                                                                                confirmText: "Delete",
+                                                                                processingText: "Deleting...",
+                                                                                variant: "destructive",
+                                                                                onConfirm: async () => {
+                                                                                    await project.remove({
+                                                                                        projectId:
+                                                                                            selectedProject
+                                                                                                .Project.id,
+                                                                                        onSuccess:
+                                                                                            async () => {
+                                                                                                closeConfirmDialog();
+                                                                                                toast.success(
+                                                                                                    `Deleted project "${selectedProject.Project.name}"`,
+                                                                                                );
+                                                                                                onSelectedProjectChange(
+                                                                                                    null,
+                                                                                                );
+                                                                                                await refetchOrganisations();
+                                                                                            },
+                                                                                        onError: (error) => {
+                                                                                            console.error(
+                                                                                                error,
+                                                                                            );
+                                                                                        },
+                                                                                    });
+                                                                                },
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        <Icon
+                                                                            icon="trash"
+                                                                            className="size-4"
+                                                                        />
+                                                                        Delete
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </>
                                                 ) : (
                                                     <p className="text-sm text-muted-foreground">
@@ -660,30 +789,118 @@ function OrganisationsDialog({
                                             <div className="flex flex-col gap-2 min-w-0 flex-1">
                                                 {selectedProject ? (
                                                     <div className="flex flex-col gap-2 max-h-56 overflow-y-scroll">
-                                                        {sprints.map((sprint) => {
-                                                            const dateRange = getSprintDateRange(sprint);
-                                                            const isCurrent = isCurrentSprint(sprint);
+                                                        {sprints.map((sprintItem) => {
+                                                            const dateRange = getSprintDateRange(sprintItem);
+                                                            const isCurrent = isCurrentSprint(sprintItem);
 
                                                             return (
                                                                 <div
-                                                                    key={sprint.id}
+                                                                    key={sprintItem.id}
                                                                     className={`flex items-center justify-between p-2 border ${
                                                                         isCurrent
                                                                             ? "border-emerald-500/60 bg-emerald-500/10"
                                                                             : ""
                                                                     }`}
                                                                 >
-                                                                    <SmallSprintDisplay sprint={sprint} />
-                                                                    {dateRange && (
-                                                                        <span className="text-xs text-muted-foreground">
-                                                                            {dateRange}
-                                                                        </span>
-                                                                    )}
+                                                                    <SmallSprintDisplay sprint={sprintItem} />
+                                                                    <div className="flex items-center gap-2">
+                                                                        {dateRange && (
+                                                                            <span className="text-xs text-muted-foreground">
+                                                                                {dateRange}
+                                                                            </span>
+                                                                        )}
+                                                                        {isAdmin && (
+                                                                            <DropdownMenu>
+                                                                                <DropdownMenuTrigger
+                                                                                    asChild
+                                                                                    size={"sm"}
+                                                                                    noStyle
+                                                                                    className="hover:opacity-80 cursor-pointer"
+                                                                                >
+                                                                                    <Icon
+                                                                                        icon="ellipsisVertical"
+                                                                                        className="size-4 text-foreground"
+                                                                                    />
+                                                                                </DropdownMenuTrigger>
+                                                                                <DropdownMenuContent
+                                                                                    align="end"
+                                                                                    sideOffset={4}
+                                                                                    className="bg-background"
+                                                                                >
+                                                                                    <DropdownMenuItem
+                                                                                        onSelect={() => {
+                                                                                            setEditingSprint(
+                                                                                                sprintItem,
+                                                                                            );
+                                                                                            setEditSprintOpen(
+                                                                                                true,
+                                                                                            );
+                                                                                        }}
+                                                                                        className="hover:bg-primary-foreground"
+                                                                                    >
+                                                                                        <Icon
+                                                                                            icon="edit"
+                                                                                            className="size-4 text-muted-foreground"
+                                                                                        />
+                                                                                        Edit
+                                                                                    </DropdownMenuItem>
+                                                                                    <DropdownMenuItem
+                                                                                        variant="destructive"
+                                                                                        onSelect={() => {
+                                                                                            setConfirmDialog({
+                                                                                                open: true,
+                                                                                                title: "Delete Sprint",
+                                                                                                message: `Are you sure you want to delete "${sprintItem.name}"? Issues assigned to this sprint will become unassigned.`,
+                                                                                                confirmText:
+                                                                                                    "Delete",
+                                                                                                processingText:
+                                                                                                    "Deleting...",
+                                                                                                variant:
+                                                                                                    "destructive",
+                                                                                                onConfirm:
+                                                                                                    async () => {
+                                                                                                        await sprint.remove(
+                                                                                                            {
+                                                                                                                sprintId:
+                                                                                                                    sprintItem.id,
+                                                                                                                onSuccess:
+                                                                                                                    async () => {
+                                                                                                                        closeConfirmDialog();
+                                                                                                                        toast.success(
+                                                                                                                            `Deleted sprint "${sprintItem.name}"`,
+                                                                                                                        );
+                                                                                                                        await refetchOrganisations();
+                                                                                                                    },
+                                                                                                                onError:
+                                                                                                                    (
+                                                                                                                        error,
+                                                                                                                    ) => {
+                                                                                                                        console.error(
+                                                                                                                            error,
+                                                                                                                        );
+                                                                                                                    },
+                                                                                                            },
+                                                                                                        );
+                                                                                                    },
+                                                                                            });
+                                                                                        }}
+                                                                                        className="hover:bg-destructive/10"
+                                                                                    >
+                                                                                        <Icon
+                                                                                            icon="trash"
+                                                                                            className="size-4"
+                                                                                        />
+                                                                                        Delete
+                                                                                    </DropdownMenuItem>
+                                                                                </DropdownMenuContent>
+                                                                            </DropdownMenu>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             );
                                                         })}
                                                         {isAdmin && (
-                                                            <CreateSprint
+                                                            <SprintModal
                                                                 projectId={selectedProject?.Project.id}
                                                                 completeAction={onCreateSprint}
                                                                 trigger={
@@ -708,6 +925,33 @@ function OrganisationsDialog({
                                         </div>
                                     </div>
                                 </div>
+
+                                {selectedProject && (
+                                    <>
+                                        <ProjectModal
+                                            mode="edit"
+                                            existingProject={selectedProject.Project}
+                                            open={editProjectOpen}
+                                            onOpenChange={setEditProjectOpen}
+                                            completeAction={async () => {
+                                                await refetchOrganisations();
+                                            }}
+                                        />
+                                        <SprintModal
+                                            mode="edit"
+                                            existingSprint={editingSprint ?? undefined}
+                                            sprints={sprints}
+                                            open={editSprintOpen}
+                                            onOpenChange={(open) => {
+                                                setEditSprintOpen(open);
+                                                if (!open) setEditingSprint(null);
+                                            }}
+                                            completeAction={async () => {
+                                                await refetchOrganisations();
+                                            }}
+                                        />
+                                    </>
+                                )}
                             </TabsContent>
 
                             <TabsContent value="issues">
