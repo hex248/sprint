@@ -240,7 +240,7 @@ export function IssueDetailPane({
             title: trimmedTitle,
             onSuccess: () => {
                 setOriginalTitle(trimmedTitle);
-                toast.success("Title updated");
+                toast.success(`${issueID(project.Project.key, issueData.Issue.number)} Title updated`);
                 onIssueUpdate?.();
                 setIsSavingTitle(false);
             },
@@ -268,7 +268,7 @@ export function IssueDetailPane({
             onSuccess: () => {
                 setOriginalDescription(trimmedDescription);
                 setDescription(trimmedDescription);
-                toast.success("Description updated");
+                toast.success(`${issueID(project.Project.key, issueData.Issue.number)} Description updated`);
                 onIssueUpdate?.();
                 setIsSavingDescription(false);
                 if (trimmedDescription === "") {
