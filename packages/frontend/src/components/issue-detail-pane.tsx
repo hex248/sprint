@@ -8,9 +8,12 @@ import { StatusSelect } from "@/components/status-select";
 import StatusTag from "@/components/status-tag";
 import { TimerDisplay } from "@/components/timer-display";
 import { TimerModal } from "@/components/timer-modal";
+import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import Icon from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
 import { SelectTrigger } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { issue } from "@/lib/server";
 import { issueID } from "@/lib/utils";
 import SmallSprintDisplay from "./small-sprint-display";
@@ -53,11 +56,26 @@ export function IssueDetailPane({
     const [linkCopied, setLinkCopied] = useState(false);
     const copyTimeoutRef = useRef<number | null>(null);
 
+    const [title, setTitle] = useState(issueData.Issue.title);
+    const [originalTitle, setOriginalTitle] = useState(issueData.Issue.title);
+    const [isSavingTitle, setIsSavingTitle] = useState(false);
+
+    const [description, setDescription] = useState(issueData.Issue.description);
+    const [originalDescription, setOriginalDescription] = useState(issueData.Issue.description);
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const [isSavingDescription, setIsSavingDescription] = useState(false);
+    const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
     useEffect(() => {
         setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
         setAssigneeIds(assigneesToStringArray(issueData.Assignees));
         setStatus(issueData.Issue.status);
-    }, [issueData.Issue.sprintId, issueData.Assignees, issueData.Issue.status]);
+        setTitle(issueData.Issue.title);
+        setOriginalTitle(issueData.Issue.title);
+        setDescription(issueData.Issue.description);
+        setOriginalDescription(issueData.Issue.description);
+        setIsEditingDescription(false);
+    }, [issueData]);
 
     useEffect(() => {
         return () => {
@@ -209,6 +227,62 @@ export function IssueDetailPane({
         }
     };
 
+    const handleTitleSave = async () => {
+        const trimmedTitle = title.trim();
+        if (trimmedTitle === "" || trimmedTitle === originalTitle) {
+            setTitle(originalTitle);
+            return;
+        }
+
+        setIsSavingTitle(true);
+        await issue.update({
+            issueId: issueData.Issue.id,
+            title: trimmedTitle,
+            onSuccess: () => {
+                setOriginalTitle(trimmedTitle);
+                toast.success("Title updated");
+                onIssueUpdate?.();
+                setIsSavingTitle(false);
+            },
+            onError: (error) => {
+                console.error("error updating title:", error);
+                setTitle(originalTitle);
+                setIsSavingTitle(false);
+            },
+        });
+    };
+
+    const handleDescriptionSave = async () => {
+        const trimmedDescription = description.trim();
+        if (trimmedDescription === originalDescription) {
+            if (trimmedDescription === "") {
+                setIsEditingDescription(false);
+            }
+            return;
+        }
+
+        setIsSavingDescription(true);
+        await issue.update({
+            issueId: issueData.Issue.id,
+            description: trimmedDescription,
+            onSuccess: () => {
+                setOriginalDescription(trimmedDescription);
+                setDescription(trimmedDescription);
+                toast.success("Description updated");
+                onIssueUpdate?.();
+                setIsSavingDescription(false);
+                if (trimmedDescription === "") {
+                    setIsEditingDescription(false);
+                }
+            },
+            onError: (error) => {
+                console.error("error updating description:", error);
+                setDescription(originalDescription);
+                setIsSavingDescription(false);
+            },
+        });
+    };
+
     const handleConfirmDelete = async () => {
         await issue.delete({
             issueId: issueData.Issue.id,
@@ -279,11 +353,54 @@ export function IssueDetailPane({
                         )}
                     />
                     <div className="flex w-full items-center min-w-0">
-                        <span className="block w-full truncate">{issueData.Issue.title}</span>
+                        <Input
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            onBlur={handleTitleSave}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.currentTarget.blur();
+                                } else if (e.key === "Escape") {
+                                    setTitle(originalTitle);
+                                    e.currentTarget.blur();
+                                }
+                            }}
+                            disabled={isSavingTitle}
+                            className="w-full border-transparent hover:border-input focus:border-input h-auto py-0.5"
+                        />
                     </div>
                 </div>
-                {issueData.Issue.description !== "" && (
-                    <p className="text-sm">{issueData.Issue.description}</p>
+                {description || isEditingDescription ? (
+                    <Textarea
+                        ref={descriptionRef}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        onBlur={handleDescriptionSave}
+                        onKeyDown={(e) => {
+                            if (e.key === "Escape" || (e.ctrlKey && e.key === "Enter")) {
+                                setDescription(originalDescription);
+                                if (originalDescription === "") {
+                                    setIsEditingDescription(false);
+                                }
+                                e.currentTarget.blur();
+                            }
+                        }}
+                        placeholder="Add a description..."
+                        disabled={isSavingDescription}
+                        className="text-sm border-transparent hover:border-input focus:border-input resize-none min-h-[60px]"
+                    />
+                ) : (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground justify-start px-2"
+                        onClick={() => {
+                            setIsEditingDescription(true);
+                            setTimeout(() => descriptionRef.current?.focus(), 0);
+                        }}
+                    >
+                        Add description
+                    </Button>
                 )}
 
                 <div className="flex items-center gap-2">
