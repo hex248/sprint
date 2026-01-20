@@ -387,7 +387,7 @@ export function IssueDetailPane({
                         }}
                         placeholder="Add a description..."
                         disabled={isSavingDescription}
-                        className="text-sm border-transparent hover:border-input focus:border-input resize-none min-h-[60px]"
+                        className="text-sm border-transparent hover:border-input focus:border-input resize-none"
                     />
                 ) : (
                     <Button
