@@ -1,19 +1,13 @@
-import {
-    DEFAULT_STATUS_COLOUR,
-    ISSUE_STATUS_MAX_LENGTH,
-    type OrganisationMemberResponse,
-    type OrganisationResponse,
-    type ProjectRecord,
-    type ProjectResponse,
-    type SprintRecord,
-} from "@sprint/shared";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { DEFAULT_STATUS_COLOUR, ISSUE_STATUS_MAX_LENGTH, type SprintRecord } from "@sprint/shared";
+import { useQueryClient } from "@tanstack/react-query";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddMemberDialog } from "@/components/add-member-dialog";
 import { OrganisationModal } from "@/components/organisation-modal";
 import { OrganisationSelect } from "@/components/organisation-select";
 import { ProjectModal } from "@/components/project-modal";
 import { ProjectSelect } from "@/components/project-select";
+import { useSelection } from "@/components/selection-provider";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallSprintDisplay from "@/components/small-sprint-display";
 import SmallUserDisplay from "@/components/small-user-display";
@@ -34,39 +28,83 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { issue, organisation, project, sprint } from "@/lib/server";
+import {
+    useDeleteOrganisation,
+    useDeleteProject,
+    useDeleteSprint,
+    useOrganisationMembers,
+    useOrganisations,
+    useProjects,
+    useRemoveOrganisationMember,
+    useReplaceIssueStatus,
+    useSprints,
+    useUpdateOrganisation,
+    useUpdateOrganisationMemberRole,
+} from "@/lib/query/hooks";
+import { queryKeys } from "@/lib/query/keys";
+import { issue } from "@/lib/server";
 import { capitalise } from "@/lib/utils";
 
-function OrganisationsDialog({
-    trigger,
-    organisations,
-    selectedOrganisation,
-    setSelectedOrganisation,
-    refetchOrganisations,
-    projects,
-    selectedProject,
-    sprints,
-    onSelectedProjectChange,
-    onCreateProject,
-    onCreateSprint,
-}: {
-    trigger?: ReactNode;
-    organisations: OrganisationResponse[];
-    selectedOrganisation: OrganisationResponse | null;
-    setSelectedOrganisation: (organisation: OrganisationResponse | null) => void;
-    refetchOrganisations: (options?: { selectOrganisationId?: number }) => Promise<void>;
-    projects: ProjectResponse[];
-    selectedProject: ProjectResponse | null;
-    sprints: SprintRecord[];
-    onSelectedProjectChange: (project: ProjectResponse | null) => void;
-    onCreateProject: (project: ProjectRecord) => void | Promise<void>;
-    onCreateSprint: (sprint: SprintRecord) => void | Promise<void>;
-}) {
+function OrganisationsDialog({ trigger }: { trigger?: ReactNode }) {
     const { user } = useAuthenticatedSession();
+    const queryClient = useQueryClient();
+    const { selectedOrganisationId, selectedProjectId } = useSelection();
+    const { data: organisationsData = [] } = useOrganisations();
+    const { data: projectsData = [] } = useProjects(selectedOrganisationId);
+    const { data: sprints = [] } = useSprints(selectedProjectId);
+    const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
+    const updateOrganisation = useUpdateOrganisation();
+    const updateMemberRole = useUpdateOrganisationMemberRole();
+    const removeMember = useRemoveOrganisationMember();
+    const deleteOrganisation = useDeleteOrganisation();
+    const deleteProject = useDeleteProject();
+    const deleteSprint = useDeleteSprint();
+    const replaceIssueStatus = useReplaceIssueStatus();
+
+    const organisations = useMemo(
+        () => [...organisationsData].sort((a, b) => a.Organisation.name.localeCompare(b.Organisation.name)),
+        [organisationsData],
+    );
+    const projects = useMemo(
+        () => [...projectsData].sort((a, b) => a.Project.name.localeCompare(b.Project.name)),
+        [projectsData],
+    );
+    const selectedOrganisation = useMemo(
+        () => organisations.find((org) => org.Organisation.id === selectedOrganisationId) ?? null,
+        [organisations, selectedOrganisationId],
+    );
+    const selectedProject = useMemo(
+        () => projects.find((proj) => proj.Project.id === selectedProjectId) ?? null,
+        [projects, selectedProjectId],
+    );
+
+    const invalidateOrganisations = () =>
+        queryClient.invalidateQueries({ queryKey: queryKeys.organisations.byUser() });
+    const invalidateProjects = () =>
+        queryClient.invalidateQueries({
+            queryKey: queryKeys.projects.byOrganisation(selectedOrganisationId ?? 0),
+        });
+    const invalidateMembers = useCallback(
+        () =>
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.organisations.members(selectedOrganisationId ?? 0),
+            }),
+        [queryClient, selectedOrganisationId],
+    );
+    const invalidateSprints = () =>
+        queryClient.invalidateQueries({ queryKey: queryKeys.sprints.byProject(selectedProjectId ?? 0) });
+    const members = useMemo(() => {
+        const roleOrder: Record<string, number> = { owner: 0, admin: 1, member: 2 };
+        return [...membersData].sort((a, b) => {
+            const roleA = roleOrder[a.OrganisationMember.role] ?? 3;
+            const roleB = roleOrder[b.OrganisationMember.role] ?? 3;
+            if (roleA !== roleB) return roleA - roleB;
+            return a.User.name.localeCompare(b.User.name);
+        });
+    }, [membersData]);
 
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("info");
-    const [members, setMembers] = useState<OrganisationMemberResponse[]>([]);
 
     const [statuses, setStatuses] = useState<Record<string, string>>({});
     const [isCreatingStatus, setIsCreatingStatus] = useState(false);
@@ -123,37 +161,6 @@ function OrganisationsDialog({
         return start <= today && today <= end;
     };
 
-    const refetchMembers = useCallback(async () => {
-        if (!selectedOrganisation) return;
-        try {
-            await organisation.members({
-                organisationId: selectedOrganisation.Organisation.id,
-                onSuccess: (data) => {
-                    const members = data as OrganisationMemberResponse[];
-                    const roleOrder: Record<string, number> = { owner: 0, admin: 1, member: 2 };
-                    members.sort((a, b) => {
-                        const roleA = roleOrder[a.OrganisationMember.role] ?? 3;
-                        const roleB = roleOrder[b.OrganisationMember.role] ?? 3;
-                        if (roleA !== roleB) return roleA - roleB;
-                        return a.User.name.localeCompare(b.User.name);
-                    });
-                    setMembers(members);
-                },
-                onError: (error) => {
-                    console.error(error);
-                    setMembers([]);
-
-                    toast.error(`Error fetching members: ${error}`, {
-                        dismissible: false,
-                    });
-                },
-            });
-        } catch (err) {
-            console.error("error fetching members:", err);
-            setMembers([]);
-        }
-    }, [selectedOrganisation]);
-
     const handleRoleChange = (memberUserId: number, memberName: string, currentRole: string) => {
         if (!selectedOrganisation) return;
         const action = currentRole === "admin" ? "demote" : "promote";
@@ -167,32 +174,23 @@ function OrganisationsDialog({
             variant: action === "demote" ? "destructive" : "default",
             onConfirm: async () => {
                 try {
-                    await organisation.updateMemberRole({
+                    await updateMemberRole.mutateAsync({
                         organisationId: selectedOrganisation.Organisation.id,
                         userId: memberUserId,
                         role: newRole,
-                        onSuccess: () => {
-                            closeConfirmDialog();
-
-                            toast.success(`${capitalise(action)}d ${memberName} to ${newRole} successfully`, {
-                                dismissible: false,
-                            });
-
-                            void refetchMembers();
-                        },
-                        onError: (error) => {
-                            console.error(error);
-
-                            toast.error(
-                                `Error ${action.slice(0, -1)}ing ${memberName} to ${newRole}: ${error}`,
-                                {
-                                    dismissible: false,
-                                },
-                            );
-                        },
+                    });
+                    closeConfirmDialog();
+                    toast.success(`${capitalise(action)}d ${memberName} to ${newRole} successfully`, {
+                        dismissible: false,
                     });
                 } catch (err) {
                     console.error(err);
+                    toast.error(
+                        `Error ${action.slice(0, -1)}ing ${memberName} to ${newRole}: ${String(err)}`,
+                        {
+                            dismissible: false,
+                        },
+                    );
                 }
             },
         });
@@ -213,34 +211,25 @@ function OrganisationsDialog({
             variant: "destructive",
             onConfirm: async () => {
                 try {
-                    await organisation.removeMember({
+                    await removeMember.mutateAsync({
                         organisationId: selectedOrganisation.Organisation.id,
                         userId: memberUserId,
-                        onSuccess: () => {
-                            closeConfirmDialog();
-
-                            toast.success(
-                                `Removed ${memberName} from ${selectedOrganisation.Organisation.name} successfully`,
-                                {
-                                    dismissible: false,
-                                },
-                            );
-
-                            void refetchMembers();
-                        },
-                        onError: (error) => {
-                            console.error(error);
-
-                            toast.error(
-                                `Error removing member from ${selectedOrganisation.Organisation.name}: ${error}`,
-                                {
-                                    dismissible: false,
-                                },
-                            );
-                        },
                     });
+                    closeConfirmDialog();
+                    toast.success(
+                        `Removed ${memberName} from ${selectedOrganisation.Organisation.name} successfully`,
+                        {
+                            dismissible: false,
+                        },
+                    );
                 } catch (err) {
                     console.error(err);
+                    toast.error(
+                        `Error removing member from ${selectedOrganisation.Organisation.name}: ${String(err)}`,
+                        {
+                            dismissible: false,
+                        },
+                    );
                 }
             },
         });
@@ -261,88 +250,79 @@ function OrganisationsDialog({
         if (!selectedOrganisation) return;
 
         try {
-            await organisation.update({
-                organisationId: selectedOrganisation.Organisation.id,
+            await updateOrganisation.mutateAsync({
+                id: selectedOrganisation.Organisation.id,
                 statuses: newStatuses,
-                onSuccess: () => {
-                    setStatuses(newStatuses);
-                    if (statusAdded) {
-                        toast.success(
-                            <>
-                                Created <StatusTag status={statusAdded.name} colour={statusAdded.colour} />{" "}
-                                status successfully
-                            </>,
-                            {
-                                dismissible: false,
-                            },
-                        );
-                    } else if (statusRemoved) {
-                        toast.success(
-                            <>
-                                Removed{" "}
-                                <StatusTag status={statusRemoved.name} colour={statusRemoved.colour} /> status
-                                successfully
-                            </>,
-                            {
-                                dismissible: false,
-                            },
-                        );
-                    } else if (statusMoved) {
-                        toast.success(
-                            <>
-                                Moved <StatusTag status={statusMoved.name} colour={statusMoved.colour} /> from
-                                position {statusMoved.currentIndex + 1} to {statusMoved.nextIndex + 1}{" "}
-                                successfully
-                            </>,
-                            {
-                                dismissible: false,
-                            },
-                        );
-                    }
-                    void refetchOrganisations();
-                },
-                onError: (error) => {
-                    console.error("error updating statuses:", error);
-
-                    if (statusAdded) {
-                        toast.error(
-                            <>
-                                Error adding{" "}
-                                <StatusTag status={statusAdded.name} colour={statusAdded.colour} /> to{" "}
-                                {selectedOrganisation.Organisation.name}: {error}
-                            </>,
-                            {
-                                dismissible: false,
-                            },
-                        );
-                    } else if (statusRemoved) {
-                        toast.error(
-                            <>
-                                Error removing{" "}
-                                <StatusTag status={statusRemoved.name} colour={statusRemoved.colour} /> from{" "}
-                                {selectedOrganisation.Organisation.name}: {error}
-                            </>,
-                            {
-                                dismissible: false,
-                            },
-                        );
-                    } else if (statusMoved) {
-                        toast.error(
-                            <>
-                                Error moving{" "}
-                                <StatusTag status={statusMoved.name} colour={statusMoved.colour} />
-                                from position {statusMoved.currentIndex + 1} to {statusMoved.nextIndex + 1}{" "}
-                                {selectedOrganisation.Organisation.name}: {error}
-                            </>,
-                            {
-                                dismissible: false,
-                            },
-                        );
-                    }
-                },
             });
+            setStatuses(newStatuses);
+            if (statusAdded) {
+                toast.success(
+                    <>
+                        Created <StatusTag status={statusAdded.name} colour={statusAdded.colour} /> status
+                        successfully
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
+            } else if (statusRemoved) {
+                toast.success(
+                    <>
+                        Removed <StatusTag status={statusRemoved.name} colour={statusRemoved.colour} /> status
+                        successfully
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
+            } else if (statusMoved) {
+                toast.success(
+                    <>
+                        Moved <StatusTag status={statusMoved.name} colour={statusMoved.colour} /> from
+                        position
+                        {statusMoved.currentIndex + 1} to {statusMoved.nextIndex + 1} successfully
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
+            }
+            await invalidateOrganisations();
         } catch (err) {
             console.error("error updating statuses:", err);
+            if (statusAdded) {
+                toast.error(
+                    <>
+                        Error adding <StatusTag status={statusAdded.name} colour={statusAdded.colour} /> to{" "}
+                        {selectedOrganisation.Organisation.name}: {String(err)}
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
+            } else if (statusRemoved) {
+                toast.error(
+                    <>
+                        Error removing <StatusTag status={statusRemoved.name} colour={statusRemoved.colour} />{" "}
+                        from {selectedOrganisation.Organisation.name}: {String(err)}
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
+            } else if (statusMoved) {
+                toast.error(
+                    <>
+                        Error moving <StatusTag status={statusMoved.name} colour={statusMoved.colour} /> from
+                        position
+                        {statusMoved.currentIndex + 1} to {statusMoved.nextIndex + 1}{" "}
+                        {selectedOrganisation.Organisation.name}: {String(err)}
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
+            }
         }
     };
 
@@ -374,41 +354,32 @@ function OrganisationsDialog({
     const handleRemoveStatusClick = async (status: string) => {
         if (Object.keys(statuses).length <= 1 || !selectedOrganisation) return;
         try {
-            await issue.statusCount({
-                organisationId: selectedOrganisation.Organisation.id,
-                status,
-                onSuccess: (data) => {
-                    const count = (data as { count?: number }).count ?? 0;
-                    if (count > 0) {
-                        setStatusToRemove(status);
-                        setIssuesUsingStatus(count);
-                        const remaining = Object.keys(statuses).filter((s) => s !== status);
-                        setReassignToStatus(remaining[0] || "");
-                        return;
-                    }
+            const data = await issue.statusCount(selectedOrganisation.Organisation.id, status);
+            const count = data.find((item) => item.status === status)?.count ?? 0;
+            if (count > 0) {
+                setStatusToRemove(status);
+                setIssuesUsingStatus(count);
+                const remaining = Object.keys(statuses).filter((item) => item !== status);
+                setReassignToStatus(remaining[0] || "");
+                return;
+            }
 
-                    const nextStatuses = Object.keys(statuses).filter((s) => s !== status);
-                    void updateStatuses(
-                        Object.fromEntries(nextStatuses.map((statusKey) => [statusKey, statuses[statusKey]])),
-                        { name: status, colour: statuses[status] },
-                    );
-                },
-                onError: (error) => {
-                    console.error("error checking status usage:", error);
-
-                    toast.error(
-                        <>
-                            Error checking status usage for{" "}
-                            <StatusTag status={status} colour={statuses[status]} />: {error}
-                        </>,
-                        {
-                            dismissible: false,
-                        },
-                    );
-                },
-            });
+            const nextStatuses = Object.keys(statuses).filter((item) => item !== status);
+            await updateStatuses(
+                Object.fromEntries(nextStatuses.map((statusKey) => [statusKey, statuses[statusKey]])),
+                { name: status, colour: statuses[status] },
+            );
         } catch (err) {
             console.error("error checking status usage:", err);
+            toast.error(
+                <>
+                    Error checking status usage for <StatusTag status={status} colour={statuses[status]} />:{" "}
+                    {String(err)}
+                </>,
+                {
+                    dismissible: false,
+                },
+            );
         }
     };
 
@@ -435,40 +406,38 @@ function OrganisationsDialog({
     const confirmRemoveStatus = async () => {
         if (!statusToRemove || !reassignToStatus || !selectedOrganisation) return;
 
-        await issue.replaceStatus({
-            organisationId: selectedOrganisation.Organisation.id,
-            oldStatus: statusToRemove,
-            newStatus: reassignToStatus,
-            onSuccess: async () => {
-                const newStatuses = Object.keys(statuses).filter((s) => s !== statusToRemove);
-                await updateStatuses(
-                    Object.fromEntries(newStatuses.map((status) => [status, statuses[status]])),
-                    { name: statusToRemove, colour: statuses[statusToRemove] },
-                );
-                setStatusToRemove(null);
-                setReassignToStatus("");
-            },
-            onError: (error) => {
-                console.error("error replacing status:", error);
-
-                toast.error(
-                    <>
-                        Error removing <StatusTag status={statusToRemove} colour={statuses[statusToRemove]} />{" "}
-                        from
-                        {selectedOrganisation.Organisation.name}: {error}{" "}
-                    </>,
-                    {
-                        dismissible: false,
-                    },
-                );
-            },
-        });
+        try {
+            await replaceIssueStatus.mutateAsync({
+                organisationId: selectedOrganisation.Organisation.id,
+                oldStatus: statusToRemove,
+                newStatus: reassignToStatus,
+            });
+            const newStatuses = Object.keys(statuses).filter((item) => item !== statusToRemove);
+            await updateStatuses(
+                Object.fromEntries(newStatuses.map((status) => [status, statuses[status]])),
+                { name: statusToRemove, colour: statuses[statusToRemove] },
+            );
+            setStatusToRemove(null);
+            setReassignToStatus("");
+        } catch (error) {
+            console.error("error replacing status:", error);
+            toast.error(
+                <>
+                    Error removing <StatusTag status={statusToRemove} colour={statuses[statusToRemove]} />{" "}
+                    from
+                    {selectedOrganisation.Organisation.name}: {String(error)}
+                </>,
+                {
+                    dismissible: false,
+                },
+            );
+        }
     };
 
     useEffect(() => {
-        if (!open) return;
-        void refetchMembers();
-    }, [open, refetchMembers]);
+        if (!open || !selectedOrganisationId) return;
+        void invalidateMembers();
+    }, [open, invalidateMembers, selectedOrganisationId]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -490,21 +459,6 @@ function OrganisationsDialog({
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0">
                             <div className="flex flex-wrap gap-2 items-center w-full min-w-0">
                                 <OrganisationSelect
-                                    organisations={organisations}
-                                    selectedOrganisation={selectedOrganisation}
-                                    onSelectedOrganisationChange={(org) => {
-                                        setSelectedOrganisation(org);
-                                        localStorage.setItem(
-                                            "selectedOrganisationId",
-                                            `${org?.Organisation.id}`,
-                                        );
-                                    }}
-                                    onCreateOrganisation={async (org) => {
-                                        toast.success(`Created Organisation ${org.name}`, {
-                                            dismissible: false,
-                                        });
-                                        await refetchOrganisations({ selectOrganisationId: org.id });
-                                    }}
                                     contentClass={
                                         "data-[side=bottom]:translate-y-2 data-[side=bottom]:translate-x-0.25"
                                     }
@@ -562,21 +516,18 @@ function OrganisationsDialog({
                                                             processingText: "Deleting...",
                                                             variant: "destructive",
                                                             onConfirm: async () => {
-                                                                await organisation.remove({
-                                                                    organisationId:
+                                                                try {
+                                                                    await deleteOrganisation.mutateAsync(
                                                                         selectedOrganisation.Organisation.id,
-                                                                    onSuccess: async () => {
-                                                                        closeConfirmDialog();
-                                                                        toast.success(
-                                                                            `Deleted organisation "${selectedOrganisation.Organisation.name}"`,
-                                                                        );
-                                                                        setSelectedOrganisation(null);
-                                                                        await refetchOrganisations();
-                                                                    },
-                                                                    onError: (error) => {
-                                                                        console.error(error);
-                                                                    },
-                                                                });
+                                                                    );
+                                                                    closeConfirmDialog();
+                                                                    toast.success(
+                                                                        `Deleted organisation "${selectedOrganisation.Organisation.name}"`,
+                                                                    );
+                                                                    await invalidateOrganisations();
+                                                                } catch (error) {
+                                                                    console.error(error);
+                                                                }
                                                             },
                                                         });
                                                     }}
@@ -595,9 +546,7 @@ function OrganisationsDialog({
                                     open={editOrgOpen}
                                     onOpenChange={setEditOrgOpen}
                                     completeAction={async () => {
-                                        await refetchOrganisations({
-                                            selectOrganisationId: selectedOrganisation.Organisation.id,
-                                        });
+                                        await invalidateOrganisations();
                                     }}
                                 />
                             </TabsContent>
@@ -683,7 +632,7 @@ function OrganisationsDialog({
                                                         },
                                                     );
 
-                                                    refetchMembers();
+                                                    void invalidateMembers();
                                                 }}
                                                 trigger={
                                                     <Button variant="outline">
@@ -699,14 +648,7 @@ function OrganisationsDialog({
                             <TabsContent value="projects">
                                 <div className="border p-2 min-w-0 overflow-hidden">
                                     <div className="flex flex-col gap-3">
-                                        <ProjectSelect
-                                            projects={projects}
-                                            selectedProject={selectedProject}
-                                            organisationId={selectedOrganisation?.Organisation.id}
-                                            onSelectedProjectChange={onSelectedProjectChange}
-                                            onCreateProject={onCreateProject}
-                                            showLabel
-                                        />
+                                        <ProjectSelect showLabel />
                                         <div className="flex gap-3 flex-col">
                                             <div className="border p-2 min-w-0 overflow-hidden">
                                                 {selectedProject ? (
@@ -745,27 +687,20 @@ function OrganisationsDialog({
                                                                                 processingText: "Deleting...",
                                                                                 variant: "destructive",
                                                                                 onConfirm: async () => {
-                                                                                    await project.remove({
-                                                                                        projectId:
+                                                                                    try {
+                                                                                        await deleteProject.mutateAsync(
                                                                                             selectedProject
                                                                                                 .Project.id,
-                                                                                        onSuccess:
-                                                                                            async () => {
-                                                                                                closeConfirmDialog();
-                                                                                                toast.success(
-                                                                                                    `Deleted project "${selectedProject.Project.name}"`,
-                                                                                                );
-                                                                                                onSelectedProjectChange(
-                                                                                                    null,
-                                                                                                );
-                                                                                                await refetchOrganisations();
-                                                                                            },
-                                                                                        onError: (error) => {
-                                                                                            console.error(
-                                                                                                error,
-                                                                                            );
-                                                                                        },
-                                                                                    });
+                                                                                        );
+                                                                                        closeConfirmDialog();
+                                                                                        toast.success(
+                                                                                            `Deleted project "${selectedProject.Project.name}"`,
+                                                                                        );
+                                                                                        await invalidateProjects();
+                                                                                        await invalidateSprints();
+                                                                                    } catch (error) {
+                                                                                        console.error(error);
+                                                                                    }
                                                                                 },
                                                                             });
                                                                         }}
@@ -859,28 +794,20 @@ function OrganisationsDialog({
                                                                                                     "destructive",
                                                                                                 onConfirm:
                                                                                                     async () => {
-                                                                                                        await sprint.remove(
-                                                                                                            {
-                                                                                                                sprintId:
-                                                                                                                    sprintItem.id,
-                                                                                                                onSuccess:
-                                                                                                                    async () => {
-                                                                                                                        closeConfirmDialog();
-                                                                                                                        toast.success(
-                                                                                                                            `Deleted sprint "${sprintItem.name}"`,
-                                                                                                                        );
-                                                                                                                        await refetchOrganisations();
-                                                                                                                    },
-                                                                                                                onError:
-                                                                                                                    (
-                                                                                                                        error,
-                                                                                                                    ) => {
-                                                                                                                        console.error(
-                                                                                                                            error,
-                                                                                                                        );
-                                                                                                                    },
-                                                                                                            },
-                                                                                                        );
+                                                                                                        try {
+                                                                                                            await deleteSprint.mutateAsync(
+                                                                                                                sprintItem.id,
+                                                                                                            );
+                                                                                                            closeConfirmDialog();
+                                                                                                            toast.success(
+                                                                                                                `Deleted sprint "${sprintItem.name}"`,
+                                                                                                            );
+                                                                                                            await invalidateSprints();
+                                                                                                        } catch (error) {
+                                                                                                            console.error(
+                                                                                                                error,
+                                                                                                            );
+                                                                                                        }
                                                                                                     },
                                                                                             });
                                                                                         }}
@@ -902,7 +829,6 @@ function OrganisationsDialog({
                                                         {isAdmin && (
                                                             <SprintModal
                                                                 projectId={selectedProject?.Project.id}
-                                                                completeAction={onCreateSprint}
                                                                 trigger={
                                                                     <Button variant="outline" size="sm">
                                                                         Create sprint{" "}
@@ -934,7 +860,7 @@ function OrganisationsDialog({
                                             open={editProjectOpen}
                                             onOpenChange={setEditProjectOpen}
                                             completeAction={async () => {
-                                                await refetchOrganisations();
+                                                await invalidateProjects();
                                             }}
                                         />
                                         <SprintModal
@@ -947,7 +873,7 @@ function OrganisationsDialog({
                                                 if (!open) setEditingSprint(null);
                                             }}
                                             completeAction={async () => {
-                                                await refetchOrganisations();
+                                                await invalidateSprints();
                                             }}
                                         />
                                     </>
@@ -1105,18 +1031,6 @@ function OrganisationsDialog({
                     ) : (
                         <div className="flex flex-col gap-2 w-full min-w-0">
                             <OrganisationSelect
-                                organisations={organisations}
-                                selectedOrganisation={selectedOrganisation}
-                                onSelectedOrganisationChange={(org) => {
-                                    setSelectedOrganisation(org);
-                                    localStorage.setItem("selectedOrganisationId", `${org?.Organisation.id}`);
-                                }}
-                                onCreateOrganisation={async (org) => {
-                                    toast.success(`Created Organisation ${org.name}`, {
-                                        dismissible: false,
-                                    });
-                                    await refetchOrganisations({ selectOrganisationId: org.id });
-                                }}
                                 contentClass={
                                     "data-[side=bottom]:translate-y-2 data-[side=bottom]:translate-x-0.25"
                                 }

@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
-import { parseError, project } from "@/lib/server";
+import { useCreateProject, useUpdateProject } from "@/lib/query/hooks";
+import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 const keyify = (value: string) =>
@@ -40,6 +41,8 @@ export function ProjectModal({
     onOpenChange?: (open: boolean) => void;
 }) {
     const { user } = useAuthenticatedSession();
+    const createProject = useCreateProject();
+    const updateProject = useUpdateProject();
 
     const isControlled = controlledOpen !== undefined;
     const [internalOpen, setInternalOpen] = useState(false);
@@ -106,66 +109,48 @@ export function ProjectModal({
         setSubmitting(true);
         try {
             if (isEdit && existingProject) {
-                await project.update({
-                    projectId: existingProject.id,
+                const proj = await updateProject.mutateAsync({
+                    id: existingProject.id,
                     key,
                     name,
-                    onSuccess: async (data) => {
-                        const proj = data as ProjectRecord;
-                        setOpen(false);
-                        reset();
-                        toast.success("Project updated");
-                        try {
-                            await completeAction?.(proj);
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
-                    onError: (err) => {
-                        const message = parseError(err);
-                        setError(message);
-                        setSubmitting(false);
-
-                        toast.error(`Error updating project: ${message}`, {
-                            dismissible: false,
-                        });
-                    },
                 });
+                setOpen(false);
+                reset();
+                toast.success("Project updated");
+                try {
+                    await completeAction?.(proj);
+                } catch (actionErr) {
+                    console.error(actionErr);
+                }
             } else {
                 if (!organisationId) {
                     setError("select an organisation first");
                     return;
                 }
-                await project.create({
+                const proj = await createProject.mutateAsync({
                     key,
                     name,
-                    organisationId: organisationId,
-                    onSuccess: async (data) => {
-                        const proj = data as ProjectRecord;
-
-                        setOpen(false);
-                        reset();
-                        try {
-                            await completeAction?.(proj);
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
-                    onError: (err) => {
-                        const message = parseError(err);
-                        setError(message);
-                        setSubmitting(false);
-
-                        toast.error(`Error creating project: ${message}`, {
-                            dismissible: false,
-                        });
-                    },
+                    organisationId,
                 });
+                setOpen(false);
+                reset();
+                toast.success(`Created Project ${proj.name}`, {
+                    dismissible: false,
+                });
+                try {
+                    await completeAction?.(proj);
+                } catch (actionErr) {
+                    console.error(actionErr);
+                }
             }
         } catch (err) {
+            const message = parseError(err as Error);
             console.error(err);
-            setError(`failed to ${isEdit ? "update" : "create"} project`);
+            setError(message || `failed to ${isEdit ? "update" : "create"} project`);
             setSubmitting(false);
+            toast.error(`Error ${isEdit ? "updating" : "creating"} project: ${message}`, {
+                dismissible: false,
+            });
         }
     };
 

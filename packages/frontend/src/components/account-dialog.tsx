@@ -10,10 +10,12 @@ import Icon from "@/components/ui/icon";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UploadAvatar } from "@/components/upload-avatar";
-import { parseError, user } from "@/lib/server";
+import { useUpdateUser } from "@/lib/query/hooks";
+import { parseError } from "@/lib/server";
 
 function AccountDialog({ trigger }: { trigger?: ReactNode }) {
     const { user: currentUser, setUser } = useAuthenticatedSession();
+    const updateUser = useUpdateUser();
 
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("");
@@ -45,30 +47,29 @@ function AccountDialog({ trigger }: { trigger?: ReactNode }) {
             return;
         }
 
-        await user.update({
-            name: name.trim(),
-            password: password.trim() || undefined,
-            avatarURL,
-            iconPreference,
-            onSuccess: (data) => {
-                setError("");
-                setUser(data);
-                setPassword("");
-                setOpen(false);
+        try {
+            const data = await updateUser.mutateAsync({
+                name: name.trim(),
+                password: password.trim() || undefined,
+                avatarURL,
+                iconPreference,
+            });
+            setError("");
+            setUser(data);
+            setPassword("");
+            setOpen(false);
 
-                toast.success(`Account updated successfully`, {
-                    dismissible: false,
-                });
-            },
-            onError: (err) => {
-                const message = parseError(err);
-                setError(message);
+            toast.success("Account updated successfully", {
+                dismissible: false,
+            });
+        } catch (err) {
+            const message = parseError(err as Error);
+            setError(message);
 
-                toast.error(`Error updating account: ${message}`, {
-                    dismissible: false,
-                });
-            },
-        });
+            toast.error(`Error updating account: ${message}`, {
+                dismissible: false,
+            });
+        }
     };
 
     return (

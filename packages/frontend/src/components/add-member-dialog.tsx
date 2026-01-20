@@ -11,7 +11,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
-import { organisation, parseError, user } from "@/lib/server";
+import { useAddOrganisationMember } from "@/lib/query/hooks";
+import { parseError, user } from "@/lib/server";
 
 export function AddMemberDialog({
     organisationId,
@@ -29,6 +30,7 @@ export function AddMemberDialog({
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const addMember = useAddOrganisationMember();
 
     const reset = () => {
         setUsername("");
@@ -60,56 +62,25 @@ export function AddMemberDialog({
 
         setSubmitting(true);
         try {
-            let userId: number | null = null;
-            let userData: UserRecord;
-            await user.byUsername({
-                username,
-                onSuccess: (data: UserRecord) => {
-                    userData = data;
-                    userId = data.id;
-                },
-                onError: (err) => {
-                    const message = parseError(err);
-                    setError(message || "user not found");
-                    setSubmitting(false);
-
-                    toast.error(`Error adding member: ${message}`, {
-                        dismissible: false,
-                    });
-                },
-            });
-
-            if (!userId) {
-                return;
+            const userData: UserRecord = await user.byUsername(username);
+            const userId = userData.id;
+            await addMember.mutateAsync({ organisationId, userId, role: "member" });
+            setOpen(false);
+            reset();
+            try {
+                await onSuccess?.(userData);
+            } catch (actionErr) {
+                console.error(actionErr);
             }
-
-            await organisation.addMember({
-                organisationId,
-                userId,
-                role: "member",
-                onSuccess: async () => {
-                    setOpen(false);
-                    reset();
-                    try {
-                        await onSuccess?.(userData);
-                    } catch (actionErr) {
-                        console.error(actionErr);
-                    }
-                },
-                onError: (err) => {
-                    const message = parseError(err);
-                    setError(message || "failed to add member");
-                    setSubmitting(false);
-
-                    toast.error(`Error adding member: ${message}`, {
-                        dismissible: false,
-                    });
-                },
-            });
         } catch (err) {
+            const message = parseError(err as Error);
             console.error(err);
-            setError("failed to add member");
+            setError(message || "failed to add member");
             setSubmitting(false);
+
+            toast.error(`Error adding member: ${message}`, {
+                dismissible: false,
+            });
         }
     };
 

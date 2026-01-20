@@ -16,7 +16,8 @@ import {
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { parseError, sprint } from "@/lib/server";
+import { useCreateSprint, useUpdateSprint } from "@/lib/query/hooks";
+import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 const SPRINT_NAME_MAX_LENGTH = 64;
@@ -67,6 +68,8 @@ export function SprintModal({
     onOpenChange?: (open: boolean) => void;
 }) {
     const { user } = useAuthenticatedSession();
+    const createSprint = useCreateSprint();
+    const updateSprint = useUpdateSprint();
 
     const isControlled = controlledOpen !== undefined;
     const [internalOpen, setInternalOpen] = useState(false);
@@ -146,67 +149,57 @@ export function SprintModal({
 
         try {
             if (isEdit && existingSprint) {
-                await sprint.update({
-                    sprintId: existingSprint.id,
+                const data = await updateSprint.mutateAsync({
+                    id: existingSprint.id,
                     name,
                     color: colour,
-                    startDate,
-                    endDate,
-                    onSuccess: async (data) => {
-                        setOpen(false);
-                        reset();
-                        toast.success("Sprint updated");
-                        try {
-                            await completeAction?.(data);
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
-                    onError: (err) => {
-                        const message = parseError(err);
-                        setError(message);
-                        setSubmitting(false);
-
-                        toast.error(`Error updating sprint: ${message}`, {
-                            dismissible: false,
-                        });
-                    },
+                    startDate: startDate.toISOString(),
+                    endDate: endDate.toISOString(),
                 });
+                setOpen(false);
+                reset();
+                toast.success("Sprint updated");
+                try {
+                    await completeAction?.(data);
+                } catch (actionErr) {
+                    console.error(actionErr);
+                }
             } else {
                 if (!projectId) {
                     setError("select a project first");
                     return;
                 }
-                await sprint.create({
-                    projectId: projectId,
+                const data = await createSprint.mutateAsync({
+                    projectId,
                     name,
                     color: colour,
-                    startDate,
-                    endDate,
-                    onSuccess: async (data) => {
-                        setOpen(false);
-                        reset();
-                        try {
-                            await completeAction?.(data);
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
-                    onError: (err) => {
-                        const message = parseError(err);
-                        setError(message);
-                        setSubmitting(false);
-
-                        toast.error(`Error creating sprint: ${message}`, {
-                            dismissible: false,
-                        });
-                    },
+                    startDate: startDate.toISOString(),
+                    endDate: endDate.toISOString(),
                 });
+                setOpen(false);
+                reset();
+                toast.success(
+                    <>
+                        Created sprint <span style={{ color: data.color }}>{data.name}</span>
+                    </>,
+                    {
+                        dismissible: false,
+                    },
+                );
+                try {
+                    await completeAction?.(data);
+                } catch (actionErr) {
+                    console.error(actionErr);
+                }
             }
         } catch (submitError) {
+            const message = parseError(submitError as Error);
             console.error(submitError);
-            setError(`failed to ${isEdit ? "update" : "create"} sprint`);
+            setError(message || `failed to ${isEdit ? "update" : "create"} sprint`);
             setSubmitting(false);
+            toast.error(`Error ${isEdit ? "updating" : "creating"} sprint: ${message}`, {
+                dismissible: false,
+            });
         }
     };
 

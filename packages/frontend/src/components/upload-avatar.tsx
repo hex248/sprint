@@ -4,7 +4,8 @@ import Avatar from "@/components/avatar";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 import { Label } from "@/components/ui/label";
-import { parseError, user } from "@/lib/server";
+import { useUploadAvatar } from "@/lib/query/hooks";
+import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 export function UploadAvatar({
@@ -25,6 +26,7 @@ export function UploadAvatar({
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showEdit, setShowEdit] = useState(false);
+    const uploadAvatar = useUploadAvatar();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -33,32 +35,29 @@ export function UploadAvatar({
         setUploading(true);
         setError(null);
 
-        await user.uploadAvatar({
-            file,
-            onSuccess: (url) => {
-                onAvatarUploaded(url);
-                setUploading(false);
+        try {
+            const url = await uploadAvatar.mutateAsync(file);
+            onAvatarUploaded(url);
+            setUploading(false);
 
-                toast.success(
-                    <div className="flex flex-col items-center gap-4">
-                        <img src={url} alt="Avatar" className="w-32 h-32" />
-                        Avatar uploaded successfully
-                    </div>,
-                    {
-                        dismissible: false,
-                    },
-                );
-            },
-            onError: (err) => {
-                const message = parseError(err);
-                setError(message);
-                setUploading(false);
-
-                toast.error(`Error uploading avatar: ${message}`, {
+            toast.success(
+                <div className="flex flex-col items-center gap-4">
+                    <img src={url} alt="Avatar" className="w-32 h-32" />
+                    Avatar uploaded successfully
+                </div>,
+                {
                     dismissible: false,
-                });
-            },
-        });
+                },
+            );
+        } catch (err) {
+            const message = parseError(err as Error);
+            setError(message);
+            setUploading(false);
+
+            toast.error(`Error uploading avatar: ${message}`, {
+                dismissible: false,
+            });
+        }
     };
 
     return (

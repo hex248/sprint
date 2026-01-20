@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
-import { organisation, parseError } from "@/lib/server";
+import { useCreateOrganisation, useUpdateOrganisation } from "@/lib/query/hooks";
+import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 const slugify = (value: string) =>
@@ -47,6 +48,8 @@ export function OrganisationModal({
     onOpenChange?: (open: boolean) => void;
 }) {
     const { user } = useAuthenticatedSession();
+    const createOrganisation = useCreateOrganisation();
+    const updateOrganisation = useUpdateOrganisation();
 
     const isControlled = controlledOpen !== undefined;
     const [internalOpen, setInternalOpen] = useState(false);
@@ -106,62 +109,47 @@ export function OrganisationModal({
         setSubmitting(true);
         try {
             if (isEdit && existingOrganisation) {
-                await organisation.update({
-                    organisationId: existingOrganisation.id,
+                const data = await updateOrganisation.mutateAsync({
+                    id: existingOrganisation.id,
                     name,
                     slug,
                     description,
-                    onSuccess: async (data) => {
-                        setOpen(false);
-                        reset();
-                        toast.success("Organisation updated");
-                        try {
-                            await completeAction?.(data);
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
-                    onError: async (err) => {
-                        const message = parseError(err);
-                        setError(message || "failed to update organisation");
-                        setSubmitting(false);
-                        try {
-                            await errorAction?.(message || "failed to update organisation");
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
                 });
+                setOpen(false);
+                reset();
+                toast.success("Organisation updated");
+                try {
+                    await completeAction?.(data);
+                } catch (actionErr) {
+                    console.error(actionErr);
+                }
             } else {
-                await organisation.create({
+                const data = await createOrganisation.mutateAsync({
                     name,
                     slug,
                     description,
-                    onSuccess: async (data) => {
-                        setOpen(false);
-                        reset();
-                        try {
-                            await completeAction?.(data);
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
-                    onError: async (err) => {
-                        const message = parseError(err);
-                        setError(message || "failed to create organisation");
-                        setSubmitting(false);
-                        try {
-                            await errorAction?.(message || "failed to create organisation");
-                        } catch (actionErr) {
-                            console.error(actionErr);
-                        }
-                    },
                 });
+                setOpen(false);
+                reset();
+                toast.success(`Created Organisation ${data.name}`, {
+                    dismissible: false,
+                });
+                try {
+                    await completeAction?.(data);
+                } catch (actionErr) {
+                    console.error(actionErr);
+                }
             }
         } catch (err) {
+            const message = parseError(err as Error);
             console.error(err);
-            setError(`failed to ${isEdit ? "update" : "create"} organisation`);
+            setError(message || `failed to ${isEdit ? "update" : "create"} organisation`);
             setSubmitting(false);
+            try {
+                await errorAction?.(message || `failed to ${isEdit ? "update" : "create"} organisation`);
+            } catch (actionErr) {
+                console.error(actionErr);
+            }
         }
     };
 
