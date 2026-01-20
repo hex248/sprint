@@ -5,7 +5,12 @@ import {
     TimerToggleRequestSchema,
 } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
-import { appendTimestamp, createTimedSession, getActiveTimedSession } from "../../db/queries";
+import {
+    appendTimestamp,
+    createTimedSession,
+    getActiveTimedSession,
+    getIssueAssigneeCount,
+} from "../../db/queries";
 import { parseJsonBody } from "../../validation";
 
 export default async function timerToggle(req: AuthedRequest) {
@@ -13,6 +18,14 @@ export default async function timerToggle(req: AuthedRequest) {
     if ("error" in parsed) return parsed.error;
 
     const { issueId } = parsed.data;
+
+    const assigneeCount = await getIssueAssigneeCount(issueId);
+    if (assigneeCount > 1) {
+        return Response.json(
+            { error: "Timers cannot be used on issues with multiple assignees", code: "MULTIPLE_ASSIGNEES" },
+            { status: 400 },
+        );
+    }
 
     const activeSession = await getActiveTimedSession(req.userId, issueId);
 

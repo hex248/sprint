@@ -182,3 +182,11 @@ export async function getIssuesWithUsersByProject(projectId: number): Promise<Is
         Assignees: assigneesByIssue.get(row.Issue.id) || [],
     }));
 }
+
+export async function getIssueAssigneeCount(issueId: number): Promise<number> {
+    const [result] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(IssueAssignee)
+        .where(eq(IssueAssignee.issueId, issueId));
+    return result?.count ?? 0;
+}

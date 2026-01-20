@@ -69,6 +69,10 @@ export function IssueDetailPane() {
     const [isSavingDescription, setIsSavingDescription] = useState(false);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
+    const isAssignee = assigneeIds.some((id) => user?.id === Number(id));
+    const actualAssigneeIds = assigneeIds.filter((id) => id !== "unassigned");
+    const hasMultipleAssignees = actualAssigneeIds.length > 1;
+
     useEffect(() => {
         if (!issueData) return;
         setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
@@ -421,12 +425,20 @@ export function IssueDetailPane() {
                     <SmallUserDisplay user={issueData.Creator} className={"text-sm"} />
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {assigneeIds.some((id) => user?.id === Number(id)) && (
-                        <TimerModal issueId={issueData.Issue.id} />
-                    )}
-                    <TimerDisplay issueId={issueData.Issue.id} />
-                </div>
+                {isAssignee && (
+                    <div className={cn("flex flex-col gap-2", hasMultipleAssignees && "cursor-not-allowed")}>
+                        <div className="flex items-center gap-2">
+                            <TimerModal issueId={issueData.Issue.id} disabled={hasMultipleAssignees} />
+                            <TimerDisplay issueId={issueData.Issue.id} />
+                        </div>
+                        {hasMultipleAssignees && (
+                            <span className="text-xs text-destructive/85 font-600">
+                                Timers cannot be used on issues with multiple assignees
+                            </span>
+                        )}
+                    </div>
+                )}
+
                 <ConfirmDialog
                     open={deleteOpen}
                     onOpenChange={setDeleteOpen}
