@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite --host",
+        "host": "NODE_ENV=production vite --host",
         "build": "tsc && vite build",
         "preview": "vite preview",
         "tauri": "export __NV_DISABLE_EXPLICIT_SYNC=1 && tauri dev"

@@ -21,7 +21,7 @@ module.exports = {
             name: "sprint-frontend",
             cwd: path.join(__dirname, "packages", "frontend"),
             script: "bun",
-            args: "dev",
+            args: "host",
             interpreter: "none",
             exec_mode: "fork",
             instances: 1,
