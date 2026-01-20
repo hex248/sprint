@@ -11,9 +11,13 @@ type SelectionContextValue = {
         projectKey: string;
         issueNumber: number | null;
     };
-    selectOrganisation: (organisation: OrganisationResponse | null) => void;
-    selectProject: (project: ProjectResponse | null) => void;
-    selectIssue: (issue: IssueResponse | null) => void;
+    selectOrganisation: (organisation: OrganisationResponse | null, options?: SelectionOptions) => void;
+    selectProject: (project: ProjectResponse | null, options?: SelectionOptions) => void;
+    selectIssue: (issue: IssueResponse | null, options?: SelectionOptions) => void;
+};
+
+type SelectionOptions = {
+    skipUrlUpdate?: boolean;
 };
 
 const SelectionContext = createContext<SelectionContextValue | null>(null);
@@ -75,37 +79,46 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
     );
     const [selectedIssueId, setSelectedIssueId] = useState<number | null>(null);
 
-    const selectOrganisation = useCallback((organisation: OrganisationResponse | null) => {
-        const id = organisation?.Organisation.id ?? null;
-        setSelectedOrganisationId(id);
-        setSelectedProjectId(null);
-        setSelectedIssueId(null);
-        if (id != null) localStorage.setItem("selectedOrganisationId", `${id}`);
-        else localStorage.removeItem("selectedOrganisationId");
-        localStorage.removeItem("selectedProjectId");
-        updateUrlParams({
-            orgSlug: organisation?.Organisation.slug.toLowerCase() ?? null,
-            projectKey: null,
-            issueNumber: null,
-        });
-    }, []);
+    const selectOrganisation = useCallback(
+        (organisation: OrganisationResponse | null, options?: SelectionOptions) => {
+            const id = organisation?.Organisation.id ?? null;
+            setSelectedOrganisationId(id);
+            setSelectedProjectId(null);
+            setSelectedIssueId(null);
+            if (id != null) localStorage.setItem("selectedOrganisationId", `${id}`);
+            else localStorage.removeItem("selectedOrganisationId");
+            localStorage.removeItem("selectedProjectId");
+            if (!options?.skipUrlUpdate) {
+                updateUrlParams({
+                    orgSlug: organisation?.Organisation.slug.toLowerCase() ?? null,
+                    projectKey: null,
+                    issueNumber: null,
+                });
+            }
+        },
+        [],
+    );
 
-    const selectProject = useCallback((project: ProjectResponse | null) => {
+    const selectProject = useCallback((project: ProjectResponse | null, options?: SelectionOptions) => {
         const id = project?.Project.id ?? null;
         setSelectedProjectId(id);
         setSelectedIssueId(null);
         if (id != null) localStorage.setItem("selectedProjectId", `${id}`);
         else localStorage.removeItem("selectedProjectId");
-        updateUrlParams({
-            projectKey: project?.Project.key.toLowerCase() ?? null,
-            issueNumber: null,
-        });
+        if (!options?.skipUrlUpdate) {
+            updateUrlParams({
+                projectKey: project?.Project.key.toLowerCase() ?? null,
+                issueNumber: null,
+            });
+        }
     }, []);
 
-    const selectIssue = useCallback((issue: IssueResponse | null) => {
+    const selectIssue = useCallback((issue: IssueResponse | null, options?: SelectionOptions) => {
         const id = issue?.Issue.id ?? null;
         setSelectedIssueId(id);
-        updateUrlParams({ issueNumber: issue?.Issue.number ?? null });
+        if (!options?.skipUrlUpdate) {
+            updateUrlParams({ issueNumber: issue?.Issue.number ?? null });
+        }
     }, []);
 
     const value = useMemo<SelectionContextValue>(

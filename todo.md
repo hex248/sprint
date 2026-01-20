@@ -1,15 +1,10 @@
 # HIGH PRIORITY
 
-- data management system
-  - data can be cached
-  - data can be read easily from anywhere
-  - data can be invalidated easily from anywhere
 - sprints
   - timeline display
   - display sprints
 - issues
   - issue type (options stored on Organisation)
-- FIX: weird side-scrolling on issue-table
 
 # LOW PRIORITY
 

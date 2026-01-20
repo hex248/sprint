@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <> */
 
 import { useEffect, useMemo, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import AccountDialog from "@/components/account-dialog";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
@@ -33,15 +34,29 @@ export default function App() {
         selectedOrganisationId,
         selectedProjectId,
         selectedIssueId,
-        initialParams,
         selectOrganisation,
         selectProject,
         selectIssue,
     } = useSelection();
+    const location = useLocation();
+
+    const deepLinkParams = useMemo(() => {
+        const params = new URLSearchParams(location.search);
+        const orgSlug = params.get("o")?.trim().toLowerCase() ?? "";
+        const projectKey = params.get("p")?.trim().toLowerCase() ?? "";
+        const issueParam = params.get("i")?.trim() ?? "";
+        const issueNumber = issueParam === "" ? null : Number.parseInt(issueParam, 10);
+
+        return {
+            orgSlug,
+            projectKey,
+            issueNumber: issueNumber != null && Number.isNaN(issueNumber) ? null : issueNumber,
+        };
+    }, [location.search]);
 
     const { data: organisationsData = [] } = useOrganisations();
     const { data: projectsData = [] } = useProjects(selectedOrganisationId);
-    const { data: issuesData = [] } = useIssues(selectedProjectId);
+    const { data: issuesData = [], isFetched: issuesFetched } = useIssues(selectedProjectId);
     const selectedIssue = useSelectedIssue();
 
     const organisations = useMemo(
@@ -53,87 +68,114 @@ export default function App() {
         [projectsData],
     );
 
-    const deepLinkStateRef = useRef({
-        appliedOrg: false,
-        appliedProject: false,
-        appliedIssue: false,
-        orgMatched: false,
-        projectMatched: false,
+    const findById = <T,>(items: T[], id: number | null | undefined, getId: (item: T) => number) =>
+        id == null ? null : (items.find((item) => getId(item) === id) ?? null);
+    const selectFallback = <T,>(items: T[], selected: T | null) => selected ?? items[0] ?? null;
+    const findOrgBySlug = (slug: string) =>
+        organisations.find((org) => org.Organisation.slug.toLowerCase() === slug) ?? null;
+    const findProjectByKey = (key: string) =>
+        projects.find((project) => project.Project.key.toLowerCase() === key) ?? null;
+
+	const deepLinkActive = deepLinkParams.projectKey !== "" || deepLinkParams.issueNumber != null;
+    const deepLinkFlowRef = useRef({
+        stage: "idle" as "idle" | "org" | "project" | "issue" | "done",
+        orgSlug: "",
+        projectKey: "",
+        issueNumber: null as number | null,
+        targetOrgId: null as number | null,
+        targetProjectId: null as number | null,
     });
+
+    useEffect(() => {
+        deepLinkFlowRef.current = {
+            stage: deepLinkActive ? "org" : "idle",
+            orgSlug: deepLinkParams.orgSlug,
+            projectKey: deepLinkParams.projectKey,
+            issueNumber: deepLinkParams.issueNumber,
+            targetOrgId: null,
+            targetProjectId: null,
+        };
+    }, [deepLinkActive, deepLinkParams.orgSlug, deepLinkParams.projectKey, deepLinkParams.issueNumber]);
 
     useEffect(() => {
         if (organisations.length === 0) return;
 
-        let selected = organisations.find((org) => org.Organisation.id === selectedOrganisationId) ?? null;
-        const deepLinkState = deepLinkStateRef.current;
+        if (deepLinkActive && deepLinkFlowRef.current.stage !== "org") {
+            return;
+        }
 
-        if (!selected && initialParams.orgSlug && !deepLinkState.appliedOrg) {
-            const match = organisations.find(
-                (org) => org.Organisation.slug.toLowerCase() === initialParams.orgSlug,
-            );
-            deepLinkState.appliedOrg = true;
-            deepLinkState.orgMatched = Boolean(match);
-            if (match) {
-                selected = match;
+        let selected = findById(organisations, selectedOrganisationId, (org) => org.Organisation.id);
+        if (deepLinkActive && deepLinkFlowRef.current.orgSlug) {
+            selected = findOrgBySlug(deepLinkFlowRef.current.orgSlug) ?? selected;
+        }
+        selected = selectFallback(organisations, selected);
+
+        if (!selected) return;
+
+        if (deepLinkActive) {
+            deepLinkFlowRef.current.targetOrgId = selected.Organisation.id;
+            deepLinkFlowRef.current.stage = "project";
+            if (selected.Organisation.id !== selectedOrganisationId) {
+                selectOrganisation(selected, { skipUrlUpdate: true });
             }
+            return;
         }
 
-        if (!selected) {
-            selected = organisations[0] ?? null;
-        }
-
-        if (selected && selected.Organisation.id !== selectedOrganisationId) {
+        if (selected.Organisation.id !== selectedOrganisationId) {
             selectOrganisation(selected);
         }
-    }, [organisations, selectedOrganisationId, initialParams.orgSlug]);
+    }, [organisations, selectedOrganisationId, deepLinkActive, selectOrganisation]);
 
-    useEffect(() => {
-        if (projects.length === 0) return;
+	useEffect(() => {
+		if (projects.length === 0) return;
+		if (!deepLinkActive && selectedProjectId == null) {
+			selectProject(projects[0]);
+			return;
+		}
 
-        let selected = projects.find((project) => project.Project.id === selectedProjectId) ?? null;
-        const deepLinkState = deepLinkStateRef.current;
-
-        if (
-            !selected &&
-            initialParams.projectKey &&
-            deepLinkState.orgMatched &&
-            !deepLinkState.appliedProject
-        ) {
-            const match = projects.find(
-                (project) => project.Project.key.toLowerCase() === initialParams.projectKey,
-            );
-            deepLinkState.appliedProject = true;
-            deepLinkState.projectMatched = Boolean(match);
-            if (match) {
-                selected = match;
+		if (deepLinkActive) {
+			const flow = deepLinkFlowRef.current;
+			if (flow.stage !== "project") return;
+            if (flow.targetOrgId != null && selectedOrganisationId !== flow.targetOrgId) {
+                return;
             }
+            let selected = findById(projects, selectedProjectId, (project) => project.Project.id);
+            if (flow.projectKey) {
+                selected = findProjectByKey(flow.projectKey) ?? selected;
+            }
+            selected = selectFallback(projects, selected);
+            if (!selected) return;
+            flow.targetProjectId = selected.Project.id;
+            flow.stage = "issue";
+            if (selected.Project.id !== selectedProjectId) {
+                selectProject(selected, { skipUrlUpdate: true });
+            }
+            return;
         }
 
-        if (!selected) {
-            selected = projects[0] ?? null;
-        }
-
+        let selected = findById(projects, selectedProjectId, (project) => project.Project.id);
+        selected = selectFallback(projects, selected);
         if (selected && selected.Project.id !== selectedProjectId) {
             selectProject(selected);
         }
-    }, [projects, selectedProjectId, initialParams.projectKey]);
+    }, [projects, selectedProjectId, selectedOrganisationId, deepLinkActive, selectProject]);
 
     useEffect(() => {
-        if (issuesData.length === 0) return;
-
-        const deepLinkState = deepLinkStateRef.current;
-        if (
-            initialParams.issueNumber != null &&
-            deepLinkState.projectMatched &&
-            !deepLinkState.appliedIssue
-        ) {
-            const match = issuesData.find((issue) => issue.Issue.number === initialParams.issueNumber);
-            deepLinkState.appliedIssue = true;
+        if (!deepLinkActive) return;
+        const flow = deepLinkFlowRef.current;
+        if (flow.stage !== "issue") return;
+        if (flow.targetProjectId != null && selectedProjectId !== flow.targetProjectId) {
+            return;
+        }
+        if (!issuesFetched) return;
+        if (flow.issueNumber != null) {
+            const match = issuesData.find((issue) => issue.Issue.number === flow.issueNumber);
             if (match && match.Issue.id !== selectedIssueId) {
-                selectIssue(match);
+                selectIssue(match, { skipUrlUpdate: true });
             }
         }
-    }, [issuesData, selectedIssueId, initialParams.issueNumber]);
+        flow.stage = "done";
+    }, [deepLinkActive, issuesData, issuesFetched, selectedIssueId, selectedProjectId, selectIssue]);
 
     return (
         <main className={`w-full h-screen flex flex-col gap-${BREATHING_ROOM} p-${BREATHING_ROOM}`}>
