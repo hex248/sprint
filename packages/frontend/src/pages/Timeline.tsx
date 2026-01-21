@@ -251,7 +251,7 @@ export default function Timeline() {
               >
                 <div className="grid border-b bg-muted/20" style={{ gridTemplateColumns }}>
                   <div
-                    className={`px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs font-medium text-muted-foreground bg-background border-r sticky left-0 z-30`}
+                    className={`px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs font-medium text-muted-foreground bg-secondary border-r sticky left-0 z-30`}
                   >
                     Sprint
                   </div>

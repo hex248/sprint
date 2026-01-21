@@ -41,13 +41,17 @@ export function IssuesTable({
   return (
     <Table className={cn("table-fixed", className)}>
       <TableHeader>
-        <TableRow hoverEffect={false} className="bg-muted/20">
+        <TableRow hoverEffect={false} className="bg-secondary">
           {(columns.id == null || columns.id === true) && (
-            <TableHead className="text-right w-10 border-r">ID</TableHead>
+            <TableHead className="text-right w-10 border-r text-xs font-medium text-muted-foreground">
+              ID
+            </TableHead>
           )}
-          {(columns.title == null || columns.title === true) && <TableHead>Title</TableHead>}
+          {(columns.title == null || columns.title === true) && (
+            <TableHead className="text-xs font-medium text-muted-foreground">Title</TableHead>
+          )}
           {(columns.description == null || columns.description === true) && (
-            <TableHead>Description</TableHead>
+            <TableHead className="text-xs font-medium text-muted-foreground">Description</TableHead>
           )}
           {/* below is kept blank to fill the space, used as the "Assignee" column */}
           {(columns.assignee == null || columns.assignee === true) && (
