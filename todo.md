@@ -1,10 +1,12 @@
 # HIGH PRIORITY
 
-- sprints
-  - timeline display
-  - display sprints
+- BUGS:
+- date picker opens at today's date instead of the selected date
+- january: date picker is above, february: date picker is below (likely due to how many rows worth of sprints are displayed) - -my-1/-m-px on dates that have a sprint
+- FEATURES:
 - issues
   - issue type (options stored on Organisation)
+- filters
 
 # LOW PRIORITY
 
@@ -38,3 +40,4 @@
     - view:
       - open git diff in a new tab
 - figure out if it's possible to remove the "lib/server/..." helpers altogether, and have some sort of dynamic route maker in the shared package
+- request logging
