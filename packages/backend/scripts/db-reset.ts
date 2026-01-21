@@ -20,14 +20,9 @@ async function resetDatabase() {
     console.log("resetting database...");
 
     try {
-        // drop all tables in the correct order (respecting foreign key constraints)
-        await db.execute(sql`DROP TABLE IF EXISTS "TimedSession" CASCADE`);
-        await db.execute(sql`DROP TABLE IF EXISTS "Session" CASCADE`);
-        await db.execute(sql`DROP TABLE IF EXISTS "Issue" CASCADE`);
-        await db.execute(sql`DROP TABLE IF EXISTS "Project" CASCADE`);
-        await db.execute(sql`DROP TABLE IF EXISTS "OrganisationMember" CASCADE`);
-        await db.execute(sql`DROP TABLE IF EXISTS "Organisation" CASCADE`);
-        await db.execute(sql`DROP TABLE IF EXISTS "User" CASCADE`);
+        // drop and recreate the public schema to clear everything
+        await db.execute(sql`DROP SCHEMA IF EXISTS public CASCADE`);
+        await db.execute(sql`CREATE SCHEMA public`);
 
         console.log("all tables dropped");
 
