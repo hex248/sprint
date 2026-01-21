@@ -3,6 +3,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 import {
     ISSUE_DESCRIPTION_MAX_LENGTH,
+    ISSUE_COMMENT_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
     ISSUE_TITLE_MAX_LENGTH,
     ORG_DESCRIPTION_MAX_LENGTH,
@@ -151,6 +152,19 @@ export const IssueAssignee = pgTable(
     (t) => [uniqueIndex("unique_issue_user").on(t.issueId, t.userId)],
 );
 
+export const IssueComment = pgTable("IssueComment", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    issueId: integer()
+        .notNull()
+        .references(() => Issue.id, { onDelete: "cascade" }),
+    userId: integer()
+        .notNull()
+        .references(() => User.id, { onDelete: "cascade" }),
+    body: varchar({ length: ISSUE_COMMENT_MAX_LENGTH }).notNull(),
+    createdAt: timestamp({ withTimezone: false }).defaultNow(),
+    updatedAt: timestamp({ withTimezone: false }).defaultNow(),
+});
+
 // Zod schemas
 export const UserSelectSchema = createSelectSchema(User);
 export const UserInsertSchema = createInsertSchema(User);
@@ -172,6 +186,9 @@ export const IssueInsertSchema = createInsertSchema(Issue);
 
 export const IssueAssigneeSelectSchema = createSelectSchema(IssueAssignee);
 export const IssueAssigneeInsertSchema = createInsertSchema(IssueAssignee);
+
+export const IssueCommentSelectSchema = createSelectSchema(IssueComment);
+export const IssueCommentInsertSchema = createInsertSchema(IssueComment);
 
 export const SessionSelectSchema = createSelectSchema(Session);
 export const SessionInsertSchema = createInsertSchema(Session);
@@ -203,6 +220,9 @@ export type IssueInsert = z.infer<typeof IssueInsertSchema>;
 export type IssueAssigneeRecord = z.infer<typeof IssueAssigneeSelectSchema>;
 export type IssueAssigneeInsert = z.infer<typeof IssueAssigneeInsertSchema>;
 
+export type IssueCommentRecord = z.infer<typeof IssueCommentSelectSchema>;
+export type IssueCommentInsert = z.infer<typeof IssueCommentInsertSchema>;
+
 export type SessionRecord = z.infer<typeof SessionSelectSchema>;
 export type SessionInsert = z.infer<typeof SessionInsertSchema>;
 
@@ -215,6 +235,11 @@ export type IssueResponse = {
     Issue: IssueRecord;
     Creator: UserRecord;
     Assignees: UserRecord[];
+};
+
+export type IssueCommentResponse = {
+    Comment: IssueCommentRecord;
+    User: UserRecord;
 };
 
 export type ProjectResponse = {

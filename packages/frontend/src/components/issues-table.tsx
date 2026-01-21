@@ -27,7 +27,7 @@ export function IssuesTable({
     params.set("o", selectedOrganisation.Organisation.slug.toLowerCase());
     params.set("p", selectedProject.Project.key.toLowerCase());
     params.set("i", issueNumber.toString());
-    return `/app?${params.toString()}`;
+    return `/issues?${params.toString()}`;
   };
 
   const handleLinkClick = (e: React.MouseEvent) => {

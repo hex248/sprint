@@ -1,6 +1,7 @@
 import type { IssueResponse, SprintRecord, UserRecord } from "@sprint/shared";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { IssueComments } from "@/components/issue-comments";
 import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useSession } from "@/components/session-provider";
 import SmallSprintDisplay from "@/components/small-sprint-display";
@@ -317,7 +318,7 @@ export function IssueDetails({
         </div>
       )}
 
-      <div className="flex flex-col w-full p-2 py-2 gap-2">
+      <div className="flex flex-col w-full p-2 py-2 gap-2 max-h-[75vh] overflow-y-scroll">
         <div className="flex gap-2">
           <StatusSelect
             statuses={statuses}
@@ -373,7 +374,7 @@ export function IssueDetails({
             }}
             placeholder="Add a description..."
             disabled={isSavingDescription}
-            className="text-sm border-input/50 hover:border-input focus:border-input resize-none !bg-background"
+            className="text-sm border-input/50 hover:border-input focus:border-input resize-none !bg-background min-h-fit"
           />
         ) : (
           <Button
@@ -388,7 +389,6 @@ export function IssueDetails({
             Add description
           </Button>
         )}
-
         <div className="flex items-center gap-2">
           <span className="text-sm">Sprint:</span>
           <SprintSelect sprints={sprints} value={sprintId} onChange={handleSprintChange} />
@@ -422,6 +422,8 @@ export function IssueDetails({
             )}
           </div>
         )}
+
+        <IssueComments issueId={issueData.Issue.id} className="pt-2" />
 
         <ConfirmDialog
           open={deleteOpen}

@@ -1,4 +1,5 @@
 export * from "@/lib/query/hooks/derived";
+export * from "@/lib/query/hooks/issue-comments";
 export * from "@/lib/query/hooks/issues";
 export * from "@/lib/query/hooks/organisations";
 export * from "@/lib/query/hooks/projects";

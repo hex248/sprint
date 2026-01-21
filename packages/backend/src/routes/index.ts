@@ -5,6 +5,9 @@ import authRegister from "./auth/register";
 import issueCreate from "./issue/create";
 import issueDelete from "./issue/delete";
 import issueUpdate from "./issue/update";
+import issueCommentCreate from "./issue-comment/create";
+import issueCommentDelete from "./issue-comment/delete";
+import issueCommentsByIssue from "./issue-comments/by-issue";
 import issues from "./issues/all";
 import issuesByProject from "./issues/by-project";
 import issuesReplaceStatus from "./issues/replace-status";
@@ -53,6 +56,10 @@ export const routes = {
     issueCreate,
     issueDelete,
     issueUpdate,
+
+    issueCommentCreate,
+    issueCommentDelete,
+    issueCommentsByIssue,
 
     issuesByProject,
     issues,

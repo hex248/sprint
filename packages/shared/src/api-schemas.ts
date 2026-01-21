@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
     ISSUE_DESCRIPTION_MAX_LENGTH,
+    ISSUE_COMMENT_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
     ISSUE_TITLE_MAX_LENGTH,
     ORG_DESCRIPTION_MAX_LENGTH,
@@ -110,6 +111,25 @@ export const IssuesReplaceStatusRequestSchema = z.object({
 });
 
 export type IssuesReplaceStatusRequest = z.infer<typeof IssuesReplaceStatusRequestSchema>;
+
+export const IssueCommentCreateRequestSchema = z.object({
+    issueId: z.number().int().positive("issueId must be a positive integer"),
+    body: z.string().min(1, "Comment is required").max(ISSUE_COMMENT_MAX_LENGTH),
+});
+
+export type IssueCommentCreateRequest = z.infer<typeof IssueCommentCreateRequestSchema>;
+
+export const IssueCommentDeleteRequestSchema = z.object({
+    id: z.number().int().positive("id must be a positive integer"),
+});
+
+export type IssueCommentDeleteRequest = z.infer<typeof IssueCommentDeleteRequestSchema>;
+
+export const IssueCommentsByIssueQuerySchema = z.object({
+    issueId: z.coerce.number().int().positive("issueId must be a positive integer"),
+});
+
+export type IssueCommentsByIssueQuery = z.infer<typeof IssueCommentsByIssueQuerySchema>;
 
 // organisation schemas
 
@@ -374,6 +394,22 @@ export const IssueResponseSchema = z.object({
 });
 
 export type IssueResponseType = z.infer<typeof IssueResponseSchema>;
+
+export const IssueCommentRecordSchema = z.object({
+    id: z.number(),
+    issueId: z.number(),
+    userId: z.number(),
+    body: z.string(),
+    createdAt: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
+});
+
+export const IssueCommentResponseSchema = z.object({
+    Comment: IssueCommentRecordSchema,
+    User: UserResponseSchema,
+});
+
+export type IssueCommentResponseType = z.infer<typeof IssueCommentResponseSchema>;
 
 export const OrganisationRecordSchema = z.object({
     id: z.number(),

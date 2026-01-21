@@ -16,6 +16,10 @@ export const queryKeys = {
     statusCount: (organisationId: number, status: string) =>
       [...queryKeys.issues.all, "status-count", organisationId, status] as const,
   },
+  issueComments: {
+    all: ["issue-comments"] as const,
+    byIssue: (issueId: number) => [...queryKeys.issueComments.all, "by-issue", issueId] as const,
+  },
   sprints: {
     all: ["sprints"] as const,
     byProject: (projectId: number) => [...queryKeys.sprints.all, "by-project", projectId] as const,

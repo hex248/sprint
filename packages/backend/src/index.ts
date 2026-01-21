@@ -40,11 +40,14 @@ const main = async () => {
             "/issue/create": withCors(withAuth(withCSRF(routes.issueCreate))),
             "/issue/update": withCors(withAuth(withCSRF(routes.issueUpdate))),
             "/issue/delete": withCors(withAuth(withCSRF(routes.issueDelete))),
+            "/issue-comment/create": withCors(withAuth(withCSRF(routes.issueCommentCreate))),
+            "/issue-comment/delete": withCors(withAuth(withCSRF(routes.issueCommentDelete))),
 
             "/issues/by-project": withCors(withAuth(routes.issuesByProject)),
             "/issues/replace-status": withCors(withAuth(withCSRF(routes.issuesReplaceStatus))),
             "/issues/status-count": withCors(withAuth(routes.issuesStatusCount)),
             "/issues/all": withCors(withAuth(routes.issues)),
+            "/issue-comments/by-issue": withCors(withAuth(routes.issueCommentsByIssue)),
 
             "/organisation/create": withCors(withAuth(withCSRF(routes.organisationCreate))),
             "/organisation/by-id": withCors(withAuth(routes.organisationById)),

@@ -56,7 +56,7 @@ export default function LogInForm() {
           const data = await res.json();
           setCsrfToken(data.csrfToken);
           setUser(data.user);
-          const next = searchParams.get("next") || "/app";
+          const next = searchParams.get("next") || "/issues";
           navigate(next, { replace: true });
         }
         // unauthorized
@@ -94,7 +94,7 @@ export default function LogInForm() {
           const data = await res.json();
           setCsrfToken(data.csrfToken);
           setUser(data.user);
-          const next = searchParams.get("next") || "/app";
+          const next = searchParams.get("next") || "/issues";
           navigate(next, { replace: true });
         }
         // bad request (probably a bad user input)

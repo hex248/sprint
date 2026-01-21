@@ -1,6 +1,7 @@
 import type { ApiError } from "@sprint/shared";
 
 export * as issue from "@/lib/server/issue";
+export * as issueComment from "@/lib/server/issue-comment";
 export * as organisation from "@/lib/server/organisation";
 export * as project from "@/lib/server/project";
 export * as sprint from "@/lib/server/sprint";
