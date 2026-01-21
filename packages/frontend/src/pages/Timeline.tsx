@@ -10,6 +10,7 @@ import { useSelection } from "@/components/selection-provider";
 import { SprintForm } from "@/components/sprint-form";
 import StatusTag from "@/components/status-tag";
 import TopBar from "@/components/top-bar";
+import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { BREATHING_ROOM } from "@/lib/layout";
 import {
   useIssues,
@@ -21,8 +22,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const TIMELINE_LABEL_WIDTH = 240;
-const WEEK_COLUMN_WIDTH = 140;
+const TIMELINE_LABEL_DEFAULT_SIZE = 420;
+const TIMELINE_LABEL_MIN_SIZE = 300;
+const TIMELINE_LABEL_MAX_SIZE = "55%";
+const WEEK_COLUMN_WIDTH = 160;
 
 const addDays = (value: Date, days: number) =>
   new Date(value.getFullYear(), value.getMonth(), value.getDate() + days);
@@ -176,9 +179,9 @@ export default function Timeline() {
 
   const statuses = selectedOrganisation?.Organisation.statuses ?? {};
 
-  const gridTemplateColumns = useMemo(() => {
-    if (weeks.length === 0) return `${TIMELINE_LABEL_WIDTH}px 1fr`;
-    return `${TIMELINE_LABEL_WIDTH}px repeat(${weeks.length}, ${WEEK_COLUMN_WIDTH}px)`;
+  const weekGridTemplateColumns = useMemo(() => {
+    if (weeks.length === 0) return "1fr";
+    return `repeat(${weeks.length}, ${WEEK_COLUMN_WIDTH}px)`;
   }, [weeks.length]);
 
   const todayMarker = useMemo(() => {
@@ -243,156 +246,211 @@ export default function Timeline() {
 
         {selectedOrganisationId && selectedProjectId && sprints.length > 0 && (
           <div className="border">
-            <div className="overflow-x-auto" ref={scrollRef}>
-              <div
-                style={{
-                  minWidth: `${TIMELINE_LABEL_WIDTH + weeks.length * WEEK_COLUMN_WIDTH}px`,
-                }}
+            <ResizablePanelGroup className="h-full">
+              <ResizablePanel
+                id="timeline-labels"
+                defaultSize={TIMELINE_LABEL_DEFAULT_SIZE}
+                minSize={TIMELINE_LABEL_MIN_SIZE}
+                maxSize={TIMELINE_LABEL_MAX_SIZE}
+                className="border-r"
               >
-                <div className="grid border-b bg-muted/20" style={{ gridTemplateColumns }}>
+                <div className="flex flex-col">
                   <div
-                    className={`px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs font-medium text-muted-foreground bg-secondary border-r sticky left-0 z-30`}
+                    className={`px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs font-medium text-muted-foreground bg-secondary border-b`}
                   >
                     Sprint
                   </div>
-                  {weeks.map((week) => (
-                    <div
-                      key={week.toISOString()}
-                      className={cn(
-                        `px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs text-muted-foreground tabular-nums`,
-                        "border-l",
-                      )}
-                    >
-                      {formatWeekLabel(week)}
-                    </div>
-                  ))}
-                </div>
-
-                {sprints.map((sprint, sprintIndex) => {
-                  const sprintIssues = issueGroup.issuesBySprint.get(sprint.id) ?? [];
-                  const barStyle = getSprintBarStyle(sprint);
-                  const showTodayLabel = sprintIndex === 0;
-                  return (
-                    <div key={sprint.id} className="grid border-b" style={{ gridTemplateColumns }}>
+                  {sprints.map((sprint) => {
+                    const sprintIssues = issueGroup.issuesBySprint.get(sprint.id) ?? [];
+                    return (
                       <div
-                        className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background relative z-30 border-r sticky left-0`}
+                        key={sprint.id}
+                        className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background border-b`}
                       >
-                        <div className={`flex items-center justify-between gap-3`}>
-                          <span
-                            className="text-sm font-medium"
-                            style={{
-                              color: sprint.color || DEFAULT_SPRINT_COLOUR,
-                            }}
-                          >
-                            {sprint.name}
-                          </span>
-                          <div className="text-[12px] text-muted-foreground tabular-nums">
-                            {getSprintDateRange(sprint)}
-                          </div>
-                        </div>
-                        {sprintIssues.length === 0 && (
-                          <div className="text-xs text-muted-foreground text-pretty">No issues assigned.</div>
-                        )}
-                        {sprintIssues.length > 0 && (
-                          <div className={`flex flex-col gap-${BREATHING_ROOM}`}>
-                            {sprintIssues.map((issue) => (
-                              <IssueLine
-                                key={issue.Issue.id}
-                                issue={issue}
-                                statusColour={statuses[issue.Issue.status] ?? DEFAULT_STATUS_COLOUR}
-                              />
-                            ))}
-                          </div>
-                        )}
+                        <SprintLabelContent sprint={sprint} sprintIssues={sprintIssues} statuses={statuses} />
                       </div>
-                      <div
-                        className={cn(`py-${BREATHING_ROOM} relative min-h-12`)}
-                        style={{ gridColumn: "2 / -1" }}
-                      >
+                    );
+                  })}
+                  <div
+                    className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background`}
+                  >
+                    <BacklogLabelContent issueGroup={issueGroup} statuses={statuses} />
+                  </div>
+                </div>
+              </ResizablePanel>
+              <ResizablePanel id="timeline-grid">
+                <div className="overflow-x-auto" ref={scrollRef}>
+                  <div style={{ minWidth: `${weeks.length * WEEK_COLUMN_WIDTH}px` }}>
+                    <div
+                      className="grid border-b bg-muted/20"
+                      style={{ gridTemplateColumns: weekGridTemplateColumns }}
+                    >
+                      {weeks.map((week, index) => (
                         <div
-                          className="absolute inset-0 grid z-10 pointer-events-none"
-                          style={{
-                            gridTemplateColumns: `repeat(${weeks.length}, ${WEEK_COLUMN_WIDTH}px)`,
-                          }}
+                          key={week.toISOString()}
+                          className={cn(
+                            `px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs text-muted-foreground tabular-nums`,
+                            index === 0 ? "" : "border-l",
+                          )}
                         >
-                          {weeks.map((week, index) => (
-                            <div
-                              key={`${week.toISOString()}-${sprint.id}`}
-                              className={cn(index === 0 ? "" : "border-l")}
-                            />
-                          ))}
+                          {formatWeekLabel(week)}
                         </div>
-                        {todayMarker && (
+                      ))}
+                    </div>
+
+                    {sprints.map((sprint, sprintIndex) => {
+                      const sprintIssues = issueGroup.issuesBySprint.get(sprint.id) ?? [];
+                      const barStyle = getSprintBarStyle(sprint);
+                      const showTodayLabel = sprintIndex === 0;
+                      return (
+                        <div key={sprint.id} className="relative border-b">
                           <div
-                            className="absolute inset-y-0 z-10 pointer-events-none"
-                            style={{ left: `${todayMarker.leftPx}px` }}
+                            className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} opacity-0 pointer-events-none`}
                           >
-                            <div
-                              className={cn("absolute inset-y-0 w-px bg-primary", showTodayLabel && "mt-1")}
+                            <SprintLabelContent
+                              sprint={sprint}
+                              sprintIssues={sprintIssues}
+                              statuses={statuses}
                             />
-                            {showTodayLabel && (
-                              <div className="absolute -top-1.5">
-                                <span className="bg-primary px-1 py-0.5 text-[10px] font-semibold text-primary-foreground whitespace-nowrap">
-                                  TODAY
-                                </span>
+                          </div>
+                          <div className={cn(`absolute inset-0 py-${BREATHING_ROOM}`)}>
+                            <div
+                              className="absolute inset-0 grid z-10 pointer-events-none"
+                              style={{
+                                gridTemplateColumns: `repeat(${weeks.length}, ${WEEK_COLUMN_WIDTH}px)`,
+                              }}
+                            >
+                              {weeks.map((week, index) => (
+                                <div
+                                  key={`${week.toISOString()}-${sprint.id}`}
+                                  className={cn(index === 0 ? "" : "border-l")}
+                                />
+                              ))}
+                            </div>
+                            {todayMarker && (
+                              <div
+                                className="absolute inset-y-0 z-10 pointer-events-none"
+                                style={{ left: `${todayMarker.leftPx}px` }}
+                              >
+                                <div
+                                  className={cn(
+                                    "absolute inset-y-0 w-px bg-primary",
+                                    showTodayLabel && "mt-1",
+                                  )}
+                                />
+                                {showTodayLabel && (
+                                  <div className="absolute -top-1.5">
+                                    <span className="bg-primary px-1 py-0.5 text-[10px] font-semibold text-primary-foreground whitespace-nowrap">
+                                      TODAY
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             )}
-                          </div>
-                        )}
-                        {barStyle && (
-                          <SprintForm
-                            mode="edit"
-                            existingSprint={sprint}
-                            sprints={sprints}
-                            trigger={
-                              <button
-                                type="button"
-                                aria-label={`Edit sprint ${sprint.name}`}
-                                className="absolute top-1/2 -translate-y-1/2 z-0 h-4 rounded cursor-pointer"
-                                style={barStyle}
-                                title={`${sprint.name}: ${getSprintDateRange(sprint)}`}
+                            {barStyle && (
+                              <SprintForm
+                                mode="edit"
+                                existingSprint={sprint}
+                                sprints={sprints}
+                                trigger={
+                                  <button
+                                    type="button"
+                                    aria-label={`Edit sprint ${sprint.name}`}
+                                    className="absolute top-1/2 -translate-y-1/2 z-0 h-4 rounded cursor-pointer"
+                                    style={barStyle}
+                                    title={`${sprint.name}: ${getSprintDateRange(sprint)}`}
+                                  />
+                                }
                               />
-                            }
-                          />
-                        )}
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    <div className="relative">
+                      <div
+                        className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} opacity-0 pointer-events-none`}
+                      >
+                        <BacklogLabelContent issueGroup={issueGroup} statuses={statuses} />
                       </div>
                     </div>
-                  );
-                })}
-
-                <div className="grid" style={{ gridTemplateColumns }}>
-                  <div
-                    className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background relative z-30 border-r sticky left-0`}
-                  >
-                    <div className="text-sm font-medium">Backlog</div>
-                    {issueGroup.unassigned.length === 0 && (
-                      <div className="text-xs text-muted-foreground text-pretty">No unassigned issues.</div>
-                    )}
-                    {issueGroup.unassigned.length > 0 && (
-                      <div className={`flex flex-col gap-${BREATHING_ROOM}`}>
-                        {issueGroup.unassigned.map((issue) => (
-                          <IssueLine
-                            key={issue.Issue.id}
-                            issue={issue}
-                            statusColour={statuses[issue.Issue.status] ?? DEFAULT_STATUS_COLOUR}
-                          />
-                        ))}
-                      </div>
-                    )}
                   </div>
-                  <div
-                    className={cn(
-                      `px-${BREATHING_ROOM} py-${BREATHING_ROOM} border-l text-xs text-muted-foreground`,
-                    )}
-                    style={{ gridColumn: "2 / -1" }}
-                  ></div>
                 </div>
-              </div>
-            </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+function SprintLabelContent({
+  sprint,
+  sprintIssues,
+  statuses,
+}: {
+  sprint: SprintRecord;
+  sprintIssues: IssueResponse[];
+  statuses: Record<string, string>;
+}) {
+  return (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <span
+          className="text-sm font-medium"
+          style={{
+            color: sprint.color || DEFAULT_SPRINT_COLOUR,
+          }}
+        >
+          {sprint.name}
+        </span>
+        <div className="text-[12px] text-muted-foreground tabular-nums">{getSprintDateRange(sprint)}</div>
+      </div>
+      {sprintIssues.length === 0 && (
+        <div className="text-xs text-muted-foreground text-pretty">No issues assigned.</div>
+      )}
+      {sprintIssues.length > 0 && (
+        <div className={`flex flex-col gap-${BREATHING_ROOM}`}>
+          {sprintIssues.map((issue) => (
+            <IssueLine
+              key={issue.Issue.id}
+              issue={issue}
+              statusColour={statuses[issue.Issue.status] ?? DEFAULT_STATUS_COLOUR}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+function BacklogLabelContent({
+  issueGroup,
+  statuses,
+}: {
+  issueGroup: IssueGroup;
+  statuses: Record<string, string>;
+}) {
+  return (
+    <>
+      <div className="text-sm font-medium">Backlog</div>
+      {issueGroup.unassigned.length === 0 && (
+        <div className="text-xs text-muted-foreground text-pretty">No unassigned issues.</div>
+      )}
+      {issueGroup.unassigned.length > 0 && (
+        <div className={`flex flex-col gap-${BREATHING_ROOM}`}>
+          {issueGroup.unassigned.map((issue) => (
+            <IssueLine
+              key={issue.Issue.id}
+              issue={issue}
+              statusColour={statuses[issue.Issue.status] ?? DEFAULT_STATUS_COLOUR}
+            />
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -412,8 +470,8 @@ function IssueLine({ issue, statusColour }: { issue: IssueResponse; statusColour
             "hover:text-foreground cursor-pointer",
           )}
         >
+          <span className="tabular-nums">{issue.Issue.number.toString().padStart(3, "0")}</span>
           <StatusTag status={issue.Issue.status} colour={statusColour} className="text-[10px]" />
-          <span className="tabular-nums">#{issue.Issue.number.toString().padStart(3, "0")}</span>
           <span className="truncate">{issue.Issue.title}</span>
         </button>
       }
