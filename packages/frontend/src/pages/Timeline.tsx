@@ -32,6 +32,14 @@ const toDate = (value: Date | string) => {
   return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 };
 
+const startOfWeek = (value: Date) => {
+  const day = value.getDay();
+  const diff = (day + 6) % 7;
+  return addDays(value, -diff);
+};
+
+const endOfWeek = (value: Date) => addDays(startOfWeek(value), 6);
+
 const formatDate = (value: Date | string) =>
   new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" }).toUpperCase();
 
@@ -122,18 +130,15 @@ export default function Timeline() {
   const timelineRange = useMemo<TimelineRange | null>(() => {
     if (sprints.length === 0) return null;
     const today = toDate(new Date());
-    let earliest = toDate(sprints[0].startDate);
     let latest = toDate(sprints[0].endDate);
 
     for (const sprint of sprints) {
-      const start = toDate(sprint.startDate);
       const end = toDate(sprint.endDate);
-      if (start < earliest) earliest = start;
       if (end > latest) latest = end;
     }
 
     const rangeStart = today;
-    const rangeEnd = addDays(today, 60);
+    const rangeEnd = endOfWeek(addDays(latest, 28));
     const totalDays = Math.round((rangeEnd.getTime() - rangeStart.getTime()) / DAY_MS);
 
     return { start: rangeStart, end: rangeEnd, totalDays };
