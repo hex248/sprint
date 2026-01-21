@@ -1,1 +1,3 @@
+ALTER TABLE "Organisation" ALTER COLUMN "statuses" DROP DEFAULT;--> statement-breakpoint
+ALTER TABLE "Organisation" ALTER COLUMN "statuses" SET DATA TYPE json USING '{}'::json;--> statement-breakpoint
 ALTER TABLE "Organisation" ALTER COLUMN "statuses" SET DEFAULT '{"TO DO":"#fafafa","IN PROGRESS":"#f97316","REVIEW":"#8952bc","DONE":"#22c55e","REJECTED":"#ef4444","ARCHIVED":"#a1a1a1","MERGED":"#a1a1a1"}'::json;
