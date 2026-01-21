@@ -42,7 +42,6 @@ export function UploadAvatar({
 
             toast.success(
                 <div className="flex flex-col items-center gap-4">
-                    <img src={url} alt="Avatar" className="w-32 h-32" />
                     Avatar uploaded successfully
                 </div>,
                 {

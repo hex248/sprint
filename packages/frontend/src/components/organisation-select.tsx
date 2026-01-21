@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useOrganisations } from "@/lib/query/hooks";
 import { cn } from "@/lib/utils";
+import OrgIcon from "./org-icon";
 
 export function OrganisationSelect({
     placeholder = "Select Organisation",
@@ -95,6 +96,13 @@ export function OrganisationSelect({
                             key={organisation.Organisation.id}
                             value={`${organisation.Organisation.id}`}
                         >
+                            <OrgIcon
+                                name={organisation.Organisation.name}
+                                slug={organisation.Organisation.slug}
+                                iconURL={organisation.Organisation.iconURL}
+                                size={6}
+                                textClass="text-sm"
+                            />
                             {organisation.Organisation.name}
                         </SelectItem>
                     ))}

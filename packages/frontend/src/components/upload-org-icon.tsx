@@ -43,7 +43,6 @@ export function UploadOrgIcon({
 
             toast.success(
                 <div className="flex flex-col items-center gap-4">
-                    <img src={url} alt="Organisation icon" className="size-32" />
                     Organisation icon uploaded successfully
                 </div>,
                 {
