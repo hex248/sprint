@@ -20,7 +20,8 @@ async function resetDatabase() {
     console.log("resetting database...");
 
     try {
-        // drop and recreate the public schema to clear everything
+        // drop drizzle metadata and recreate public schema
+        await db.execute(sql`DROP SCHEMA IF EXISTS drizzle CASCADE`);
         await db.execute(sql`DROP SCHEMA IF EXISTS public CASCADE`);
         await db.execute(sql`CREATE SCHEMA public`);
 
