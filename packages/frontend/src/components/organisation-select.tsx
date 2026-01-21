@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useOrganisations } from "@/lib/query/hooks";
+import { cn } from "@/lib/utils";
 
 export function OrganisationSelect({
     placeholder = "Select Organisation",
@@ -21,12 +22,18 @@ export function OrganisationSelect({
     showLabel = false,
     label = "Organisation",
     labelPosition = "top",
+    triggerClassName,
+    noDecoration,
+    trigger,
 }: {
     placeholder?: string;
     contentClass?: string;
     showLabel?: boolean;
     label?: string;
     labelPosition?: "top" | "bottom";
+    triggerClassName?: string;
+    noDecoration?: boolean;
+    trigger?: React.ReactNode;
 }) {
     const [open, setOpen] = useState(false);
     const [pendingOrganisationId, setPendingOrganisationId] = useState<number | null>(null);
@@ -66,13 +73,19 @@ export function OrganisationSelect({
             onOpenChange={setOpen}
         >
             <SelectTrigger
-                className="text-sm"
+                className={cn(
+                    "text-sm",
+                    noDecoration &&
+                        "bg-transparent border-0 px-0 focus:ring-0 hover:bg-transparent px-0 py-0 w-min h-min",
+                    triggerClassName,
+                )}
                 isOpen={open}
                 label={showLabel ? label : undefined}
                 hasValue={!!selectedOrganisation}
                 labelPosition={labelPosition}
+                chevronClassName={cn(noDecoration && "hidden")}
             >
-                <SelectValue placeholder={placeholder} />
+                {trigger ? trigger : <SelectValue placeholder={placeholder} />}
             </SelectTrigger>
             <SelectContent side="bottom" position="popper" className={contentClass}>
                 <SelectGroup>

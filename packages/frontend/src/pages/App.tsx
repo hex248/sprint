@@ -7,6 +7,7 @@ import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
 import { IssuesTable } from "@/components/issues-table";
 import LogOutButton from "@/components/log-out-button";
+import OrgIcon from "@/components/org-icon";
 import { OrganisationSelect } from "@/components/organisation-select";
 import OrganisationsDialog from "@/components/organisations-dialog";
 import { ProjectSelect } from "@/components/project-select";
@@ -23,6 +24,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Icon from "@/components/ui/icon";
+import { IconButton } from "@/components/ui/icon-button";
 import { ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "@/components/ui/resizable";
 import { useIssues, useOrganisations, useProjects, useSelectedIssue } from "@/lib/query/hooks";
 
@@ -76,7 +79,7 @@ export default function App() {
     const findProjectByKey = (key: string) =>
         projects.find((project) => project.Project.key.toLowerCase() === key) ?? null;
 
-	const deepLinkActive = deepLinkParams.projectKey !== "" || deepLinkParams.issueNumber != null;
+    const deepLinkActive = deepLinkParams.projectKey !== "" || deepLinkParams.issueNumber != null;
     const deepLinkFlowRef = useRef({
         stage: "idle" as "idle" | "org" | "project" | "issue" | "done",
         orgSlug: "",
@@ -126,16 +129,16 @@ export default function App() {
         }
     }, [organisations, selectedOrganisationId, deepLinkActive, selectOrganisation]);
 
-	useEffect(() => {
-		if (projects.length === 0) return;
-		if (!deepLinkActive && selectedProjectId == null) {
-			selectProject(projects[0]);
-			return;
-		}
+    useEffect(() => {
+        if (projects.length === 0) return;
+        if (!deepLinkActive && selectedProjectId == null) {
+            selectProject(projects[0]);
+            return;
+        }
 
-		if (deepLinkActive) {
-			const flow = deepLinkFlowRef.current;
-			if (flow.stage !== "project") return;
+        if (deepLinkActive) {
+            const flow = deepLinkFlowRef.current;
+            if (flow.stage !== "project") return;
             if (flow.targetOrgId != null && selectedOrganisationId !== flow.targetOrgId) {
                 return;
             }
@@ -181,7 +184,26 @@ export default function App() {
         <main className={`w-full h-screen flex flex-col gap-${BREATHING_ROOM} p-${BREATHING_ROOM}`}>
             <div className="flex gap-12 items-center justify-between">
                 <div className={`flex gap-${BREATHING_ROOM} items-center`}>
-                    <OrganisationSelect showLabel />
+                    <OrganisationSelect
+                        noDecoration
+                        triggerClassName="px-1 rounded-full hover:bg-transparent dark:hover:bg-transparent"
+                        trigger={
+                            <OrgIcon
+                                name={
+                                    organisations.find(
+                                        (org) => org.Organisation.id === selectedOrganisationId,
+                                    )?.Organisation.name || ""
+                                }
+                                slug={
+                                    organisations.find(
+                                        (org) => org.Organisation.id === selectedOrganisationId,
+                                    )?.Organisation.slug || ""
+                                }
+                                size={7}
+                                className="hover:border hover:border-foreground/30"
+                            />
+                        }
+                    />
 
                     {selectedOrganisationId && <ProjectSelect showLabel />}
                     {selectedOrganisationId && selectedProjectId && <IssueModal />}
