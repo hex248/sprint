@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UploadAvatar } from "@/components/upload-avatar";
 import { useUpdateUser } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
+import { cn } from "@/lib/utils";
+import ThemeToggle from "./theme-toggle";
 
 function AccountDialog({ trigger }: { trigger?: ReactNode }) {
     const { user: currentUser, setUser } = useAuthenticatedSession();
@@ -82,7 +84,7 @@ function AccountDialog({ trigger }: { trigger?: ReactNode }) {
                 )}
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-sm">
+            <DialogContent className={cn("sm:max-w-sm", error !== "" && "border border-destructive")}>
                 <DialogHeader>
                     <DialogTitle>Account</DialogTitle>
                 </DialogHeader>
@@ -122,41 +124,47 @@ function AccountDialog({ trigger }: { trigger?: ReactNode }) {
                     />
                     <Label className="text-lg -mt-2">Preferences</Label>
 
-                    <div className="flex flex-col gap-1 w-min">
-                        <Label className="text-sm">Icon Style</Label>
-                        <Select
-                            value={iconPreference}
-                            onValueChange={(v) => setIconPreference(v as IconStyle)}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent position="popper" side="bottom" align="start">
-                                <SelectItem value="lucide">
-                                    <div className="flex items-center gap-2">
-                                        <Icon icon="sun" iconStyle="lucide" size={16} />
-                                        Lucide
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="pixel">
-                                    <div className="flex items-center gap-2">
-                                        <Icon icon="sun" iconStyle="pixel" size={16} />
-                                        Pixel
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="phosphor">
-                                    <div className="flex items-center gap-2">
-                                        <Icon icon="sun" iconStyle="phosphor" size={16} />
-                                        Phosphor
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div className="flex gap-8 justify w-full">
+                        <div className="flex flex-col items-start gap-1">
+                            <Label className="text-sm">Light/Dark Mode</Label>
+                            <ThemeToggle withText />
+                        </div>
+                        <div className="flex flex-col items-start gap-1">
+                            <Label className="text-sm">Icon Style</Label>
+                            <Select
+                                value={iconPreference}
+                                onValueChange={(v) => setIconPreference(v as IconStyle)}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent position="popper" side="bottom" align="start">
+                                    <SelectItem value="lucide">
+                                        <div className="flex items-center gap-2">
+                                            <Icon icon="sun" iconStyle="lucide" size={16} />
+                                            Lucide
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="pixel">
+                                        <div className="flex items-center gap-2">
+                                            <Icon icon="sun" iconStyle="pixel" size={16} />
+                                            Pixel
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="phosphor">
+                                        <div className="flex items-center gap-2">
+                                            <Icon icon="sun" iconStyle="phosphor" size={16} />
+                                            Phosphor
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     {error !== "" && <Label className="text-destructive text-sm">{error}</Label>}
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-end mt-4">
                         <Button variant={"outline"} type={"submit"} className="px-12">
                             Save
                         </Button>

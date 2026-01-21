@@ -15,7 +15,6 @@ import { useSelection } from "@/components/selection-provider";
 import { ServerConfigurationDialog } from "@/components/server-configuration-dialog";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
-import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -217,7 +216,6 @@ export default function App() {
                     )}
                 </div>
                 <div className={`flex gap-${BREATHING_ROOM} items-center`}>
-                    <ThemeToggle />
                     <DropdownMenu>
                         <DropdownMenuTrigger className="text-sm">
                             <SmallUserDisplay user={user} />
