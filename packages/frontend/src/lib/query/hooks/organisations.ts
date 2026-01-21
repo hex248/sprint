@@ -99,3 +99,15 @@ export function useUpdateOrganisationMemberRole() {
         },
     });
 }
+
+export function useUploadOrganisationIcon() {
+    const queryClient = useQueryClient();
+
+    return useMutation<string, Error, { file: File; organisationId: number }>({
+        mutationKey: ["organisations", "upload-icon"],
+        mutationFn: ({ file, organisationId }) => organisation.uploadIcon(file, organisationId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.organisations.byUser() });
+        },
+    });
+}

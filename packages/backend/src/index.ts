@@ -50,6 +50,7 @@ const main = async () => {
             "/organisation/by-id": withCors(withAuth(routes.organisationById)),
             "/organisation/update": withCors(withAuth(withCSRF(routes.organisationUpdate))),
             "/organisation/delete": withCors(withAuth(withCSRF(routes.organisationDelete))),
+            "/organisation/upload-icon": withCors(withAuth(withCSRF(routes.organisationUploadIcon))),
             "/organisation/add-member": withCors(withAuth(withCSRF(routes.organisationAddMember))),
             "/organisation/members": withCors(withAuth(routes.organisationMembers)),
             "/organisation/remove-member": withCors(withAuth(withCSRF(routes.organisationRemoveMember))),

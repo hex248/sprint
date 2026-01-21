@@ -18,6 +18,7 @@ import organisationMembers from "./organisation/members";
 import organisationRemoveMember from "./organisation/remove-member";
 import organisationUpdate from "./organisation/update";
 import organisationUpdateMemberRole from "./organisation/update-member-role";
+import organisationUploadIcon from "./organisation/upload-icon";
 import projectsAll from "./project/all";
 import projectsByCreator from "./project/by-creator";
 import projectsByOrganisation from "./project/by-organisation";
@@ -66,6 +67,7 @@ export const routes = {
     organisationMembers,
     organisationRemoveMember,
     organisationUpdateMemberRole,
+    organisationUploadIcon,
 
     organisationsByUser,
 

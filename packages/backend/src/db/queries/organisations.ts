@@ -85,6 +85,7 @@ export async function updateOrganisation(
         name?: string;
         description?: string;
         slug?: string;
+        iconURL?: string | null;
         statuses?: Record<string, string>;
     },
 ) {
