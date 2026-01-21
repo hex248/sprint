@@ -21,7 +21,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const TIMELINE_LABEL_WIDTH = "240px";
+const TIMELINE_LABEL_WIDTH = 240;
+const WEEK_COLUMN_WIDTH = 140;
 
 const addDays = (value: Date, days: number) =>
   new Date(value.getFullYear(), value.getMonth(), value.getDate() + days);
@@ -56,7 +57,7 @@ type IssueGroup = {
 type TimelineRange = {
   start: Date;
   end: Date;
-  durationMs: number;
+  totalDays: number;
 };
 
 export default function Timeline() {
@@ -133,9 +134,9 @@ export default function Timeline() {
 
     const rangeStart = today;
     const rangeEnd = addDays(today, 60);
-    const durationMs = rangeEnd.getTime() - rangeStart.getTime() + DAY_MS;
+    const totalDays = Math.round((rangeEnd.getTime() - rangeStart.getTime()) / DAY_MS);
 
-    return { start: rangeStart, end: rangeEnd, durationMs };
+    return { start: rangeStart, end: rangeEnd, totalDays };
   }, [sprints]);
 
   const weeks = useMemo(() => {
@@ -168,28 +169,32 @@ export default function Timeline() {
   const statuses = selectedOrganisation?.Organisation.statuses ?? {};
 
   const gridTemplateColumns = useMemo(() => {
-    if (weeks.length === 0) return `${TIMELINE_LABEL_WIDTH} 1fr`;
-    return `${TIMELINE_LABEL_WIDTH} repeat(${weeks.length}, minmax(140px, 1fr))`;
+    if (weeks.length === 0) return `${TIMELINE_LABEL_WIDTH}px 1fr`;
+    return `${TIMELINE_LABEL_WIDTH}px repeat(${weeks.length}, ${WEEK_COLUMN_WIDTH}px)`;
   }, [weeks.length]);
 
   const todayMarker = useMemo(() => {
     if (!timelineRange) return null;
     const today = toDate(new Date());
     if (today < timelineRange.start || today > timelineRange.end) return null;
-    const left = ((today.getTime() - timelineRange.start.getTime()) / timelineRange.durationMs) * 100;
-    return { left: `${left}%`, label: formatTodayLabel(today) };
+    const dayOffset = (today.getTime() - timelineRange.start.getTime()) / DAY_MS;
+    const left = dayOffset * (WEEK_COLUMN_WIDTH / 7);
+    return { left: `${left}px`, label: formatTodayLabel(today) };
   }, [timelineRange]);
 
   const getSprintBarStyle = (sprint: SprintRecord) => {
     if (!timelineRange) return null;
     const start = toDate(sprint.startDate);
     const end = addDays(toDate(sprint.endDate), 1);
-    const left = ((start.getTime() - timelineRange.start.getTime()) / timelineRange.durationMs) * 100;
-    const right = ((end.getTime() - timelineRange.start.getTime()) / timelineRange.durationMs) * 100;
-    const width = Math.max(right - left, 1);
+    const dayWidth = WEEK_COLUMN_WIDTH / 7;
+    const startOffset = (start.getTime() - timelineRange.start.getTime()) / DAY_MS;
+    const endOffset = (end.getTime() - timelineRange.start.getTime()) / DAY_MS;
+    const visibleStart = Math.max(0, startOffset);
+    const visibleEnd = Math.min(timelineRange.totalDays, endOffset);
+    const width = Math.max(visibleEnd - visibleStart, 0.25) * dayWidth;
     return {
-      left: `${left}%`,
-      width: `${width}%`,
+      left: `${visibleStart * dayWidth}px`,
+      width: `${width}px`,
       backgroundColor: sprint.color || DEFAULT_SPRINT_COLOUR,
     };
   };
@@ -220,7 +225,11 @@ export default function Timeline() {
         {selectedOrganisationId && selectedProjectId && sprints.length > 0 && (
           <div className="border">
             <div className="overflow-x-auto">
-              <div className="min-w-[720px]">
+              <div
+                style={{
+                  minWidth: `${TIMELINE_LABEL_WIDTH + weeks.length * WEEK_COLUMN_WIDTH}px`,
+                }}
+              >
                 <div className="grid border-b bg-muted/20" style={{ gridTemplateColumns }}>
                   <div
                     className={`px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs font-medium text-muted-foreground bg-background border-r`}
@@ -278,14 +287,19 @@ export default function Timeline() {
                         )}
                       </div>
                       <div
-                        className={cn(`py-${BREATHING_ROOM} relative min-h-12`, "border-l")}
+                        className={cn(`py-${BREATHING_ROOM} relative min-h-12`)}
                         style={{ gridColumn: "2 / -1" }}
                       >
-                        <div className="absolute inset-0 flex z-10 pointer-events-none">
+                        <div
+                          className="absolute inset-0 grid z-20 pointer-events-none"
+                          style={{
+                            gridTemplateColumns: `repeat(${weeks.length}, ${WEEK_COLUMN_WIDTH}px)`,
+                          }}
+                        >
                           {weeks.map((week, index) => (
                             <div
                               key={`${week.toISOString()}-${sprint.id}`}
-                              className={cn("flex-1", index === 0 ? "" : "border-l")}
+                              className={cn(index === 0 ? "" : "border-l")}
                             />
                           ))}
                         </div>
@@ -313,7 +327,7 @@ export default function Timeline() {
                               <button
                                 type="button"
                                 aria-label={`Edit sprint ${sprint.name}`}
-                                className="absolute top-1/2 z-0 h-4 rounded border border-foreground/10 cursor-pointer"
+                                className="absolute top-1/2 z-0 h-4 rounded cursor-pointer"
                                 style={barStyle}
                                 title={`${sprint.name}: ${getSprintDateRange(sprint)}`}
                               />
@@ -329,7 +343,7 @@ export default function Timeline() {
                   <div
                     className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background relative z-20 border-r`}
                   >
-                    <div className="text-sm font-medium text-muted-foreground">Backlog</div>
+                    <div className="text-sm font-medium">Backlog</div>
                     {issueGroup.unassigned.length === 0 && (
                       <div className="text-xs text-muted-foreground text-pretty">No unassigned issues.</div>
                     )}
