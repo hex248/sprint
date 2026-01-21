@@ -232,7 +232,7 @@ export default function Timeline() {
               >
                 <div className="grid border-b bg-muted/20" style={{ gridTemplateColumns }}>
                   <div
-                    className={`px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs font-medium text-muted-foreground bg-background border-r`}
+                    className={`px-${BREATHING_ROOM} py-${BREATHING_ROOM} text-xs font-medium text-muted-foreground bg-background border-r sticky left-0 z-30`}
                   >
                     Sprint
                   </div>
@@ -256,7 +256,7 @@ export default function Timeline() {
                   return (
                     <div key={sprint.id} className="grid border-b" style={{ gridTemplateColumns }}>
                       <div
-                        className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background relative z-20 border-r`}
+                        className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background relative z-30 border-r sticky left-0`}
                       >
                         <div className={`flex items-center justify-between gap-3`}>
                           <span
@@ -291,7 +291,7 @@ export default function Timeline() {
                         style={{ gridColumn: "2 / -1" }}
                       >
                         <div
-                          className="absolute inset-0 grid z-20 pointer-events-none"
+                          className="absolute inset-0 grid z-10 pointer-events-none"
                           style={{
                             gridTemplateColumns: `repeat(${weeks.length}, ${WEEK_COLUMN_WIDTH}px)`,
                           }}
@@ -305,14 +305,16 @@ export default function Timeline() {
                         </div>
                         {todayMarker && (
                           <div
-                            className="absolute inset-y-0 z-20 pointer-events-none"
+                            className="absolute inset-y-0 z-10 pointer-events-none"
                             style={{ left: todayMarker.left }}
                           >
-                            <div className="absolute inset-y-0 w-px bg-primary" />
+                            <div
+                              className={cn("absolute inset-y-0 w-px bg-primary", showTodayLabel && "mt-1")}
+                            />
                             {showTodayLabel && (
-                              <div className="absolute -top-5.5 -translate-x-1/2">
-                                <span className="rounded bg-primary px-1 py-0.5 text-[10px] font-semibold text-primary-foreground whitespace-nowrap">
-                                  {todayMarker.label}
+                              <div className="absolute -top-1.5">
+                                <span className="bg-primary px-1 py-0.5 text-[10px] font-semibold text-primary-foreground whitespace-nowrap">
+                                  TODAY
                                 </span>
                               </div>
                             )}
@@ -341,7 +343,7 @@ export default function Timeline() {
 
                 <div className="grid" style={{ gridTemplateColumns }}>
                   <div
-                    className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background relative z-20 border-r`}
+                    className={`px-${BREATHING_ROOM} pt-0.5 py-${BREATHING_ROOM} flex flex-col gap-${BREATHING_ROOM} bg-background relative z-30 border-r sticky left-0`}
                   >
                     <div className="text-sm font-medium">Backlog</div>
                     {issueGroup.unassigned.length === 0 && (
