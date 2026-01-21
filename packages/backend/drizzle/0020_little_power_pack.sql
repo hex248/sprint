@@ -1,0 +1,1 @@
+ALTER TABLE "Organisation" ADD COLUMN "iconURL" varchar(512);

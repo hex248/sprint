@@ -141,6 +141,13 @@
       "when": 1768677778201,
       "tag": "0019_outstanding_sentry",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1768999911628,
+      "tag": "0020_little_power_pack",
+      "breakpoints": true
     }
   ]
 }

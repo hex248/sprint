@@ -46,6 +46,7 @@ export const Organisation = pgTable("Organisation", {
     name: varchar({ length: ORG_NAME_MAX_LENGTH }).notNull(),
     description: varchar({ length: ORG_DESCRIPTION_MAX_LENGTH }),
     slug: varchar({ length: ORG_SLUG_MAX_LENGTH }).notNull().unique(),
+    iconURL: varchar({ length: 512 }),
     statuses: json("statuses").$type<Record<string, string>>().notNull().default(DEFAULT_STATUS_COLOURS),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
