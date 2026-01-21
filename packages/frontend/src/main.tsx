@@ -13,6 +13,7 @@ import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import Test from "@/pages/Test";
+import Timeline from "@/pages/Timeline";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
@@ -41,6 +42,14 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                                     element={
                                         <RequireAuth>
                                             <Test />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/timeline"
+                                    element={
+                                        <RequireAuth>
+                                            <Timeline />
                                         </RequireAuth>
                                     }
                                 />
