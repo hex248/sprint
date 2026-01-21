@@ -4,7 +4,7 @@ import {
   type IssueResponse,
   type SprintRecord,
 } from "@sprint/shared";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IssueModal } from "@/components/issue-modal";
 import { useSelection } from "@/components/selection-provider";
 import { SprintForm } from "@/components/sprint-form";
@@ -130,14 +130,17 @@ export default function Timeline() {
   const timelineRange = useMemo<TimelineRange | null>(() => {
     if (sprints.length === 0) return null;
     const today = toDate(new Date());
+    let earliest = toDate(sprints[0].startDate);
     let latest = toDate(sprints[0].endDate);
 
     for (const sprint of sprints) {
+      const start = toDate(sprint.startDate);
       const end = toDate(sprint.endDate);
+      if (start < earliest) earliest = start;
       if (end > latest) latest = end;
     }
 
-    const rangeStart = today;
+    const rangeStart = startOfWeek(earliest < today ? earliest : today);
     const rangeEnd = endOfWeek(addDays(latest, 28));
     const totalDays = Math.round((rangeEnd.getTime() - rangeStart.getTime()) / DAY_MS);
 
@@ -183,9 +186,20 @@ export default function Timeline() {
     const today = toDate(new Date());
     if (today < timelineRange.start || today > timelineRange.end) return null;
     const dayOffset = (today.getTime() - timelineRange.start.getTime()) / DAY_MS;
-    const left = dayOffset * (WEEK_COLUMN_WIDTH / 7);
-    return { left: `${left}px`, label: formatTodayLabel(today) };
+    const leftPx = dayOffset * (WEEK_COLUMN_WIDTH / 7);
+    return { leftPx, label: formatTodayLabel(today) };
   }, [timelineRange]);
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const hasAutoScrolled = useRef(false);
+
+  useEffect(() => {
+    if (!todayMarker || hasAutoScrolled.current) return;
+    const container = scrollRef.current;
+    if (!container) return;
+    container.scrollLeft = Math.max(0, todayMarker.leftPx);
+    hasAutoScrolled.current = true;
+  }, [todayMarker]);
 
   const getSprintBarStyle = (sprint: SprintRecord) => {
     if (!timelineRange) return null;
@@ -229,7 +243,7 @@ export default function Timeline() {
 
         {selectedOrganisationId && selectedProjectId && sprints.length > 0 && (
           <div className="border">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" ref={scrollRef}>
               <div
                 style={{
                   minWidth: `${TIMELINE_LABEL_WIDTH + weeks.length * WEEK_COLUMN_WIDTH}px`,
@@ -311,7 +325,7 @@ export default function Timeline() {
                         {todayMarker && (
                           <div
                             className="absolute inset-y-0 z-10 pointer-events-none"
-                            style={{ left: todayMarker.left }}
+                            style={{ left: `${todayMarker.leftPx}px` }}
                           >
                             <div
                               className={cn("absolute inset-y-0 w-px bg-primary", showTodayLabel && "mt-1")}
