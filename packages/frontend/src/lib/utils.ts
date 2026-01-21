@@ -21,7 +21,10 @@ export function clearAuth(): void {
   sessionStorage.removeItem("csrfToken");
   localStorage.removeItem("user");
   localStorage.removeItem("selectedOrganisationId");
+  localStorage.removeItem("selectedOrganisationSlug");
   localStorage.removeItem("selectedProjectId");
+  localStorage.removeItem("selectedProjectKey");
+  localStorage.removeItem("selectedIssueNumber");
 }
 
 export function capitalise(str: string) {

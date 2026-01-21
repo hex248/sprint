@@ -27,7 +27,7 @@ import { useOrganisations } from "@/lib/query/hooks";
 
 export default function TopBar({ showIssueForm = true }: { showIssueForm?: boolean }) {
   const { user } = useAuthenticatedSession();
-  const { selectedOrganisationId, selectedProjectId } = useSelection();
+  const { selectedOrganisationId, selectedProjectId, selectIssue } = useSelection();
   const { data: organisationsData = [] } = useOrganisations();
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,7 +56,29 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
 
         {selectedOrganisationId && <ProjectSelect showLabel />}
         {selectedOrganisationId && (
-          <Tabs value={activeView} onValueChange={(value) => navigate(`/${value}`)}>
+          <Tabs
+            value={activeView}
+            onValueChange={(value) => {
+              const orgSlug = localStorage.getItem("selectedOrganisationSlug")?.trim() ?? "";
+              const projectKey = localStorage.getItem("selectedProjectKey")?.trim() ?? "";
+              const issueNumber = localStorage.getItem("selectedIssueNumber")?.trim() ?? "";
+              const params = new URLSearchParams();
+              if (orgSlug) params.set("o", orgSlug.toLowerCase());
+              if (projectKey) params.set("p", projectKey.toLowerCase());
+
+              if (value === "issues" && issueNumber) {
+                params.set("i", issueNumber);
+              }
+
+              if (value === "timeline") {
+                localStorage.removeItem("selectedIssueNumber");
+                selectIssue(null, { skipUrlUpdate: true });
+              }
+
+              const search = params.toString();
+              navigate(`/${value}${search ? `?${search}` : ""}`);
+            }}
+          >
             <TabsList>
               <TabsTrigger value="issues">Issues</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>

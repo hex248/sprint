@@ -1,6 +1,6 @@
 import type { IssueResponse, OrganisationResponse, ProjectResponse } from "@sprint/shared";
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type SelectionContextValue = {
   selectedOrganisationId: number | null;
@@ -27,6 +27,12 @@ const readStoredId = (key: string) => {
   if (!value) return null;
   const parsed = Number(value);
   return Number.isNaN(parsed) ? null : parsed;
+};
+
+const readStoredString = (key: string) => {
+  const value = localStorage.getItem(key);
+  if (!value) return null;
+  return value.trim() || null;
 };
 
 const updateUrlParams = (updates: {
@@ -87,7 +93,14 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
       setSelectedIssueId(null);
       if (id != null) localStorage.setItem("selectedOrganisationId", `${id}`);
       else localStorage.removeItem("selectedOrganisationId");
+      if (organisation) {
+        localStorage.setItem("selectedOrganisationSlug", organisation.Organisation.slug.toLowerCase());
+      } else {
+        localStorage.removeItem("selectedOrganisationSlug");
+      }
       localStorage.removeItem("selectedProjectId");
+      localStorage.removeItem("selectedProjectKey");
+      localStorage.removeItem("selectedIssueNumber");
       if (!options?.skipUrlUpdate) {
         updateUrlParams({
           orgSlug: organisation?.Organisation.slug.toLowerCase() ?? null,
@@ -105,6 +118,12 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
     setSelectedIssueId(null);
     if (id != null) localStorage.setItem("selectedProjectId", `${id}`);
     else localStorage.removeItem("selectedProjectId");
+    if (project) {
+      localStorage.setItem("selectedProjectKey", project.Project.key.toLowerCase());
+    } else {
+      localStorage.removeItem("selectedProjectKey");
+    }
+    localStorage.removeItem("selectedIssueNumber");
     if (!options?.skipUrlUpdate) {
       updateUrlParams({
         projectKey: project?.Project.key.toLowerCase() ?? null,
@@ -116,8 +135,42 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
   const selectIssue = useCallback((issue: IssueResponse | null, options?: SelectionOptions) => {
     const id = issue?.Issue.id ?? null;
     setSelectedIssueId(id);
+    if (issue) {
+      localStorage.setItem("selectedIssueNumber", `${issue.Issue.number}`);
+    } else {
+      localStorage.removeItem("selectedIssueNumber");
+    }
     if (!options?.skipUrlUpdate) {
       updateUrlParams({ issueNumber: issue?.Issue.number ?? null });
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const allowIssue = window.location.pathname.startsWith("/issues");
+    const updates: {
+      orgSlug?: string | null;
+      projectKey?: string | null;
+      issueNumber?: number | null;
+    } = {};
+
+    if (!params.get("o")) {
+      const storedOrgSlug = readStoredString("selectedOrganisationSlug");
+      if (storedOrgSlug) updates.orgSlug = storedOrgSlug;
+    }
+
+    if (!params.get("p")) {
+      const storedProjectKey = readStoredString("selectedProjectKey");
+      if (storedProjectKey) updates.projectKey = storedProjectKey;
+    }
+
+    if (allowIssue && !params.get("i")) {
+      const storedIssueNumber = readStoredId("selectedIssueNumber");
+      if (storedIssueNumber != null) updates.issueNumber = storedIssueNumber;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      updateUrlParams(updates);
     }
   }, []);
 
