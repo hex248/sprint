@@ -165,7 +165,9 @@ export default function Issues() {
       {selectedOrganisationId && selectedProjectId && issuesData.length > 0 && (
         <ResizablePanelGroup className={`flex-1`}>
           <ResizablePanel id={"left"} minSize={400}>
-            <IssuesTable columns={{ description: false }} className="border w-full flex-shrink" />
+            <div className="border w-full flex-shrink">
+              <IssuesTable columns={{ description: false }} className="w-full" />
+            </div>
           </ResizablePanel>
 
           {selectedIssue && (
