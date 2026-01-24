@@ -144,6 +144,7 @@ export type {
     UserRecord,
 } from "./schema";
 export {
+    DEFAULT_FEATURES,
     DEFAULT_SPRINT_COLOUR,
     DEFAULT_STATUS_COLOUR,
     DEFAULT_STATUS_COLOURS,

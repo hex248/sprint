@@ -1,0 +1,1 @@
+ALTER TABLE "Organisation" ADD COLUMN "features" json DEFAULT '{"userAvatars":true,"issueStatus":true,"issueDescriptions":true,"issueTimeTracking":true,"issueAssignees":true,"issueAssigneesShownInTable":true,"issueCreator":true,"issueComments":true,"sprints":true}'::json NOT NULL;

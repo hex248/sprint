@@ -7,7 +7,7 @@ export default async function organisationUpdate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, OrgUpdateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { id, name, description, slug, iconURL, statuses } = parsed.data;
+    const { id, name, description, slug, iconURL, statuses, features } = parsed.data;
 
     const existingOrganisation = await getOrganisationById(id);
     if (!existingOrganisation) {
@@ -22,7 +22,7 @@ export default async function organisationUpdate(req: AuthedRequest) {
         return errorResponse("only owners and admins can edit organisations", "PERMISSION_DENIED", 403);
     }
 
-    if (!name && !description && !slug && !statuses && iconURL === undefined) {
+    if (!name && !description && !slug && !statuses && !features && iconURL === undefined) {
         return errorResponse(
             "at least one of name, description, slug, iconURL, or statuses must be provided",
             "NO_UPDATES",
@@ -36,6 +36,7 @@ export default async function organisationUpdate(req: AuthedRequest) {
         slug,
         iconURL,
         statuses,
+        features,
     });
 
     return Response.json(organisation);

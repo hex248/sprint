@@ -28,6 +28,20 @@ export const DEFAULT_STATUS_COLOURS: Record<string, string> = {
     MERGED: DEFAULT_STATUS_COLOUR,
 };
 
+export const DEFAULT_FEATURES: Record<string, boolean> = {
+    userAvatars: true,
+
+    issueStatus: true,
+    issueDescriptions: true,
+    issueTimeTracking: true,
+    issueAssignees: true,
+    issueAssigneesShownInTable: true,
+    issueCreator: true,
+    issueComments: true,
+
+    sprints: true,
+};
+
 export const iconStyles = ["lucide", "pixel", "phosphor"] as const;
 export type IconStyle = (typeof iconStyles)[number];
 
@@ -49,6 +63,7 @@ export const Organisation = pgTable("Organisation", {
     slug: varchar({ length: ORG_SLUG_MAX_LENGTH }).notNull().unique(),
     iconURL: varchar({ length: 512 }),
     statuses: json("statuses").$type<Record<string, string>>().notNull().default(DEFAULT_STATUS_COLOURS),
+    features: json("features").$type<Record<string, boolean>>().notNull().default(DEFAULT_FEATURES),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });
@@ -202,6 +217,7 @@ export type UserInsert = z.infer<typeof UserInsertSchema>;
 
 export type OrganisationRecord = z.infer<typeof OrganisationSelectSchema> & {
     statuses: Record<string, string>;
+    features: Record<string, boolean>;
 };
 export type OrganisationInsert = z.infer<typeof OrganisationInsertSchema>;
 

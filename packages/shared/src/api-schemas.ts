@@ -11,6 +11,7 @@ import {
     USER_NAME_MAX_LENGTH,
     USER_USERNAME_MAX_LENGTH,
 } from "./constants";
+import { DEFAULT_FEATURES } from "./schema";
 
 // error response
 
@@ -162,6 +163,13 @@ export const OrgUpdateRequestSchema = z.object({
         .refine(
             (obj) => Object.keys(obj).every((key) => key.length <= ISSUE_STATUS_MAX_LENGTH),
             `Status keys must be <= ${ISSUE_STATUS_MAX_LENGTH} characters`,
+        )
+        .optional(),
+    features: z
+        .record(z.boolean())
+        .refine(
+            (obj) => Object.keys(obj).length === Object.keys(DEFAULT_FEATURES).length,
+            "Features must include all default features",
         )
         .optional(),
 });
