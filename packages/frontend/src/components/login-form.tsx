@@ -4,7 +4,6 @@ import { USER_NAME_MAX_LENGTH, USER_USERNAME_MAX_LENGTH } from "@sprint/shared";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Avatar from "@/components/avatar";
-import { ServerConfiguration } from "@/components/server-configuration";
 import { useSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -213,7 +212,6 @@ export default function LogInForm() {
               error !== "" && "border-destructive",
             )}
           >
-            <ServerConfiguration />
             <span className="text-xl font-basteleur mb-2">{capitalise(mode)}</span>
 
             <div className={"flex flex-col items-center mb-0"}>

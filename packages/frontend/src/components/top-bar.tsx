@@ -8,11 +8,9 @@ import { OrganisationSelect } from "@/components/organisation-select";
 import Organisations from "@/components/organisations";
 import { ProjectSelect } from "@/components/project-select";
 import { useSelection } from "@/components/selection-provider";
-import { ServerConfiguration } from "@/components/server-configuration";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
 import { SprintForm } from "@/components/sprint-form";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -129,19 +127,6 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="flex items-end justify-end">
               <Organisations />
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="flex items-end justify-end">
-              <ServerConfiguration
-                trigger={
-                  <Button
-                    variant="ghost"
-                    className="flex w-full items-center justify-end text-end px-2 py-1 m-0 h-auto"
-                    title="Server Configuration"
-                  >
-                    Server Configuration
-                  </Button>
-                }
-              />
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="flex items-end justify-end p-0 m-0">
