@@ -1,7 +1,7 @@
 import "./App.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryProvider } from "@/components/query-provider";
 import { SelectionProvider } from "@/components/selection-provider";
 import { RequireAuth, SessionProvider } from "@/components/session-provider";

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import Avatar from "@/components/avatar";
 import { useSelection } from "@/components/selection-provider";
 import StatusTag from "@/components/status-tag";
+import Icon, { type IconName } from "@/components/ui/icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useIssues, useSelectedOrganisation, useSelectedProject } from "@/lib/query/hooks";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,10 @@ export function IssuesTable({
   const selectedOrganisation = useSelectedOrganisation();
   const selectedProject = useSelectedProject();
   const statuses = selectedOrganisation?.Organisation.statuses ?? {};
+  const issueTypes = (selectedOrganisation?.Organisation.issueTypes ?? {}) as Record<
+    string,
+    { icon: string; color: string }
+  >;
 
   const issues = useMemo(() => [...issuesData].reverse(), [issuesData]);
 
@@ -90,6 +95,14 @@ export function IssuesTable({
                   onClick={handleLinkClick}
                   className="flex items-center gap-2 min-w-0 w-full h-full px-2 py-1 text-inherit hover:underline decoration-transparent"
                 >
+                  {selectedOrganisation?.Organisation.features.issueTypes &&
+                    issueTypes[issueData.Issue.type] && (
+                      <Icon
+                        icon={issueTypes[issueData.Issue.type].icon as IconName}
+                        size={16}
+                        color={issueTypes[issueData.Issue.type].color}
+                      />
+                    )}
                   {selectedOrganisation?.Organisation.features.issueStatus &&
                     (columns.status == null || columns.status === true) && (
                       <StatusTag status={issueData.Issue.status} colour={statuses[issueData.Issue.status]} />

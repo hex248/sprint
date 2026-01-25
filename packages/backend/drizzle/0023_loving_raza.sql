@@ -1,0 +1,1 @@
+ALTER TABLE "Organisation" ADD COLUMN "issueTypes" json DEFAULT '{"Task":{"icon":"checkBox","color":"#e4bd47"},"Bug":{"icon":"bug","color":"#ef4444"}}'::json NOT NULL;

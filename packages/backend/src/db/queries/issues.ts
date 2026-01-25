@@ -62,6 +62,7 @@ export async function updateIssue(
         title?: string;
         description?: string;
         sprintId?: number | null;
+        type?: string;
         status?: string;
     },
 ) {

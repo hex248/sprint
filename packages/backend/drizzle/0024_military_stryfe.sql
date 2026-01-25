@@ -1,0 +1,2 @@
+ALTER TABLE "Organisation" ALTER COLUMN "features" SET DEFAULT '{"userAvatars":true,"issueTypes":true,"issueStatus":true,"issueDescriptions":true,"issueTimeTracking":true,"issueAssignees":true,"issueAssigneesShownInTable":true,"issueCreator":true,"issueComments":true,"sprints":true}'::json;--> statement-breakpoint
+ALTER TABLE "Issue" ADD COLUMN "type" varchar(16) DEFAULT 'Task' NOT NULL;

@@ -4,6 +4,7 @@ import {
     ISSUE_DESCRIPTION_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
     ISSUE_TITLE_MAX_LENGTH,
+    ISSUE_TYPE_MAX_LENGTH,
     ORG_DESCRIPTION_MAX_LENGTH,
     ORG_NAME_MAX_LENGTH,
     ORG_SLUG_MAX_LENGTH,
@@ -66,9 +67,10 @@ export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 
 export const IssueCreateRequestSchema = z.object({
     projectId: z.number().int().positive("projectId must be a positive integer"),
+    type: z.string().max(ISSUE_TYPE_MAX_LENGTH).optional(),
+    status: z.string().max(ISSUE_STATUS_MAX_LENGTH).optional(),
     title: z.string().min(1, "Title is required").max(ISSUE_TITLE_MAX_LENGTH),
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).default(""),
-    status: z.string().max(ISSUE_STATUS_MAX_LENGTH).optional(),
     assigneeIds: z.array(z.number().int().positive()).optional(),
     sprintId: z.number().int().positive().nullable().optional(),
 });
@@ -77,9 +79,10 @@ export type IssueCreateRequest = z.infer<typeof IssueCreateRequestSchema>;
 
 export const IssueUpdateRequestSchema = z.object({
     id: z.number().int().positive("id must be a positive integer"),
+    type: z.string().max(ISSUE_TYPE_MAX_LENGTH).optional(),
+    status: z.string().max(ISSUE_STATUS_MAX_LENGTH).optional(),
     title: z.string().min(1, "Title must be at least 1 character").max(ISSUE_TITLE_MAX_LENGTH).optional(),
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).optional(),
-    status: z.string().max(ISSUE_STATUS_MAX_LENGTH).optional(),
     assigneeIds: z.array(z.number().int().positive()).nullable().optional(),
     sprintId: z.number().int().positive().nullable().optional(),
 });
@@ -388,9 +391,10 @@ export const IssueRecordSchema = z.object({
     id: z.number(),
     projectId: z.number(),
     number: z.number(),
+    type: z.string(),
+    status: z.string(),
     title: z.string(),
     description: z.string(),
-    status: z.string(),
     creatorId: z.number(),
     sprintId: z.number().nullable(),
 });

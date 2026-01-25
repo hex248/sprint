@@ -11,9 +11,10 @@ import { StatusSelect } from "@/components/status-select";
 import StatusTag from "@/components/status-tag";
 import { TimerDisplay } from "@/components/timer-display";
 import { TimerModal } from "@/components/timer-modal";
+import { TypeSelect } from "@/components/type-select";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import Icon from "@/components/ui/icon";
+import Icon, { type IconName } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { SelectTrigger } from "@/components/ui/select";
@@ -58,6 +59,7 @@ export function IssueDetails({
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [sprintId, setSprintId] = useState<string>("unassigned");
   const [status, setStatus] = useState<string>("");
+  const [type, setType] = useState<string>("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const copyTimeoutRef = useRef<number | null>(null);
@@ -72,6 +74,11 @@ export function IssueDetails({
   const [isSavingDescription, setIsSavingDescription] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
+  const issueTypes = (organisation?.Organisation.issueTypes ?? {}) as Record<
+    string,
+    { icon: string; color: string }
+  >;
+
   const isAssignee = assigneeIds.some((id) => user?.id === Number(id));
   const actualAssigneeIds = assigneeIds.filter((id) => id !== "unassigned");
   const hasMultipleAssignees = actualAssigneeIds.length > 1;
@@ -80,6 +87,7 @@ export function IssueDetails({
     setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
     setAssigneeIds(assigneesToStringArray(issueData.Assignees));
     setStatus(issueData.Issue.status);
+    setType(issueData.Issue.type);
     setTitle(issueData.Issue.title);
     setOriginalTitle(issueData.Issue.title);
     setDescription(issueData.Issue.description);
@@ -206,6 +214,38 @@ export function IssueDetails({
     }
   };
 
+  const handleTypeChange = async (value: string) => {
+    setType(value);
+    const typeConfig = issueTypes[value];
+
+    try {
+      await updateIssue.mutateAsync({
+        id: issueData.Issue.id,
+        type: value,
+      });
+      toast.success(
+        <span className="inline-flex items-center gap-1.5">
+          {issueID(projectKey, issueData.Issue.number)}'s type updated to{" "}
+          {typeConfig ? (
+            <span className="inline-flex items-center gap-1.5">
+              <Icon icon={typeConfig.icon as IconName} size={16} color={typeConfig.color} />
+              {value}
+            </span>
+          ) : (
+            value
+          )}
+        </span>,
+        { dismissible: false },
+      );
+    } catch (error) {
+      console.error("error updating type:", error);
+      setType(issueData.Issue.type);
+      toast.error(`Error updating type: ${parseError(error as Error)}`, {
+        dismissible: false,
+      });
+    }
+  };
+
   const handleDelete = () => {
     setDeleteOpen(true);
   };
@@ -310,7 +350,7 @@ export function IssueDetails({
               {linkCopied ? <Icon icon="check" /> : <Icon icon="link" />}
             </IconButton>
             <IconButton variant="destructive" onClick={handleDelete} title={"Delete issue"}>
-              <Icon icon="trash" />
+              <Icon icon="trash" color="var(--destructive)" />
             </IconButton>
             <IconButton onClick={onClose} title={"Close"}>
               <Icon icon="x" />
@@ -321,6 +361,30 @@ export function IssueDetails({
 
       <div className="flex flex-col w-full p-2 py-2 gap-2 max-h-[75vh] overflow-y-scroll">
         <div className="flex gap-2">
+          {organisation?.Organisation.features.issueTypes && Object.keys(issueTypes).length > 0 && (
+            <TypeSelect
+              issueTypes={issueTypes}
+              value={type}
+              onChange={handleTypeChange}
+              trigger={({ isOpen, value }) => {
+                const typeConfig = issueTypes[value];
+                return (
+                  <SelectTrigger
+                    className="group w-auto flex items-center"
+                    variant="unstyled"
+                    chevronClassName="hidden"
+                    isOpen={isOpen}
+                  >
+                    {typeConfig ? (
+                      <Icon icon={typeConfig.icon as IconName} size={18} color={typeConfig.color} />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Type</span>
+                    )}
+                  </SelectTrigger>
+                );
+              }}
+            />
+          )}
           {organisation?.Organisation.features.issueStatus && (
             <StatusSelect
               statuses={statuses}

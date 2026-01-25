@@ -122,7 +122,7 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
                       disabled={deletingId === comment.Comment.id}
                       title="Delete comment"
                     >
-                      <Icon icon="trash" className="size-4" />
+                      <Icon icon="trash" color="var(--destructive)" />
                     </IconButton>
                   ) : null}
                 </div>

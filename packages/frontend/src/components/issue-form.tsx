@@ -7,6 +7,7 @@ import { useAuthenticatedSession } from "@/components/session-provider";
 import { SprintSelect } from "@/components/sprint-select";
 import { StatusSelect } from "@/components/status-select";
 import StatusTag from "@/components/status-tag";
+import { TypeSelect } from "@/components/type-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
+import Icon, { type IconName } from "@/components/ui/icon";
 import { Label } from "@/components/ui/label";
 import { SelectTrigger } from "@/components/ui/select";
 import {
@@ -39,8 +41,14 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
 
   const members = useMemo(() => membersData.map((member) => member.User), [membersData]);
   const statuses = selectedOrganisation?.Organisation.statuses ?? {};
+  const issueTypes = (selectedOrganisation?.Organisation.issueTypes ?? {}) as Record<
+    string,
+    { icon: string; color: string }
+  >;
   const statusOptions = useMemo(() => Object.keys(statuses), [statuses]);
+  const typeOptions = useMemo(() => Object.keys(issueTypes), [issueTypes]);
   const defaultStatus = statusOptions[0] ?? "";
+  const defaultType = typeOptions[0] ?? "";
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -48,6 +56,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const [sprintId, setSprintId] = useState<string>("unassigned");
   const [assigneeIds, setAssigneeIds] = useState<string[]>(["unassigned"]);
   const [status, setStatus] = useState<string>(defaultStatus);
+  const [type, setType] = useState<string>(defaultType);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +67,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
     setSprintId("unassigned");
     setAssigneeIds(["unassigned"]);
     setStatus(defaultStatus);
+    setType(defaultType);
     setSubmitAttempted(false);
     setSubmitting(false);
     setError(null);
@@ -103,6 +113,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
         sprintId: sprintId === "unassigned" ? null : Number(sprintId),
         assigneeIds: assigneeIds.filter((id) => id !== "unassigned").map((id) => Number(id)),
         status: status.trim() === "" ? undefined : status,
+        type: type.trim() === "" ? undefined : type,
       });
       setOpen(false);
       reset();
@@ -136,27 +147,61 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
 
         <form onSubmit={handleSubmit}>
           <div className="grid">
-            {statusOptions.length > 0 && (
-              <div className="flex items-center gap-2 mb-4">
-                <Label>Status</Label>
-                <StatusSelect
-                  statuses={statuses}
-                  value={status}
-                  onChange={(newValue) => {
-                    if (newValue.trim() === "") return;
-                    setStatus(newValue);
-                  }}
-                  trigger={({ isOpen, value }) => (
-                    <SelectTrigger
-                      className="group flex items-center w-min"
-                      variant="unstyled"
-                      chevronClassName="hidden"
-                      isOpen={isOpen}
-                    >
-                      <StatusTag status={value} colour={statuses[value]} className="hover:opacity-85" />
-                    </SelectTrigger>
-                  )}
-                />
+            {(typeOptions.length > 0 || statusOptions.length > 0) && (
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                {selectedOrganisation?.Organisation.features.issueTypes && typeOptions.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Label>Type</Label>
+                    <TypeSelect
+                      issueTypes={issueTypes}
+                      value={type}
+                      onChange={(newValue) => {
+                        if (newValue.trim() === "") return;
+                        setType(newValue);
+                      }}
+                      trigger={({ isOpen, value }) => {
+                        const typeConfig = issueTypes[value];
+                        return (
+                          <SelectTrigger
+                            className="group flex items-center w-min"
+                            variant="unstyled"
+                            chevronClassName="hidden"
+                            isOpen={isOpen}
+                          >
+                            {typeConfig ? (
+                              <Icon icon={typeConfig.icon as IconName} size={20} color={typeConfig.color} />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Type</span>
+                            )}
+                          </SelectTrigger>
+                        );
+                      }}
+                    />
+                  </div>
+                )}
+                {statusOptions.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Label>Status</Label>
+                    <StatusSelect
+                      statuses={statuses}
+                      value={status}
+                      onChange={(newValue) => {
+                        if (newValue.trim() === "") return;
+                        setStatus(newValue);
+                      }}
+                      trigger={({ isOpen, value }) => (
+                        <SelectTrigger
+                          className="group flex items-center w-min"
+                          variant="unstyled"
+                          chevronClassName="hidden"
+                          isOpen={isOpen}
+                        >
+                          <StatusTag status={value} colour={statuses[value]} className="hover:opacity-85" />
+                        </SelectTrigger>
+                      )}
+                    />
+                  </div>
+                )}
               </div>
             )}
 

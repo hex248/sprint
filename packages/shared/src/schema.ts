@@ -6,6 +6,7 @@ import {
     ISSUE_DESCRIPTION_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
     ISSUE_TITLE_MAX_LENGTH,
+    ISSUE_TYPE_MAX_LENGTH,
     ORG_DESCRIPTION_MAX_LENGTH,
     ORG_NAME_MAX_LENGTH,
     ORG_SLUG_MAX_LENGTH,
@@ -28,9 +29,15 @@ export const DEFAULT_STATUS_COLOURS: Record<string, string> = {
     MERGED: DEFAULT_STATUS_COLOUR,
 };
 
+export const DEFAULT_ISSUE_TYPES: Record<string, { icon: string; color: string }> = {
+    Task: { icon: "checkBox", color: "#e4bd47" },
+    Bug: { icon: "bug", color: "#ef4444" },
+};
+
 export const DEFAULT_FEATURES: Record<string, boolean> = {
     userAvatars: true,
 
+    issueTypes: true,
     issueStatus: true,
     issueDescriptions: true,
     issueTimeTracking: true,
@@ -63,6 +70,10 @@ export const Organisation = pgTable("Organisation", {
     slug: varchar({ length: ORG_SLUG_MAX_LENGTH }).notNull().unique(),
     iconURL: varchar({ length: 512 }),
     statuses: json("statuses").$type<Record<string, string>>().notNull().default(DEFAULT_STATUS_COLOURS),
+    issueTypes: json("issueTypes")
+        .$type<Record<string, { icon: string; color: string }>>()
+        .notNull()
+        .default(DEFAULT_ISSUE_TYPES),
     features: json("features").$type<Record<string, boolean>>().notNull().default(DEFAULT_FEATURES),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
@@ -135,9 +146,10 @@ export const Issue = pgTable(
 
         number: integer("number").notNull(),
 
+        type: varchar({ length: ISSUE_TYPE_MAX_LENGTH }).notNull().default("Task"),
+        status: varchar({ length: ISSUE_STATUS_MAX_LENGTH }).notNull().default("TO DO"),
         title: varchar({ length: ISSUE_TITLE_MAX_LENGTH }).notNull(),
         description: varchar({ length: ISSUE_DESCRIPTION_MAX_LENGTH }).notNull(),
-        status: varchar({ length: ISSUE_STATUS_MAX_LENGTH }).notNull().default("TO DO"),
 
         creatorId: integer()
             .notNull()

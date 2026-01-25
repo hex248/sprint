@@ -13,12 +13,13 @@ export default async function issueUpdate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, IssueUpdateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { id, title, description, status, assigneeIds, sprintId } = parsed.data;
+    const { id, title, description, type, status, assigneeIds, sprintId } = parsed.data;
 
     // check that at least one field is being updated
     if (
         title === undefined &&
         description === undefined &&
+        type === undefined &&
         status === undefined &&
         assigneeIds === undefined &&
         sprintId === undefined
@@ -27,7 +28,11 @@ export default async function issueUpdate(req: AuthedRequest) {
     }
 
     const hasIssueFieldUpdates =
-        title !== undefined || description !== undefined || status !== undefined || sprintId !== undefined;
+        title !== undefined ||
+        description !== undefined ||
+        type !== undefined ||
+        status !== undefined ||
+        sprintId !== undefined;
 
     const existingIssue = await getIssueByID(id);
     if (!existingIssue) {
@@ -53,6 +58,7 @@ export default async function issueUpdate(req: AuthedRequest) {
             title,
             description,
             sprintId,
+            type,
             status,
         });
     }

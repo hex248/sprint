@@ -1,6 +1,7 @@
 import {
   Alert as PixelAlert,
   Check as PixelCheck,
+  Checkbox as PixelCheckbox,
   ChevronDown as PixelChevronDown,
   ChevronLeft as PixelChevronLeft,
   ChevronRight as PixelChevronRight,
@@ -8,6 +9,7 @@ import {
   Circle as PixelCircle,
   Clock as PixelClock,
   Close as PixelClose,
+  Debug as PixelDebug,
   Edit as PixelEdit,
   Home as PixelHome,
   InfoBox as PixelInfo,
@@ -26,8 +28,10 @@ import {
   ViewportWide as PixelViewportWide,
 } from "@nsmr/pixelart-react";
 import {
+  BugIcon as PhosphorBug,
   CheckIcon as PhosphorCheck,
   CheckCircleIcon as PhosphorCheckCircle,
+  CheckSquareIcon as PhosphorCheckSquare,
   CaretDownIcon as PhosphorChevronDown,
   CaretLeftIcon as PhosphorChevronLeft,
   CaretRightIcon as PhosphorChevronRight,
@@ -59,6 +63,7 @@ import {
 import type { IconStyle } from "@sprint/shared";
 import {
   AlertTriangle,
+  Bug,
   Check,
   CheckIcon,
   ChevronDown,
@@ -84,6 +89,7 @@ import {
   OctagonXIcon,
   Plus,
   ServerIcon,
+  SquareCheck,
   Sun,
   Timer,
   Trash,
@@ -95,10 +101,14 @@ import {
 } from "lucide-react";
 import { useSessionSafe } from "@/components/session-provider";
 
+// lucide: https://lucide.dev/icons
+// pixel: https://pixelarticons.com/ (CLICK "Legacy") - these ones are free
 const icons = {
   alertTriangle: { lucide: AlertTriangle, pixel: PixelAlert, phosphor: PhosphorWarning },
+  bug: { lucide: Bug, pixel: PixelDebug, phosphor: PhosphorBug },
   check: { lucide: Check, pixel: PixelCheck, phosphor: PhosphorCheck },
   checkIcon: { lucide: CheckIcon, pixel: PixelCheck, phosphor: PhosphorCheck },
+  checkBox: { lucide: SquareCheck, pixel: PixelCheckbox, phosphor: PhosphorCheckSquare },
   chevronDown: { lucide: ChevronDown, pixel: PixelChevronDown, phosphor: PhosphorChevronDown },
   chevronDownIcon: { lucide: ChevronDownIcon, pixel: PixelChevronDown, phosphor: PhosphorChevronDown },
   chevronLeftIcon: { lucide: ChevronLeftIcon, pixel: PixelChevronLeft, phosphor: PhosphorChevronLeft },
@@ -149,6 +159,7 @@ export default function Icon({
   icon,
   iconStyle,
   size = 24,
+  color,
   ...props
 }: {
   icon: IconName;
@@ -174,12 +185,14 @@ export default function Icon({
     <IconComponent
       size={size}
       fill={
-        (resolvedStyle === "pixel" && icon === "moon") ||
-        (resolvedStyle === "pixel" && icon === "hash") ||
-        resolvedStyle === "phosphor"
-          ? "var(--foreground)"
-          : "transparent"
+        color
+          ? color
+          : (resolvedStyle === "pixel" && ["bug", "moon", "hash"].includes(icon)) ||
+              resolvedStyle === "phosphor"
+            ? "var(--foreground)"
+            : "transparent"
       }
+      style={{ color: color ? color : "var(--foreground)" }}
       {...props}
     />
   );
