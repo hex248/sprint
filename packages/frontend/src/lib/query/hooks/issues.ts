@@ -3,9 +3,11 @@ import type {
   IssueRecord,
   IssueResponse,
   IssuesReplaceStatusRequest,
+  IssuesReplaceTypeRequest,
   IssueUpdateRequest,
   StatusCountResponse,
   SuccessResponse,
+  TypeCountResponse,
 } from "@sprint/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query/keys";
@@ -71,6 +73,26 @@ export function useReplaceIssueStatus() {
   return useMutation<unknown, Error, IssuesReplaceStatusRequest>({
     mutationKey: ["issues", "replace-status"],
     mutationFn: issue.replaceStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.all });
+    },
+  });
+}
+
+export function useIssueTypeCount(organisationId?: number | null, type?: string | null) {
+  return useQuery<TypeCountResponse>({
+    queryKey: queryKeys.issues.typeCount(organisationId ?? 0, type ?? ""),
+    queryFn: () => issue.typeCount(organisationId ?? 0, type ?? ""),
+    enabled: Boolean(organisationId && type),
+  });
+}
+
+export function useReplaceIssueType() {
+  const queryClient = useQueryClient();
+
+  return useMutation<unknown, Error, IssuesReplaceTypeRequest>({
+    mutationKey: ["issues", "replace-type"],
+    mutationFn: issue.replaceType,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.all });
     },

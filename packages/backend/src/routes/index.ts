@@ -11,7 +11,9 @@ import issueCommentsByIssue from "./issue-comments/by-issue";
 import issues from "./issues/all";
 import issuesByProject from "./issues/by-project";
 import issuesReplaceStatus from "./issues/replace-status";
+import issuesReplaceType from "./issues/replace-type";
 import issuesStatusCount from "./issues/status-count";
+import issuesTypeCount from "./issues/type-count";
 import organisationAddMember from "./organisation/add-member";
 import organisationById from "./organisation/by-id";
 import organisationsByUser from "./organisation/by-user";
@@ -64,7 +66,9 @@ export const routes = {
     issuesByProject,
     issues,
     issuesReplaceStatus,
+    issuesReplaceType,
     issuesStatusCount,
+    issuesTypeCount,
 
     organisationCreate,
     organisationById,

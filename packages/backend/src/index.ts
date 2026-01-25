@@ -50,7 +50,9 @@ const main = async () => {
 
             "/issues/by-project": withGlobal(withAuth(routes.issuesByProject)),
             "/issues/replace-status": withGlobal(withAuth(withCSRF(routes.issuesReplaceStatus))),
+            "/issues/replace-type": withGlobal(withAuth(withCSRF(routes.issuesReplaceType))),
             "/issues/status-count": withGlobal(withAuth(routes.issuesStatusCount)),
+            "/issues/type-count": withGlobal(withAuth(routes.issuesTypeCount)),
             "/issues/all": withGlobal(withAuth(routes.issues)),
             "/issue-comments/by-issue": withGlobal(withAuth(routes.issueCommentsByIssue)),
 

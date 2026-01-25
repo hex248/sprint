@@ -145,6 +145,44 @@ export async function replaceIssueStatus(organisationId: number, oldStatus: stri
     return { updated: result.rowCount ?? 0 };
 }
 
+export async function getIssueTypeCountByOrganisation(organisationId: number, type: string) {
+    const { Project } = await import("@sprint/shared");
+
+    const projects = await db
+        .select({ id: Project.id })
+        .from(Project)
+        .where(eq(Project.organisationId, organisationId));
+    const projectIds = projects.map((p) => p.id);
+
+    if (projectIds.length === 0) return { count: 0 };
+
+    const [result] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(Issue)
+        .where(and(eq(Issue.type, type), inArray(Issue.projectId, projectIds)));
+
+    return { count: result?.count ?? 0 };
+}
+
+export async function replaceIssueType(organisationId: number, oldType: string, newType: string) {
+    const { Project } = await import("@sprint/shared");
+
+    const projects = await db
+        .select({ id: Project.id })
+        .from(Project)
+        .where(eq(Project.organisationId, organisationId));
+    const projectIds = projects.map((p) => p.id);
+
+    if (projectIds.length === 0) return { updated: 0 };
+
+    const result = await db
+        .update(Issue)
+        .set({ type: newType })
+        .where(and(eq(Issue.type, oldType), inArray(Issue.projectId, projectIds)));
+
+    return { updated: result.rowCount ?? 0 };
+}
+
 export async function getIssuesWithUsersByProject(projectId: number): Promise<IssueResponse[]> {
     const Creator = aliasedTable(User, "Creator");
 

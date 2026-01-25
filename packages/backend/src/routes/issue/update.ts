@@ -48,9 +48,6 @@ export default async function issueUpdate(req: AuthedRequest) {
     if (!requesterMember) {
         return errorResponse("you are not a member of this organisation", "NOT_MEMBER", 403);
     }
-    if (requesterMember.role !== "owner" && requesterMember.role !== "admin") {
-        return errorResponse("only organisation owners and admins can edit issues", "PERMISSION_DENIED", 403);
-    }
 
     let issue: IssueRecord | undefined = existingIssue;
     if (hasIssueFieldUpdates) {

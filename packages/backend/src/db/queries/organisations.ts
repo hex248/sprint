@@ -88,6 +88,7 @@ export async function updateOrganisation(
         iconURL?: string | null;
         statuses?: Record<string, string>;
         features?: Record<string, boolean>;
+        issueTypes?: Record<string, { icon: string; color: string }>;
     },
 ) {
     const [organisation] = await db

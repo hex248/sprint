@@ -116,6 +116,21 @@ export const IssuesReplaceStatusRequestSchema = z.object({
 
 export type IssuesReplaceStatusRequest = z.infer<typeof IssuesReplaceStatusRequestSchema>;
 
+export const IssuesTypeCountQuerySchema = z.object({
+    organisationId: z.coerce.number().int().positive("organisationId must be a positive integer"),
+    type: z.string().min(1, "Type is required").max(ISSUE_TYPE_MAX_LENGTH),
+});
+
+export type IssuesTypeCountQuery = z.infer<typeof IssuesTypeCountQuerySchema>;
+
+export const IssuesReplaceTypeRequestSchema = z.object({
+    organisationId: z.number().int().positive("organisationId must be a positive integer"),
+    oldType: z.string().min(1, "oldType is required").max(ISSUE_TYPE_MAX_LENGTH),
+    newType: z.string().min(1, "newType is required").max(ISSUE_TYPE_MAX_LENGTH),
+});
+
+export type IssuesReplaceTypeRequest = z.infer<typeof IssuesReplaceTypeRequestSchema>;
+
 export const IssueCommentCreateRequestSchema = z.object({
     issueId: z.number().int().positive("issueId must be a positive integer"),
     body: z.string().min(1, "Comment is required").max(ISSUE_COMMENT_MAX_LENGTH),
@@ -173,6 +188,14 @@ export const OrgUpdateRequestSchema = z.object({
         .refine(
             (obj) => Object.keys(obj).length === Object.keys(DEFAULT_FEATURES).length,
             "Features must include all default features",
+        )
+        .optional(),
+    issueTypes: z
+        .record(z.object({ icon: z.string(), color: z.string() }))
+        .refine((obj) => Object.keys(obj).length > 0, "Issue types must have at least one entry")
+        .refine(
+            (obj) => Object.keys(obj).every((key) => key.length <= ISSUE_TYPE_MAX_LENGTH),
+            `Issue type keys must be <= ${ISSUE_TYPE_MAX_LENGTH} characters`,
         )
         .optional(),
 });
@@ -503,6 +526,18 @@ export const ReplaceStatusResponseSchema = z.object({
 });
 
 export type ReplaceStatusResponse = z.infer<typeof ReplaceStatusResponseSchema>;
+
+export const TypeCountResponseSchema = z.object({
+    count: z.number(),
+});
+
+export type TypeCountResponse = z.infer<typeof TypeCountResponseSchema>;
+
+export const ReplaceTypeResponseSchema = z.object({
+    rowCount: z.number(),
+});
+
+export type ReplaceTypeResponse = z.infer<typeof ReplaceTypeResponseSchema>;
 
 // general
 

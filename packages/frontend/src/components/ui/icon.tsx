@@ -181,17 +181,20 @@ export default function Icon({
     return null;
   }
 
+  let fill = "transparent";
+  // lucide fills sillily
+  if (color && resolvedStyle !== "lucide") {
+    fill = color;
+  } else if (resolvedStyle === "pixel" && ["bug", "moon", "hash"].includes(icon)) {
+    fill = "var(--foreground)";
+  } else if (resolvedStyle === "phosphor") {
+    fill = "var(--foreground)";
+  }
+
   return (
     <IconComponent
       size={size}
-      fill={
-        color
-          ? color
-          : (resolvedStyle === "pixel" && ["bug", "moon", "hash"].includes(icon)) ||
-              resolvedStyle === "phosphor"
-            ? "var(--foreground)"
-            : "transparent"
-      }
+      fill={fill}
       style={{ color: color ? color : "var(--foreground)" }}
       {...props}
     />
