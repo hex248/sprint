@@ -454,7 +454,7 @@ export function IssueDetails({
             />
           </div>
         </div>
-        {organisation?.Organisation.features.description &&
+        {organisation?.Organisation.features.issueDescriptions &&
           (description || isEditingDescription ? (
             <Textarea
               ref={descriptionRef}
