@@ -1,7 +1,8 @@
 # HIGH PRIORITY
 
+- BUGS:
+- issue descriptions not showing
 - FEATURES:
-- filters
 - pricing page
   - see jira and other competitors
     - explore payment providers (stripe is the only one i know)

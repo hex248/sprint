@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Avatar from "@/components/avatar";
 import { useSelection } from "@/components/selection-provider";
 import StatusTag from "@/components/status-tag";
@@ -7,12 +7,32 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useIssues, useSelectedOrganisation, useSelectedProject } from "@/lib/query/hooks";
 import { cn } from "@/lib/utils";
 
+export type IssuesTableFilters = {
+  query: string;
+  statuses: string[];
+  types: string[];
+  assignees: string[];
+  sprintId: "all" | "none" | number;
+  sort: "newest" | "oldest" | "title-asc" | "title-desc" | "status";
+};
+
+export const defaultIssuesTableFilters: IssuesTableFilters = {
+  query: "",
+  statuses: [],
+  types: [],
+  assignees: [],
+  sprintId: "all",
+  sort: "newest",
+};
+
 export function IssuesTable({
   columns = {},
   className,
+  filters,
 }: {
   columns?: { id?: boolean; title?: boolean; description?: boolean; status?: boolean; assignee?: boolean };
   className: string;
+  filters?: IssuesTableFilters;
 }) {
   const { selectedProjectId, selectedIssueId, selectIssue } = useSelection();
   const { data: issuesData = [] } = useIssues(selectedProjectId);
@@ -24,7 +44,91 @@ export function IssuesTable({
     { icon: string; color: string }
   >;
 
-  const issues = useMemo(() => [...issuesData].reverse(), [issuesData]);
+  const issues = useMemo(() => {
+    const query = filters?.query?.trim().toLowerCase() ?? "";
+    const queryIsNumber = query !== "" && /^[0-9]+$/.test(query);
+    const statusSet = new Set(filters?.statuses ?? []);
+    const typeSet = new Set(filters?.types ?? []);
+    const assigneeFilters = filters?.assignees ?? [];
+    const includeUnassigned = assigneeFilters.includes("unassigned");
+    const assigneeIds = new Set(
+      assigneeFilters
+        .filter((assignee) => assignee !== "unassigned")
+        .map((assignee) => Number.parseInt(assignee, 10))
+        .filter((assigneeId) => !Number.isNaN(assigneeId)),
+    );
+    const sprintFilter = filters?.sprintId ?? "all";
+    const sort = filters?.sort ?? "newest";
+
+    let next = [...issuesData];
+
+    if (query) {
+      next = next.filter((issueData) => {
+        const title = issueData.Issue.title.toLowerCase();
+        const description = issueData.Issue.description.toLowerCase();
+        const matchesText = title.includes(query) || description.includes(query);
+        if (matchesText) return true;
+        if (queryIsNumber) {
+          return issueData.Issue.number.toString().includes(query);
+        }
+        return false;
+      });
+    }
+
+    if (statusSet.size > 0) {
+      next = next.filter((issueData) => statusSet.has(issueData.Issue.status));
+    }
+
+    if (typeSet.size > 0) {
+      next = next.filter((issueData) => typeSet.has(issueData.Issue.type));
+    }
+
+    if (assigneeFilters.length > 0) {
+      next = next.filter((issueData) => {
+        const hasAssignees = issueData.Assignees && issueData.Assignees.length > 0;
+        const matchesAssigned =
+          hasAssignees && issueData.Assignees.some((assignee) => assigneeIds.has(assignee.id));
+        const matchesUnassigned = includeUnassigned && !hasAssignees;
+        return matchesAssigned || matchesUnassigned;
+      });
+    }
+
+    if (sprintFilter !== "all") {
+      if (sprintFilter === "none") {
+        next = next.filter((issueData) => issueData.Issue.sprintId == null);
+      } else {
+        next = next.filter((issueData) => issueData.Issue.sprintId === sprintFilter);
+      }
+    }
+
+    switch (sort) {
+      case "oldest":
+        next.sort((a, b) => a.Issue.number - b.Issue.number);
+        break;
+      case "title-asc":
+        next.sort((a, b) => a.Issue.title.localeCompare(b.Issue.title));
+        break;
+      case "title-desc":
+        next.sort((a, b) => b.Issue.title.localeCompare(a.Issue.title));
+        break;
+      case "status":
+        next.sort((a, b) => a.Issue.status.localeCompare(b.Issue.status));
+        break;
+      default:
+        next.sort((a, b) => b.Issue.number - a.Issue.number);
+        break;
+    }
+
+    return next;
+  }, [issuesData, filters]);
+
+  useEffect(() => {
+    if (selectedIssueId == null) return;
+    const isVisible = issues.some((issueData) => issueData.Issue.id === selectedIssueId);
+    if (!isVisible) {
+      selectIssue(null);
+    }
+  }, [issues, selectedIssueId, selectIssue]);
 
   const getIssueUrl = (issueNumber: number) => {
     if (!selectedOrganisation || !selectedProject) return "#";

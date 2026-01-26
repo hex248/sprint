@@ -64,5 +64,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         </SessionProvider>
       </QueryProvider>
     </ThemeProvider>
+    <output className="small-screen-overlay" aria-live="polite">
+      sprint will look very ugly and disjointed if you try to use it at a resolution this small!
+    </output>
   </React.StrictMode>,
 );
