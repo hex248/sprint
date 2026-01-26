@@ -1,53 +1,52 @@
-import { useState } from "react";
-import LogOutButton from "@/components/log-out-button";
-import ThemeToggle from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
-import ColourPicker from "@/components/ui/colour-picker";
 import Icon, { iconNames, iconStyles } from "@/components/ui/icon";
 
 function Test() {
-  const [colour, setColour] = useState("#e05656");
-
   return (
-    <main className="w-full min-h-[100vh] flex justify-center items-center gap-32 p-4">
-      <div className="mt-8 flex flex-col items-center gap-4">
-        <p className="text-muted-foreground">Other test components</p>
-        <div className="flex gap-4">
-          <Button linkTo="/">go back to "/"</Button>
-        </div>
-        <LogOutButton />
-        <ColourPicker colour={colour} onChange={setColour} />
-
-        <ThemeToggle />
-      </div>
-
+    <main className="w-full min-h-[100vh] flex flex-col justify-center items-center p-4">
       <div>
-        <h1 className="text-2xl font-bold">Icon Demo</h1>
-        <p className="text-muted-foreground">
-          All {iconNames.length} icons across {iconStyles.length} styles
-        </p>
-
         <div className="overflow-x-auto">
           <table className="border-collapse">
             <thead>
               <tr className="border-b">
-                <th className="text-left p-2 font-medium">Name</th>
-                {iconStyles.map((iconStyle) => (
-                  <th key={iconStyle} className="text-center p-2 font-medium capitalize">
-                    {iconStyle}
-                  </th>
-                ))}
+                {Array.from(
+                  { length: Math.ceil(iconNames.length / 10) },
+                  (_, groupNumber) => groupNumber + 1,
+                ).flatMap((groupNumber) => [
+                  <th key={`name-${groupNumber}`} className="text-left p-2 font-medium">
+                    Name
+                  </th>,
+                  ...iconStyles.map((iconStyle) => (
+                    <th
+                      key={`${iconStyle}-${groupNumber}`}
+                      className="text-center p-2 font-medium capitalize"
+                    >
+                      {iconStyle}
+                    </th>
+                  )),
+                ])}
               </tr>
             </thead>
             <tbody>
-              {iconNames.map((name) => (
-                <tr key={name} className="border-b hover:bg-muted/50">
-                  <td className="font-mono text-sm pl-2 pr-12">{name}</td>
-                  {iconStyles.map((iconStyle) => (
-                    <td key={iconStyle} className="p-2 text-center">
-                      <Icon icon={name} iconStyle={iconStyle} size={24} />
-                    </td>
-                  ))}
+              {Array.from({ length: 10 }, (_, rowNumber) => rowNumber + 1).map((rowNumber) => (
+                <tr key={`row-${rowNumber}`} className="border-b hover:bg-muted/50">
+                  {Array.from(
+                    { length: Math.ceil(iconNames.length / 10) },
+                    (_, groupNumber) => groupNumber + 1,
+                  ).flatMap((groupNumber) => {
+                    const iconIndex = (groupNumber - 1) * 10 + (rowNumber - 1);
+                    const name = iconNames[iconIndex];
+
+                    return [
+                      <td key={`name-${groupNumber}-${rowNumber}`} className="font-mono text-sm pl-2 pr-12">
+                        {name ?? ""}
+                      </td>,
+                      ...iconStyles.map((iconStyle) => (
+                        <td key={`${iconStyle}-${groupNumber}-${rowNumber}`} className="p-2 text-center">
+                          {name ? <Icon icon={name} iconStyle={iconStyle} size={24} /> : null}
+                        </td>
+                      )),
+                    ];
+                  })}
                 </tr>
               ))}
             </tbody>
