@@ -280,7 +280,9 @@ export function IssueDetails({
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      const url = new URL(window.location.href);
+      url.searchParams.set("modal", "true");
+      await navigator.clipboard.writeText(url.toString());
       setLinkCopied(true);
       if (copyTimeoutRef.current) {
         window.clearTimeout(copyTimeoutRef.current);

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
+import { IssueModal } from "@/components/issue-modal";
 import { IssuesTable } from "@/components/issues-table";
 import { useSelection } from "@/components/selection-provider";
 import TopBar from "@/components/top-bar";
@@ -34,6 +35,9 @@ export default function Issues() {
       issueNumber: issueNumber != null && Number.isNaN(issueNumber) ? null : issueNumber,
     };
   }, [location.search]);
+
+  const showIssueModal =
+    new URLSearchParams(window.location.search).get("modal")?.trim().toLowerCase() === "true";
 
   const { data: organisationsData = [] } = useOrganisations();
   const { data: projectsData = [] } = useProjects(selectedOrganisationId);
@@ -170,7 +174,7 @@ export default function Issues() {
             </div>
           </ResizablePanel>
 
-          {selectedIssue && (
+          {selectedIssue && !showIssueModal && (
             <>
               <ResizableSeparator />
               <ResizablePanel id={"right"} defaultSize={"30%"} minSize={363} maxSize={"60%"}>
@@ -181,6 +185,18 @@ export default function Issues() {
             </>
           )}
         </ResizablePanelGroup>
+      )}
+
+      {selectedIssue && showIssueModal && (
+        <IssueModal
+          issueData={selectedIssue}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) {
+              selectIssue(null);
+            }
+          }}
+        />
       )}
     </main>
   );

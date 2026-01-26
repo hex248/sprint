@@ -19,7 +19,7 @@ export function IssueModal({
   issueData: IssueResponse | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  trigger: ReactNode;
+  trigger?: ReactNode;
 }) {
   const selectedOrganisation = useSelectedOrganisation();
   const selectedProject = useSelectedProject();
@@ -35,7 +35,7 @@ export function IssueModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="w-lg p-0" showCloseButton={false}>
         <DialogTitle className="sr-only">
           {issueID(selectedProject.Project.key, issueData.Issue.number)}

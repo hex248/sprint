@@ -39,6 +39,7 @@ const updateUrlParams = (updates: {
   orgSlug?: string | null;
   projectKey?: string | null;
   issueNumber?: number | null;
+  modal?: boolean | null;
 }) => {
   const params = new URLSearchParams(window.location.search);
 
@@ -55,6 +56,11 @@ const updateUrlParams = (updates: {
   if (updates.issueNumber !== undefined) {
     if (updates.issueNumber != null) params.set("i", `${updates.issueNumber}`);
     else params.delete("i");
+  }
+
+  if (updates.modal !== undefined) {
+    if (updates.modal) params.set("modal", "true");
+    else params.delete("modal");
   }
 
   const search = params.toString();
@@ -141,7 +147,7 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("selectedIssueNumber");
     }
     if (!options?.skipUrlUpdate) {
-      updateUrlParams({ issueNumber: issue?.Issue.number ?? null });
+      updateUrlParams({ issueNumber: issue?.Issue.number ?? null, modal: null });
     }
   }, []);
 
