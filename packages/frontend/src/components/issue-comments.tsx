@@ -3,10 +3,10 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
-import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { Textarea } from "@/components/ui/textarea";
+import { BREATHING_ROOM } from "@/lib/layout";
 import { useCreateIssueComment, useDeleteIssueComment, useIssueComments } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
@@ -69,12 +69,12 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
   };
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    <div className={cn("flex flex-col gap-2", className)}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-600">Comments</span>
         <span className="text-xs text-muted-foreground">{sortedComments.length}</span>
       </div>
-      <div className="flex gap-2">
+      <div className={`flex gap-${BREATHING_ROOM}`}>
         <Textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}
@@ -85,17 +85,18 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
             }
           }}
           placeholder="Leave a comment..."
-          className="text-sm resize-none !bg-background h-"
+          className="text-sm resize-none !bg-background"
           disabled={createComment.isPending}
         />
-        <Button
+        <IconButton
           size="lg"
           onClick={handleSubmit}
           disabled={createComment.isPending || body.trim() === ""}
           className="px-4"
+          variant={"outline"}
         >
-          {createComment.isPending ? "Posting..." : "Post comment"}
-        </Button>
+          <Icon icon="comment" size={24} color="" />
+        </IconButton>
       </div>
       <div className="flex flex-col gap-2">
         {isLoading ? (
