@@ -182,36 +182,19 @@ export default function Landing() {
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <Icon
-                  icon="timerOff"
-                  iconStyle={"pixel"}
-                  className="size-16 mx-auto"
-                  color={"var(--muted-foreground)"}
-                />
-                <p className="text-center text-muted-foreground">
+                <Icon icon="timerOff" iconStyle={"pixel"} className="size-16 mx-auto" />
+                <p className="text-center">
                   Wasting hours configuring workflows instead of shipping features
                 </p>
               </div>
               <div className="space-y-2">
-                <Icon
-                  icon="gridAdd"
-                  iconStyle={"pixel"}
-                  className="size-16 mx-auto"
-                  color={"var(--muted-foreground)"}
-                />
-                <p className="text-center text-muted-foreground">
-                  Drowning in features you'll never use while missing the basics
-                </p>
+                <Icon icon="gridAdd" iconStyle={"pixel"} className="size-16 mx-auto" />
+                <p className="text-center">Drowning in features you'll never use while missing the basics</p>
               </div>
               <div className="space-y-2">
-                <Icon
-                  icon="bugOff"
-                  iconStyle={"pixel"}
-                  className="size-16 mx-auto"
-                  color={"var(--muted-foreground)"}
-                />
-                <p className="text-center text-muted-foreground">
-                  The software is full of bugs. Your flow state doesn't stand a chance
+                <Icon icon="bugOff" iconStyle={"pixel"} className="size-16 mx-auto" />
+                <p className="text-center">
+                  The tools are full of bugs. Your flow state doesn't stand a chance
                 </p>
               </div>
             </div>
