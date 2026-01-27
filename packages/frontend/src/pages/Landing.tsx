@@ -138,10 +138,10 @@ export default function Landing() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center py-16 px-4">
+      <main className="flex-1 flex flex-col items-center py-16 pt-14 px-4">
         <div className="max-w-6xl w-full space-y-18">
           {/* hero section */}
-          <div className="text-center space-y-8 pt-8">
+          <div className="text-center space-y-8">
             <div className="flex justify-center mb-8">
               <img src="/favicon.svg" alt="Sprint" className="size-48" />
             </div>
@@ -218,7 +218,7 @@ export default function Landing() {
           </div>
 
           {/* solution section */}
-          <div id="features" className="max-w-5xl mx-auto space-y-12 scroll-mt-20 border-t pt-24">
+          <div id="features" className="max-w-5xl mx-auto space-y-12 scroll-mt-4 border-t pt-24">
             <h2 className="text-5xl font-basteleur font-700 text-center">
               Everything you need, nothing you don't
             </h2>
@@ -294,7 +294,7 @@ export default function Landing() {
           {/* pricing section */}
           <div
             id="pricing"
-            className="max-w-5xl mx-auto space-y-16 flex flex-col items-center border-t pt-24 scroll-mt-20"
+            className="max-w-5xl mx-auto space-y-16 flex flex-col items-center border-t pt-24 scroll-mt-4"
           >
             <div className="text-center space-y-6">
               <h2 className="text-5xl font-basteleur font-700">Simple, transparent pricing</h2>
@@ -419,7 +419,7 @@ export default function Landing() {
             </div>
 
             {/* faq section */}
-            <div className="w-full max-w-5xl flex justify-center border-t pt-24 scroll-mt-20" id="faq">
+            <div className="w-full max-w-5xl flex justify-center border-t pt-24 scroll-mt-4" id="faq">
               <div className="w-full max-w-4xl flex flex-col items-center space-y-12">
                 <h2 className="text-5xl font-basteleur font-700 text-center">Frequently Asked Questions</h2>
                 <div className="grid gap-8 max-w-3xl">
