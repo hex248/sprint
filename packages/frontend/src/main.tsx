@@ -13,7 +13,6 @@ import Issues from "@/pages/Issues";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
-import Pricing from "@/pages/Pricing";
 import Test from "@/pages/Test";
 import Timeline from "@/pages/Timeline";
 
@@ -28,7 +27,6 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                 {/* public routes */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/font" element={<Font />} />
-                <Route path="/pricing" element={<Pricing />} />
                 <Route path="/login" element={<Login />} />
 
                 {/* authed routes */}
