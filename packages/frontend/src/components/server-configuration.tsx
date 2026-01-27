@@ -114,7 +114,7 @@ export function ServerConfiguration({ trigger }: { trigger?: ReactNode }) {
         <DialogTrigger asChild>
           {trigger || (
             <IconButton size="lg" className="absolute top-2 right-2" title={"Server Configuration"}>
-              <Icon icon="serverIcon" className="size-4" />
+              <Icon icon="server" className="size-4" />
             </IconButton>
           )}
         </DialogTrigger>

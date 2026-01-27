@@ -198,7 +198,7 @@ function SelectScrollUpButton({
       className={cn("flex cursor-default items-center justify-center py-1", className)}
       {...props}
     >
-      <Icon icon="chevronUpIcon" className="size-4" />
+      <Icon icon="chevronUp" className="size-4" />
     </SelectPrimitive.ScrollUpButton>
   );
 }

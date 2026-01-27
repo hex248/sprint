@@ -1,9 +1,9 @@
-import { Icon } from "@iconify/react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/components/session-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import Icon from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 const pricingTiers = [
@@ -198,7 +198,7 @@ export default function Pricing() {
                 <ul className="space-y-3 mb-8 flex-1">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
-                      <Icon icon="lucide:check" className="size-5 text-personality shrink-0 mt-0.5" />
+                      <Icon icon="check" className="size-5 text-personality shrink-0 mt-0.5" />
                       <span className={"text-sm"}>{feature}</span>
                     </li>
                   ))}
@@ -222,17 +222,17 @@ export default function Pricing() {
           <div className="text-center space-y-6 border-t pt-12">
             <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <div className="flex flex-col items-center gap-2">
-                <Icon icon="lucide:shield-check" className="size-8 text-personality" />
+                <Icon icon="shieldCheck" className="size-8 text-personality" />
                 <p className="font-goudy font-700">Secure & Encrypted</p>
                 <p className="text-sm text-muted-foreground">Your data is encrypted and secure</p>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Icon icon="lucide:credit-card" className="size-8 text-personality" />
+                <Icon icon="creditCard" className="size-8 text-personality" />
                 <p className="font-goudy font-700">No Credit Card Required</p>
                 <p className="text-sm text-muted-foreground">Start your free trial today</p>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Icon icon="lucide:rotate-ccw" className="size-8 text-personality" />
+                <Icon icon="rotateCcw" className="size-8 text-personality" />
                 <p className="font-goudy font-700">30-day money back</p>
                 <p className="text-sm text-muted-foreground">Cancel anytime, no questions</p>
               </div>

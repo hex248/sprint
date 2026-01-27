@@ -1,8 +1,9 @@
-import { Icon } from "@iconify/react";
+import { HumanRun } from "@nsmr/pixelart-react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/components/session-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import Icon from "@/components/ui/icon";
 
 export default function Landing() {
   const { user, isLoading } = useSession();
@@ -29,16 +30,19 @@ export default function Landing() {
       </header>
 
       <main className="flex-1 flex flex-col items-center py-16 px-4">
-        <div className="max-w-6xl w-full space-y-24">
+        <div className="max-w-6xl w-full space-y-18">
           {/* hero section */}
           <div className="text-center space-y-8 pt-8">
+            <div className="flex justify-center mb-8">
+              <HumanRun size={144} fill="var(--foreground)" />
+            </div>
             <div className="space-y-4">
               <h1 className="text-[64px] font-basteleur font-700 leading-tight">
-                ship faster without the chaos
+                Ship faster without the chaos
               </h1>
-              <p className="text-[24px] font-goudy text-muted-foreground max-w-3xl mx-auto">
-                sprint is project management that stays out of your way. track issues, manage sprints, and
-                keep your team moving—without the jira headache.
+              <p className="text-[24px] text-muted-foreground max-w-3xl mx-auto">
+                Sprint is project management that stays out of your way. Track issues, manage sprints, and
+                keep your team moving—without the Jira headache.
               </p>
             </div>
 
@@ -50,42 +54,40 @@ export default function Landing() {
               ) : (
                 <>
                   <Button asChild size="lg" className="text-lg px-8 py-6">
-                    <Link to="/login">start free trial</Link>
+                    <Link to="/login">Start free trial</Link>
                   </Button>
                   <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
-                    <Link to="/pricing">see pricing</Link>
+                    <Link to="/pricing">See pricing</Link>
                   </Button>
                 </>
               )}
             </div>
 
-            <p className="text-sm text-muted-foreground font-goudy">
-              no credit card required · full access for 14 days
-            </p>
+            <p className="text-sm text-muted-foreground">No credit card required · Full access for 14 days</p>
           </div>
 
           {/* problem section */}
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-4xl mx-auto space-y-16">
             <h2 className="text-4xl font-basteleur font-700 text-center">
-              tired of spending more time managing jira than building product?
+              Tired of spending more time managing Jira than building your product?
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <Icon icon="lucide:timer-off" className="size-8 text-muted-foreground mx-auto" />
-                <p className="text-center font-goudy text-muted-foreground">
-                  wasting hours configuring workflows instead of shipping features
+                <Icon icon="timerOff" className="size-16 mx-auto" color={"var(--muted-foreground)"} />
+                <p className="text-center text-muted-foreground">
+                  Wasting hours configuring workflows instead of shipping features
                 </p>
               </div>
               <div className="space-y-2">
-                <Icon icon="lucide:boxes" className="size-8 text-muted-foreground mx-auto" />
-                <p className="text-center font-goudy text-muted-foreground">
-                  drowning in features you'll never use while missing the basics
+                <Icon icon="box" className="size-16 mx-auto" color={"var(--muted-foreground)"} />
+                <p className="text-center text-muted-foreground">
+                  Drowning in features you'll never use while missing the basics
                 </p>
               </div>
               <div className="space-y-2">
-                <Icon icon="lucide:bug-off" className="size-8 text-muted-foreground mx-auto" />
-                <p className="text-center font-goudy text-muted-foreground">
-                  context switching kills momentum—your flow state doesn't stand a chance
+                <Icon icon="bugOff" className="size-16 mx-auto" color={"var(--muted-foreground)"} />
+                <p className="text-center text-muted-foreground">
+                  Context switching kills momentum—your flow state doesn't stand a chance
                 </p>
               </div>
             </div>
@@ -94,42 +96,43 @@ export default function Landing() {
           {/* solution section */}
           <div className="max-w-5xl mx-auto space-y-12">
             <h2 className="text-5xl font-basteleur font-700 text-center">
-              everything you need, nothing you don't
+              Everything you need, nothing you don't
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="border p-8 space-y-4">
-                <Icon icon="lucide:layout-dashboard" className="size-10 text-personality" />
-                <h3 className="text-2xl font-basteleur font-700">see your work at a glance</h3>
-                <p className="font-goudy text-muted-foreground text-lg">
-                  beautiful, intuitive issue tracking with customizable statuses. organize by projects and
-                  sprints. find what you need in seconds, not minutes.
+                <Icon icon="layoutDashboard" className="size-10" color={"var(--personality)"} />
+                <h3 className="text-2xl font-basteleur font-700">See your work at a glance</h3>
+                <p className="text-muted-foreground text-lg">
+                  Beautiful, intuitive issue tracking with customizable statuses. Organize by projects and
+                  sprints. Find what you need in seconds, not minutes.
                 </p>
               </div>
 
               <div className="border p-8 space-y-4">
-                <Icon icon="lucide:timer" className="size-10 text-personality" />
-                <h3 className="text-2xl font-basteleur font-700">track time without thinking</h3>
-                <p className="font-goudy text-muted-foreground text-lg">
-                  built-in time tracking that actually works. start, pause, resume. see where your time goes
+                <Icon icon="timer" className="size-10" color={"var(--personality)"} />
+                <h3 className="text-2xl font-basteleur font-700">Track time without thinking</h3>
+                <p className="text-muted-foreground text-lg">
+                  Built-in time tracking that actually works. Start, pause, resume. See where your time goes
                   without juggling another tool.
                 </p>
               </div>
 
               <div className="border p-8 space-y-4">
-                <Icon icon="lucide:rocket" className="size-10 text-personality" />
-                <h3 className="text-2xl font-basteleur font-700">ship in sprints</h3>
-                <p className="font-goudy text-muted-foreground text-lg">
-                  sprint planning that actually works. set date ranges, assign issues, track velocity. keep
+                <Icon icon="rocket" className="size-10" color={"var(--personality)"} />
+                <h3 className="text-2xl font-basteleur font-700">Ship in sprints</h3>
+                <p className="text-muted-foreground text-lg">
+                  Sprint planning that actually works. Set date ranges, assign issues, track velocity. Keep
                   your team aligned without the ceremony.
                 </p>
               </div>
 
               <div className="border p-8 space-y-4">
-                <Icon icon="lucide:zap" className="size-10 text-personality" />
-                <h3 className="text-2xl font-basteleur font-700">stay in flow</h3>
-                <p className="font-goudy text-muted-foreground text-lg">
-                  minimal clicks, maximum productivity. keyboard shortcuts, resizable panes, and a clean
-                  interface that gets out of your way.
+                <Icon icon="checkBox" className="size-10" color={"var(--personality)"} />
+                <h3 className="text-2xl font-basteleur font-700">Only use what you need</h3>
+                <p className="text-muted-foreground text-lg">
+                  Every feature is optional. Sprints, time tracking, and other modules can be enabled or
+                  disabled individually at the organization level. Keep your interface as minimal as your
+                  workflow.
                 </p>
               </div>
             </div>
@@ -138,24 +141,24 @@ export default function Landing() {
           {/* features list */}
           <div className="max-w-4xl mx-auto border p-8 space-y-6">
             <h2 className="text-3xl font-basteleur font-700 text-center">
-              built for developers, by a developer
+              Built for developers, by a developer
             </h2>
             <div className="grid md:grid-cols-2 gap-x-8 gap-y-3">
               {[
-                "organization and project management",
-                "customizable issue statuses",
-                "sprint planning with date ranges",
-                "built-in time tracking",
-                "role-based access control",
-                "native desktop app (tauri)",
-                "self-hostable on your infrastructure",
-                "clean, resizable interface",
-                "issue assignment and collaboration",
-                "jwt authentication",
+                "Organization and project management",
+                "Customizable issue statuses",
+                "Sprint planning with date ranges",
+                "Built-in time tracking",
+                "Role-based access control",
+                "Native desktop app (Tauri)",
+                "Self-hostable on your infrastructure",
+                "Clean, resizable interface",
+                "Issue assignment and collaboration",
+                "Individual feature toggles (org level)",
               ].map((feature) => (
                 <div key={feature} className="flex items-start gap-2">
-                  <Icon icon="lucide:check" className="size-5 text-personality shrink-0 mt-0.5" />
-                  <span className="font-goudy">{feature}</span>
+                  <Icon icon="check" className="size-5 shrink-0 mt-0.5" color={"var(--personality)"} />
+                  <span>{feature}</span>
                 </div>
               ))}
             </div>
@@ -163,34 +166,34 @@ export default function Landing() {
 
           {/* social proof placeholder */}
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <h2 className="text-4xl font-basteleur font-700">join developers who've escaped jira</h2>
+            <h2 className="text-4xl font-basteleur font-700">Join developers who've escaped Jira</h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="border p-6 space-y-4">
-                <p className="font-goudy text-lg italic text-muted-foreground">
-                  "finally, a project management tool that doesn't slow me down"
+                <p className="text-lg italic text-muted-foreground">
+                  "Finally, a project management tool that doesn't slow me down"
                 </p>
-                <p className="text-sm font-goudy font-700">early user feedback</p>
+                <p className="text-sm font-700">Early user feedback</p>
               </div>
               <div className="border p-6 space-y-4">
-                <p className="font-goudy text-lg italic text-muted-foreground">
-                  "built by someone who actually understands developer workflows"
+                <p className="text-lg italic text-muted-foreground">
+                  "Built by someone who actually understands developer workflows"
                 </p>
-                <p className="text-sm font-goudy font-700">early user feedback</p>
+                <p className="text-sm font-700">Early user feedback</p>
               </div>
               <div className="border p-6 space-y-4">
-                <p className="font-goudy text-lg italic text-muted-foreground">
-                  "the simplicity is refreshing. no bloat, just what we need"
+                <p className="text-lg italic text-muted-foreground">
+                  "The simplicity is refreshing. No bloat, just what we need"
                 </p>
-                <p className="text-sm font-goudy font-700">early user feedback</p>
+                <p className="text-sm font-700">Early user feedback</p>
               </div>
             </div>
           </div>
 
           {/* final cta */}
           <div className="text-center space-y-6 border-t pt-16">
-            <h2 className="text-5xl font-basteleur font-700">ready to ship faster?</h2>
-            <p className="text-xl font-goudy text-muted-foreground">
-              start tracking issues, managing sprints, and shipping product in minutes
+            <h2 className="text-5xl font-basteleur font-700">Ready to ship faster?</h2>
+            <p className="text-xl text-muted-foreground">
+              Start tracking issues, managing sprints, and shipping product in minutes
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               {!isLoading && user ? (
@@ -199,25 +202,25 @@ export default function Landing() {
                 </Button>
               ) : (
                 <Button asChild size="lg" className="text-lg px-8 py-6">
-                  <Link to="/login">start your free trial</Link>
+                  <Link to="/login">Start your free trial</Link>
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground font-goudy">
-              no credit card required · 14-day free trial · cancel anytime
+            <p className="text-sm text-muted-foreground">
+              No credit card required · 14-day free trial · Cancel anytime
             </p>
           </div>
         </div>
       </main>
 
       <footer className="flex justify-center gap-2 items-center py-1 border-t">
-        <span className="font-300 text-lg text-muted-foreground font-goudy">
+        <span className="font-300 text-lg text-muted-foreground">
           Built by{" "}
           <a
             href="https://ob248.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-personality font-goudy font-700"
+            className="hover:text-personality font-700"
           >
             Oliver Bryan
           </a>
