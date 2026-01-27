@@ -7,8 +7,8 @@ const iconButtonVariants = cva(
   {
     variants: {
       variant: {
-        default: "hover:text-foreground/70",
-        destructive: "text-destructive hover:text-destructive/70",
+        default: "hover:text-foreground/70 hover:opacity-70",
+        destructive: "text-destructive hover:opacity-70",
         yellow: "text-yellow-500 hover:text-yellow-500/70",
         green: "text-green-500 hover:text-green-500/70",
         ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",

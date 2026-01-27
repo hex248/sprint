@@ -147,32 +147,33 @@ export function IssuesTable({
     e.preventDefault();
   };
 
+  const showId = columns.id == null || columns.id === true;
+  const showTitle = columns.title == null || columns.title === true;
+  const showDescription = columns.description == null || columns.description === true;
+  const showAssignee = columns.assignee == null || columns.assignee === true;
+
   return (
     <Table className={cn("table-fixed", className)}>
       <TableHeader>
         <TableRow hoverEffect={false} className="bg-secondary">
-          {(columns.id == null || columns.id === true) && (
+          {showId && (
             <TableHead className="text-right w-10 border-r text-xs font-medium text-muted-foreground">
               ID
             </TableHead>
           )}
-          {(columns.title == null || columns.title === true) && (
-            <TableHead className="text-xs font-medium text-muted-foreground">Title</TableHead>
-          )}
-          {(columns.description == null || columns.description === true) && (
+          {showTitle && <TableHead className="text-xs font-medium text-muted-foreground">Title</TableHead>}
+          {showDescription && (
             <TableHead className="text-xs font-medium text-muted-foreground">Description</TableHead>
           )}
           {/* below is kept blank to fill the space, used as the "Assignee" column */}
-          {(columns.assignee == null || columns.assignee === true) && (
-            <TableHead className="w-[1%]"></TableHead>
-          )}
+          {showAssignee && <TableHead className="w-[1%]"></TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
         {issues.map((issueData) => (
           <TableRow
             key={issueData.Issue.id}
-            className="cursor-pointer max-w-full"
+            className={cn("cursor-pointer max-w-full")}
             onClick={() => {
               if (issueData.Issue.id === selectedIssueId) {
                 selectIssue(null);
@@ -181,8 +182,13 @@ export function IssuesTable({
               selectIssue(issueData);
             }}
           >
-            {(columns.id == null || columns.id === true) && (
-              <TableCell className="font-medium border-r text-right p-0">
+            {showId && (
+              <TableCell
+                className={cn(
+                  "font-medium border-r text-right p-0",
+                  issueData.Issue.id === selectedIssueId && "shadow-[inset_2px_0_0_0_var(--personality)]",
+                )}
+              >
                 <a
                   href={getIssueUrl(issueData.Issue.number)}
                   onClick={handleLinkClick}
@@ -192,8 +198,15 @@ export function IssuesTable({
                 </a>
               </TableCell>
             )}
-            {(columns.title == null || columns.title === true) && (
-              <TableCell className="min-w-0 p-0">
+            {showTitle && (
+              <TableCell
+                className={cn(
+                  "min-w-0 p-0",
+                  !showId &&
+                    issueData.Issue.id === selectedIssueId &&
+                    "shadow-[inset_2px_0_0_0_var(--personality)]",
+                )}
+              >
                 <a
                   href={getIssueUrl(issueData.Issue.number)}
                   onClick={handleLinkClick}
@@ -215,7 +228,7 @@ export function IssuesTable({
                 </a>
               </TableCell>
             )}
-            {(columns.description == null || columns.description === true) && (
+            {showDescription && (
               <TableCell className="overflow-hidden p-0">
                 <a
                   href={getIssueUrl(issueData.Issue.number)}
@@ -226,7 +239,7 @@ export function IssuesTable({
                 </a>
               </TableCell>
             )}
-            {(columns.assignee == null || columns.assignee === true) && (
+            {showAssignee && (
               <TableCell className="h-[32px] p-0">
                 <a
                   href={getIssueUrl(issueData.Issue.number)}

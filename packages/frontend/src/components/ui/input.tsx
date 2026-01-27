@@ -26,7 +26,7 @@ function Input({
       className={cn(
         "border-input dark:bg-input/30 flex h-9 w-full min-w-0 items-center border bg-transparent",
         "transition-[color,box-shadow]",
-        "has-[:focus-visible]:border-ring",
+        "has-[:focus-visible]:border-[var(--personality)] ",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         "aria-invalid:border-destructive",
         className,
