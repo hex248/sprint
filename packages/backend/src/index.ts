@@ -40,7 +40,7 @@ const main = async () => {
 
             "/user/by-username": withGlobal(withAuth(routes.userByUsername)),
             "/user/update": withGlobal(withAuth(withCSRF(routes.userUpdate))),
-            "/user/upload-avatar": withGlobal(withAuth(withCSRF(routes.userUploadAvatar))),
+            "/user/upload-avatar": withGlobal(routes.userUploadAvatar),
 
             "/issue/create": withGlobal(withAuth(withCSRF(routes.issueCreate))),
             "/issue/by-id": withGlobal(withAuth(routes.issueById)),

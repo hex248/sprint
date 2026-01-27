@@ -49,6 +49,7 @@ export default function Avatar({
   size,
   textClass = "text-xs",
   strong = false,
+  skipOrgCheck = false,
   className,
 }: {
   avatarURL?: string | null;
@@ -57,6 +58,7 @@ export default function Avatar({
   size?: number;
   textClass?: string;
   strong?: boolean;
+  skipOrgCheck?: boolean;
   className?: string;
 }) {
   // if the username matches the authed user, use their avatarURL and name (avoid stale data)
@@ -69,13 +71,15 @@ export default function Avatar({
     ? FALLBACK_COLOURS[hashStringToIndex(username, FALLBACK_COLOURS.length)]
     : "bg-muted";
 
+  const showAvatar = skipOrgCheck || selectedOrganisation?.Organisation.features.userAvatars;
+
   return (
     <div
       className={cn(
         "flex items-center justify-center rounded-full",
         "text-white font-medium select-none",
         name && "border",
-        (!avatarURL || !selectedOrganisation?.Organisation.features.userAvatars) && backgroundClass,
+        (!avatarURL || !showAvatar) && backgroundClass,
 
         "transition-colors",
         `w-${size || 6}`,
@@ -83,7 +87,7 @@ export default function Avatar({
         className,
       )}
     >
-      {selectedOrganisation?.Organisation.features.userAvatars && avatarURL ? (
+      {showAvatar && avatarURL ? (
         <img
           src={avatarURL}
           alt="Avatar"

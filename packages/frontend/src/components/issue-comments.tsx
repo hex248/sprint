@@ -118,7 +118,6 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
                   </div>
                   {isAuthor ? (
                     <IconButton
-                      variant="ghost"
                       onClick={() => handleDelete(comment)}
                       disabled={deletingId === comment.Comment.id}
                       title="Delete comment"

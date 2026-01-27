@@ -330,13 +330,13 @@ export default function Timeline() {
                                 >
                                   <div
                                     className={cn(
-                                      "absolute inset-y-0 w-px bg-primary",
+                                      "absolute inset-y-0 w-px bg-[var(--personality)]",
                                       showTodayLabel && "mt-1",
                                     )}
                                   />
                                   {showTodayLabel && (
                                     <div className="absolute -top-1.5">
-                                      <span className="bg-primary px-1 py-0.5 text-[10px] font-semibold text-primary-foreground whitespace-nowrap">
+                                      <span className="bg-[var(--personality)] px-1 py-0.5 text-[10px] font-semibold text-[var(--background)] whitespace-nowrap">
                                         TODAY
                                       </span>
                                     </div>

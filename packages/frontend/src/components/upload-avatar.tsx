@@ -13,6 +13,7 @@ export function UploadAvatar({
   username,
   avatarURL,
   onAvatarUploaded,
+  skipOrgCheck = false,
   className,
 }: {
   name?: string;
@@ -20,6 +21,7 @@ export function UploadAvatar({
   avatarURL?: string | null;
   onAvatarUploaded: (avatarURL: string) => void;
   label?: string;
+  skipOrgCheck?: boolean;
   className?: string;
 }) {
   const [uploading, setUploading] = useState(false);
@@ -71,6 +73,7 @@ export function UploadAvatar({
           size={24}
           textClass={"text-4xl"}
           strong
+          skipOrgCheck={skipOrgCheck}
         />
 
         {!uploading && showEdit && (

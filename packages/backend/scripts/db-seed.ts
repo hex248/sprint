@@ -1,5 +1,16 @@
 import "dotenv/config";
-import { Issue, Organisation, OrganisationMember, Project, User } from "@sprint/shared";
+import {
+    DEFAULT_ISSUE_TYPES,
+    DEFAULT_STATUS_COLOURS,
+    Issue,
+    IssueAssignee,
+    IssueComment,
+    Organisation,
+    OrganisationMember,
+    Project,
+    Sprint,
+    User,
+} from "@sprint/shared";
 import bcrypt from "bcrypt";
 import { drizzle } from "drizzle-orm/node-postgres";
 
@@ -64,6 +75,24 @@ const issues = [
     { title: "Add file preview", description: "Users want to preview files before download." },
     { title: "Fix session expiry", description: "Users get logged out unexpectedly." },
     { title: "Add batch processing", description: "Need to process large datasets efficiently." },
+];
+
+const issueStatuses = Object.keys(DEFAULT_STATUS_COLOURS);
+const issueTypes = Object.keys(DEFAULT_ISSUE_TYPES);
+
+const issueComments = [
+    "started looking into this, will share updates soon",
+    "i can reproduce this on staging",
+    "adding details in the description",
+    "should be a small fix, pairing with u2",
+    "blocked on api response shape",
+    "added logs, issue still happening",
+    "fix is ready for review",
+    "can we confirm expected behavior?",
+    "this seems related to recent deploy",
+    "i will take this one",
+    "qa verified on latest build",
+    "needs product input before proceeding",
 ];
 
 const passwordHash = await hashPassword("a");
@@ -146,14 +175,48 @@ async function seed() {
 
         console.log(`created ${projects.length} projects`);
 
-        // create 3-6 issues per project
+        console.log("creating sprints...");
+        const sprintValues = [];
+        const now = new Date();
+
+        for (const project of projects) {
+            sprintValues.push(
+                {
+                    projectId: project.id,
+                    name: "Sprint 1",
+                    color: "#3b82f6",
+                    startDate: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+                    endDate: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+                },
+                {
+                    projectId: project.id,
+                    name: "Sprint 2",
+                    color: "#22c55e",
+                    startDate: new Date(now.getTime()),
+                    endDate: new Date(now.getTime() + 13 * 24 * 60 * 60 * 1000),
+                },
+            );
+        }
+
+        const createdSprints = await db.insert(Sprint).values(sprintValues).returning();
+        const sprintsByProject = new Map<number, (typeof createdSprints)[number][]>();
+
+        for (const sprint of createdSprints) {
+            const list = sprintsByProject.get(sprint.projectId) ?? [];
+            list.push(sprint);
+            sprintsByProject.set(sprint.projectId, list);
+        }
+
+        console.log(`created ${createdSprints.length} sprints`);
+
+        // create 6-12 issues per project
         console.log("creating issues...");
         const allUsers = [u1, u2];
         const issueValues = [];
         let issueIndex = 0;
 
         for (const project of projects) {
-            const numIssues = Math.floor(Math.random() * 4) + 3; // 3-6 issues
+            const numIssues = Math.floor(Math.random() * 7) + 6; // 6-12 issues
             for (let i = 1; i <= numIssues; i++) {
                 const creator = allUsers[Math.floor(Math.random() * allUsers.length)];
                 if (!creator) {
@@ -164,20 +227,89 @@ async function seed() {
                     throw new Error("failed to select issue");
                 }
                 issueIndex++;
+                const status = issueStatuses[Math.floor(Math.random() * issueStatuses.length)];
+                const type = issueTypes[Math.floor(Math.random() * issueTypes.length)];
+                if (!status || !type) {
+                    throw new Error("failed to select issue status or type");
+                }
+                const projectSprints = sprintsByProject.get(project.id);
+                if (!projectSprints || projectSprints.length === 0) {
+                    throw new Error("failed to select project sprint");
+                }
+                const sprint = projectSprints[Math.floor(Math.random() * projectSprints.length)];
+                if (!sprint) {
+                    throw new Error("failed to select sprint");
+                }
 
                 issueValues.push({
                     projectId: project.id,
                     number: i,
                     title: issue.title,
                     description: issue.description,
+                    status,
+                    type,
                     creatorId: creator.id,
+                    sprintId: sprint.id,
                 });
             }
         }
 
-        await db.insert(Issue).values(issueValues);
+        const createdIssues = await db.insert(Issue).values(issueValues).returning();
 
-        console.log(`created ${issueValues.length} issues`);
+        console.log(`created ${createdIssues.length} issues`);
+
+        console.log("creating issue assignees...");
+        const assigneeValues = [];
+
+        for (const issue of createdIssues) {
+            const assigneeCount = Math.floor(Math.random() * 3);
+            const picked = new Set<number>();
+            for (let i = 0; i < assigneeCount; i++) {
+                const assignee = usersDB[Math.floor(Math.random() * usersDB.length)];
+                if (!assignee) {
+                    throw new Error("failed to select issue assignee");
+                }
+                if (picked.has(assignee.id)) {
+                    continue;
+                }
+                picked.add(assignee.id);
+                assigneeValues.push({
+                    issueId: issue.id,
+                    userId: assignee.id,
+                });
+            }
+        }
+
+        if (assigneeValues.length > 0) {
+            await db.insert(IssueAssignee).values(assigneeValues);
+        }
+
+        console.log(`created ${assigneeValues.length} issue assignees`);
+
+        console.log("creating issue comments...");
+        const commentValues = [];
+
+        for (const issue of createdIssues) {
+            const commentCount = Math.floor(Math.random() * 3);
+            for (let i = 0; i < commentCount; i++) {
+                const commenter = usersDB[Math.floor(Math.random() * usersDB.length)];
+                const comment = issueComments[Math.floor(Math.random() * issueComments.length)];
+                if (!commenter || !comment) {
+                    throw new Error("failed to select issue comment data");
+                }
+                commentValues.push({
+                    issueId: issue.id,
+                    userId: commenter.id,
+                    body: comment,
+                });
+            }
+        }
+
+        if (commentValues.length > 0) {
+            await db.insert(IssueComment).values(commentValues);
+        }
+
+        console.log(`created ${commentValues.length} issue comments`);
 
         console.log("database seeding complete");
         console.log("\ndemo accounts (password: a):");

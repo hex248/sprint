@@ -1,7 +1,6 @@
 # HIGH PRIORITY
 
 - BUGS:
-- issue descriptions not showing
 - FEATURES:
 - pricing page
   - see jira and other competitors

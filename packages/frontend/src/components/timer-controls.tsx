@@ -75,11 +75,9 @@ export function TimerControls({
         <div className={cn("ml-auto flex items-center", isCompact ? "gap-1" : "gap-2")}>
           <IconButton
             size={"sm"}
-            variant="dummy"
             aria-label={running ? "Pause timer" : "Resume timer"}
             disabled={disabled}
             onClick={handleToggle}
-            className={"hover:opacity-70"}
           >
             {running ? (
               <Icon icon="pause" size={isCompact ? 14 : 16} />
@@ -87,14 +85,7 @@ export function TimerControls({
               <Icon icon="play" size={isCompact ? 14 : 16} />
             )}
           </IconButton>
-          <IconButton
-            size={"sm"}
-            variant="destructive"
-            aria-label="End timer"
-            disabled={disabled || !hasTimer}
-            onClick={handleEnd}
-            className={"hover:opacity-70"}
-          >
+          <IconButton size={"sm"} aria-label="End timer" disabled={disabled || !hasTimer} onClick={handleEnd}>
             <Icon icon="stop" size={isCompact ? 14 : 16} color={"var(--destructive)"} />
           </IconButton>
         </div>

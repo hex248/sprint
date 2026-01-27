@@ -724,7 +724,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                             });
                           }}
                         >
-                          <Icon icon="trash" className="size-4" />
+                          <Icon icon="trash" className="size-4" color="white" />
                           Delete
                         </Button>
                       )}
@@ -872,7 +872,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                                       });
                                     }}
                                   >
-                                    <Icon icon="trash" className="size-4" />
+                                    <Icon icon="trash" className="size-4" color="white" />
                                     Delete
                                   </Button>
                                 )}
@@ -951,7 +951,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                                             }}
                                             className="hover:bg-destructive/10"
                                           >
-                                            <Icon icon="trash" className="size-4" />
+                                            <Icon icon="trash" className="size-4" color="white" />
                                             Delete
                                           </DropdownMenuItem>
                                         </DropdownMenuContent>

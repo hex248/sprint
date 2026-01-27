@@ -222,6 +222,7 @@ export default function LogInForm() {
                     username={username || undefined}
                     avatarURL={avatarURL}
                     onAvatarUploaded={setAvatarUrl}
+                    skipOrgCheck
                     className="mb-2"
                   />
                   {avatarURL && (
