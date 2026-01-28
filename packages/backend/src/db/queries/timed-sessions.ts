@@ -1,6 +1,45 @@
-import { Issue, Project, TimedSession } from "@sprint/shared";
-import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
-import { db } from "../client";
+import { Issue, OrganisationMember, Project, TimedSession } from "@sprint/shared";
+import { and, desc, eq, gte, inArray, isNotNull, isNull } from "drizzle-orm";
+import { db } from "../client"; // Import OrganisationMember and gte, inArray for the new query
+
+export async function getOrganisationMemberTimedSessions(organisationId: number, fromDate?: Date) {
+    // First get all member user IDs for the organisation
+    const members = await db
+        .select({ userId: OrganisationMember.userId })
+        .from(OrganisationMember)
+        .where(eq(OrganisationMember.organisationId, organisationId));
+
+    const userIds = members.map((m) => m.userId);
+
+    if (userIds.length === 0) {
+        return [];
+    }
+
+    // Build the where clause
+    const conditions = [inArray(TimedSession.userId, userIds)];
+    if (fromDate) {
+        conditions.push(gte(TimedSession.createdAt, fromDate));
+    }
+
+    const timedSessions = await db
+        .select({
+            id: TimedSession.id,
+            userId: TimedSession.userId,
+            issueId: TimedSession.issueId,
+            timestamps: TimedSession.timestamps,
+            endedAt: TimedSession.endedAt,
+            createdAt: TimedSession.createdAt,
+            issueNumber: Issue.number,
+            projectKey: Project.key,
+        })
+        .from(TimedSession)
+        .innerJoin(Issue, eq(TimedSession.issueId, Issue.id))
+        .innerJoin(Project, eq(Issue.projectId, Project.id))
+        .where(and(...conditions))
+        .orderBy(desc(TimedSession.createdAt));
+
+    return timedSessions;
+}
 
 export async function createTimedSession(userId: number, issueId: number) {
     const [timedSession] = await db
