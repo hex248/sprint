@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { LoginModal } from "@/components/login-modal";
 import { useSession } from "@/components/session-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,6 @@ const pricingTiers = [
       "Email support",
     ],
     cta: "Get started free",
-    ctaLink: "/login",
     highlighted: false,
   },
   {
@@ -45,7 +45,6 @@ const pricingTiers = [
       "Priority email support",
     ],
     cta: "Try pro free for 14 days",
-    ctaLink: "/login",
     highlighted: true,
   },
 ];
@@ -88,6 +87,7 @@ const faqs = [
 export default function Landing() {
   const { user, isLoading } = useSession();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col" id="top">
@@ -129,8 +129,8 @@ export default function Landing() {
                   <Link to="/issues">Open app</Link>
                 </Button>
               ) : (
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/login">Sign in</Link>
+                <Button variant="outline" size="sm" onClick={() => setLoginModalOpen(true)}>
+                  Sign in
                 </Button>
               )}
             </div>
@@ -162,8 +162,8 @@ export default function Landing() {
                 </Button>
               ) : (
                 <>
-                  <Button asChild size="lg" className="text-lg px-8 py-6">
-                    <Link to="/login">Start free trial</Link>
+                  <Button size="lg" className="text-lg px-8 py-6" onClick={() => setLoginModalOpen(true)}>
+                    Start free trial
                   </Button>
                   <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
                     <a href="#pricing">See pricing</a>
@@ -381,14 +381,14 @@ export default function Landing() {
                   </ul>
 
                   <Button
-                    asChild
                     variant={tier.highlighted ? "default" : "outline"}
                     className={cn(
                       "font-700 py-6",
                       tier.highlighted ? "bg-personality hover:bg-personality/90 text-background" : "",
                     )}
+                    onClick={() => setLoginModalOpen(true)}
                   >
-                    <Link to={tier.ctaLink}>{tier.cta}</Link>
+                    {tier.cta}
                   </Button>
                 </div>
               ))}
@@ -472,8 +472,8 @@ export default function Landing() {
                   <Link to="/issues">Open app</Link>
                 </Button>
               ) : (
-                <Button asChild size="lg" className="text-lg px-8 py-6">
-                  <Link to="/login">Start your free trial</Link>
+                <Button size="lg" className="text-lg px-8 py-6" onClick={() => setLoginModalOpen(true)}>
+                  Start your free trial
                 </Button>
               )}
             </div>
@@ -483,6 +483,8 @@ export default function Landing() {
           </div>
         </div>
       </main>
+
+      <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
 
       <footer className="flex justify-center gap-2 items-center py-1 border-t">
         <span className="font-300 text-lg text-muted-foreground">

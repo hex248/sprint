@@ -19,15 +19,18 @@ const DEMO_USERS = [
   { name: "User 2", username: "u2", password: "a" },
 ];
 
-export default function LogInForm() {
+export default function LogInForm({
+  showWarning,
+  setShowWarning,
+}: {
+  showWarning: boolean;
+  setShowWarning: (value: boolean) => void;
+}) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { setUser } = useSession();
 
   const [loginDetailsOpen, setLoginDetailsOpen] = useState(false);
-  const [showWarning, setShowWarning] = useState(() => {
-    return localStorage.getItem("hide-under-construction") !== "true";
-  });
 
   const [mode, setMode] = useState<"login" | "register">("login");
 
@@ -143,7 +146,7 @@ export default function LogInForm() {
     <>
       {/* under construction warning */}
       {showWarning && (
-        <div className="relative flex flex-col border p-4 items-center border-border/50 bg-border/10 gap-2 max-w-lg">
+        <div className="relative flex flex-col items-center gap-2 max-w-lg">
           <IconButton
             size="md"
             className="absolute top-2 right-2"
@@ -168,7 +171,7 @@ export default function LogInForm() {
               <DialogTrigger className="text-primary hover:text-personality cursor-pointer mt-2">
                 Login Details
               </DialogTrigger>
-              <DialogContent className="w-xs" showCloseButton={false}>
+              <DialogContent showCloseButton={false}>
                 <DialogTitle className="sr-only">Demo Login Credentials</DialogTitle>
                 <div className="grid grid-cols-2 gap-4">
                   {DEMO_USERS.map((user) => (
@@ -208,7 +211,7 @@ export default function LogInForm() {
         <form onSubmit={handleSubmit}>
           <div
             className={cn(
-              "relative flex flex-col gap-2 items-center border p-6 pb-4",
+              "relative flex flex-col gap-2 items-center p-4 pb-2",
               error !== "" && "border-destructive",
             )}
           >
