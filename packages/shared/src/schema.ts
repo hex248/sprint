@@ -1,4 +1,4 @@
-import { integer, json, pgTable, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, json, pgTable, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 import {
@@ -59,6 +59,7 @@ export const User = pgTable("User", {
     passwordHash: varchar({ length: 255 }).notNull(),
     avatarURL: varchar({ length: 512 }),
     iconPreference: varchar({ length: 10 }).notNull().default("pixel").$type<IconStyle>(),
+    plan: varchar({ length: 32 }).notNull().default("free"),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });
@@ -295,3 +296,50 @@ export type TimerState = {
     timestamps: string[];
     endedAt: string | null;
 } | null;
+
+// Subscription table - tracks user subscriptions
+export const Subscription = pgTable("Subscription", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer()
+        .notNull()
+        .references(() => User.id),
+    stripeCustomerId: varchar({ length: 255 }),
+    stripeSubscriptionId: varchar({ length: 255 }),
+    stripeSubscriptionItemId: varchar({ length: 255 }),
+    stripePriceId: varchar({ length: 255 }),
+    status: varchar({ length: 32 }).notNull().default("incomplete"),
+    currentPeriodStart: timestamp({ withTimezone: false }),
+    currentPeriodEnd: timestamp({ withTimezone: false }),
+    cancelAtPeriodEnd: boolean().notNull().default(false),
+    trialEnd: timestamp({ withTimezone: false }),
+    quantity: integer().notNull().default(1),
+    createdAt: timestamp({ withTimezone: false }).defaultNow(),
+    updatedAt: timestamp({ withTimezone: false }).defaultNow(),
+});
+
+// Payment history table
+export const Payment = pgTable("Payment", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    subscriptionId: integer()
+        .notNull()
+        .references(() => Subscription.id),
+    stripePaymentIntentId: varchar({ length: 255 }),
+    amount: integer().notNull(),
+    currency: varchar({ length: 3 }).notNull().default("gbp"),
+    status: varchar({ length: 32 }).notNull(),
+    createdAt: timestamp({ withTimezone: false }).defaultNow(),
+});
+
+// Zod schemas for Subscription and Payment
+export const SubscriptionSelectSchema = createSelectSchema(Subscription);
+export const SubscriptionInsertSchema = createInsertSchema(Subscription);
+
+export const PaymentSelectSchema = createSelectSchema(Payment);
+export const PaymentInsertSchema = createInsertSchema(Payment);
+
+// Types for Subscription and Payment
+export type SubscriptionRecord = z.infer<typeof SubscriptionSelectSchema>;
+export type SubscriptionInsert = z.infer<typeof SubscriptionInsertSchema>;
+
+export type PaymentRecord = z.infer<typeof PaymentSelectSchema>;
+export type PaymentInsert = z.infer<typeof PaymentInsertSchema>;
