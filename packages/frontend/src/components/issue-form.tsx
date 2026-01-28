@@ -1,6 +1,6 @@
 import { ISSUE_DESCRIPTION_MAX_LENGTH, ISSUE_TITLE_MAX_LENGTH } from "@sprint/shared";
 
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
@@ -57,6 +57,10 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const [assigneeIds, setAssigneeIds] = useState<string[]>(["unassigned"]);
   const [status, setStatus] = useState<string>(defaultStatus);
   const [type, setType] = useState<string>(defaultType);
+  useEffect(() => {
+    if (!status && defaultStatus) setStatus(defaultStatus);
+    if (!type && defaultType) setType(defaultType);
+  }, [defaultStatus, defaultType, status, type]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

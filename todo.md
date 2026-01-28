@@ -1,7 +1,6 @@
 # HIGH PRIORITY
 
 - BUGS:
-- on the first attempt since page load, pressing the create issue button the default type and status are not loaded
 - FEATURES:
 - make login/register into a modal that appears atop the landing page
 - user preferences
