@@ -2,6 +2,7 @@ import type { BunRequest } from "bun";
 import { withAuth, withCors, withCSRF, withRateLimit } from "./auth/middleware";
 import { testDB } from "./db/client";
 import { cleanupExpiredSessions } from "./db/queries";
+import { withAuthedLogging, withLogging } from "./logger";
 import { routes } from "./routes";
 
 const DEV = process.argv.find((arg) => ["--dev", "--developer", "-d"].includes(arg.toLowerCase())) != null;
@@ -23,7 +24,10 @@ const startSessionCleanup = () => {
 
 type RouteHandler<T extends BunRequest = BunRequest> = (req: T) => Response | Promise<Response>;
 
-const withGlobal = <T extends BunRequest>(handler: RouteHandler<T>) => withCors(withRateLimit(handler));
+const withGlobal = <T extends BunRequest>(handler: RouteHandler<T>) =>
+    withLogging(withCors(withRateLimit(handler)));
+const withGlobalAuthed = <T extends BunRequest>(handler: RouteHandler<T>) =>
+    withAuthedLogging(withCors(withRateLimit(handler)));
 
 const main = async () => {
     const server = Bun.serve({
@@ -35,62 +39,64 @@ const main = async () => {
             // routes that modify state require withCSRF middleware
             "/auth/register": withGlobal(routes.authRegister),
             "/auth/login": withGlobal(routes.authLogin),
-            "/auth/logout": withGlobal(withAuth(withCSRF(routes.authLogout))),
-            "/auth/me": withGlobal(withAuth(routes.authMe)),
+            "/auth/logout": withGlobalAuthed(withAuth(withCSRF(routes.authLogout))),
+            "/auth/me": withGlobalAuthed(withAuth(routes.authMe)),
 
-            "/user/by-username": withGlobal(withAuth(routes.userByUsername)),
-            "/user/update": withGlobal(withAuth(withCSRF(routes.userUpdate))),
-            "/user/upload-avatar": withGlobal(routes.userUploadAvatar),
+            "/user/by-username": withGlobalAuthed(withAuth(routes.userByUsername)),
+            "/user/update": withGlobalAuthed(withAuth(withCSRF(routes.userUpdate))),
+            "/user/upload-avatar": withGlobalAuthed(withAuth(routes.userUploadAvatar)),
 
-            "/issue/create": withGlobal(withAuth(withCSRF(routes.issueCreate))),
-            "/issue/by-id": withGlobal(withAuth(routes.issueById)),
-            "/issue/update": withGlobal(withAuth(withCSRF(routes.issueUpdate))),
-            "/issue/delete": withGlobal(withAuth(withCSRF(routes.issueDelete))),
-            "/issue-comment/create": withGlobal(withAuth(withCSRF(routes.issueCommentCreate))),
-            "/issue-comment/delete": withGlobal(withAuth(withCSRF(routes.issueCommentDelete))),
+            "/issue/create": withGlobalAuthed(withAuth(withCSRF(routes.issueCreate))),
+            "/issue/by-id": withGlobalAuthed(withAuth(routes.issueById)),
+            "/issue/update": withGlobalAuthed(withAuth(withCSRF(routes.issueUpdate))),
+            "/issue/delete": withGlobalAuthed(withAuth(withCSRF(routes.issueDelete))),
+            "/issue-comment/create": withGlobalAuthed(withAuth(withCSRF(routes.issueCommentCreate))),
+            "/issue-comment/delete": withGlobalAuthed(withAuth(withCSRF(routes.issueCommentDelete))),
 
-            "/issues/by-project": withGlobal(withAuth(routes.issuesByProject)),
-            "/issues/replace-status": withGlobal(withAuth(withCSRF(routes.issuesReplaceStatus))),
-            "/issues/replace-type": withGlobal(withAuth(withCSRF(routes.issuesReplaceType))),
-            "/issues/status-count": withGlobal(withAuth(routes.issuesStatusCount)),
-            "/issues/type-count": withGlobal(withAuth(routes.issuesTypeCount)),
-            "/issues/all": withGlobal(withAuth(routes.issues)),
-            "/issue-comments/by-issue": withGlobal(withAuth(routes.issueCommentsByIssue)),
+            "/issues/by-project": withGlobalAuthed(withAuth(routes.issuesByProject)),
+            "/issues/replace-status": withGlobalAuthed(withAuth(withCSRF(routes.issuesReplaceStatus))),
+            "/issues/replace-type": withGlobalAuthed(withAuth(withCSRF(routes.issuesReplaceType))),
+            "/issues/status-count": withGlobalAuthed(withAuth(routes.issuesStatusCount)),
+            "/issues/type-count": withGlobalAuthed(withAuth(routes.issuesTypeCount)),
+            "/issues/all": withGlobalAuthed(withAuth(routes.issues)),
+            "/issue-comments/by-issue": withGlobalAuthed(withAuth(routes.issueCommentsByIssue)),
 
-            "/organisation/create": withGlobal(withAuth(withCSRF(routes.organisationCreate))),
-            "/organisation/by-id": withGlobal(withAuth(routes.organisationById)),
-            "/organisation/update": withGlobal(withAuth(withCSRF(routes.organisationUpdate))),
-            "/organisation/delete": withGlobal(withAuth(withCSRF(routes.organisationDelete))),
-            "/organisation/upload-icon": withGlobal(withAuth(withCSRF(routes.organisationUploadIcon))),
-            "/organisation/add-member": withGlobal(withAuth(withCSRF(routes.organisationAddMember))),
-            "/organisation/members": withGlobal(withAuth(routes.organisationMembers)),
-            "/organisation/remove-member": withGlobal(withAuth(withCSRF(routes.organisationRemoveMember))),
-            "/organisation/update-member-role": withGlobal(
+            "/organisation/create": withGlobalAuthed(withAuth(withCSRF(routes.organisationCreate))),
+            "/organisation/by-id": withGlobalAuthed(withAuth(routes.organisationById)),
+            "/organisation/update": withGlobalAuthed(withAuth(withCSRF(routes.organisationUpdate))),
+            "/organisation/delete": withGlobalAuthed(withAuth(withCSRF(routes.organisationDelete))),
+            "/organisation/upload-icon": withGlobalAuthed(withAuth(withCSRF(routes.organisationUploadIcon))),
+            "/organisation/add-member": withGlobalAuthed(withAuth(withCSRF(routes.organisationAddMember))),
+            "/organisation/members": withGlobalAuthed(withAuth(routes.organisationMembers)),
+            "/organisation/remove-member": withGlobalAuthed(
+                withAuth(withCSRF(routes.organisationRemoveMember)),
+            ),
+            "/organisation/update-member-role": withGlobalAuthed(
                 withAuth(withCSRF(routes.organisationUpdateMemberRole)),
             ),
 
-            "/organisations/by-user": withGlobal(withAuth(routes.organisationsByUser)),
+            "/organisations/by-user": withGlobalAuthed(withAuth(routes.organisationsByUser)),
 
-            "/project/create": withGlobal(withAuth(withCSRF(routes.projectCreate))),
-            "/project/update": withGlobal(withAuth(withCSRF(routes.projectUpdate))),
-            "/project/delete": withGlobal(withAuth(withCSRF(routes.projectDelete))),
-            "/project/with-creator": withGlobal(withAuth(routes.projectWithCreator)),
+            "/project/create": withGlobalAuthed(withAuth(withCSRF(routes.projectCreate))),
+            "/project/update": withGlobalAuthed(withAuth(withCSRF(routes.projectUpdate))),
+            "/project/delete": withGlobalAuthed(withAuth(withCSRF(routes.projectDelete))),
+            "/project/with-creator": withGlobalAuthed(withAuth(routes.projectWithCreator)),
 
-            "/projects/by-creator": withGlobal(withAuth(routes.projectsByCreator)),
-            "/projects/by-organisation": withGlobal(withAuth(routes.projectsByOrganisation)),
-            "/projects/all": withGlobal(withAuth(routes.projectsAll)),
-            "/projects/with-creators": withGlobal(withAuth(routes.projectsWithCreators)),
+            "/projects/by-creator": withGlobalAuthed(withAuth(routes.projectsByCreator)),
+            "/projects/by-organisation": withGlobalAuthed(withAuth(routes.projectsByOrganisation)),
+            "/projects/all": withGlobalAuthed(withAuth(routes.projectsAll)),
+            "/projects/with-creators": withGlobalAuthed(withAuth(routes.projectsWithCreators)),
 
-            "/sprint/create": withGlobal(withAuth(withCSRF(routes.sprintCreate))),
-            "/sprint/update": withGlobal(withAuth(withCSRF(routes.sprintUpdate))),
-            "/sprint/delete": withGlobal(withAuth(withCSRF(routes.sprintDelete))),
-            "/sprints/by-project": withGlobal(withAuth(routes.sprintsByProject)),
+            "/sprint/create": withGlobalAuthed(withAuth(withCSRF(routes.sprintCreate))),
+            "/sprint/update": withGlobalAuthed(withAuth(withCSRF(routes.sprintUpdate))),
+            "/sprint/delete": withGlobalAuthed(withAuth(withCSRF(routes.sprintDelete))),
+            "/sprints/by-project": withGlobalAuthed(withAuth(routes.sprintsByProject)),
 
-            "/timer/toggle": withGlobal(withAuth(withCSRF(routes.timerToggle))),
-            "/timer/end": withGlobal(withAuth(withCSRF(routes.timerEnd))),
-            "/timer/get": withGlobal(withAuth(withCSRF(routes.timerGet))),
-            "/timer/get-inactive": withGlobal(withAuth(withCSRF(routes.timerGetInactive))),
-            "/timers": withGlobal(withAuth(withCSRF(routes.timers))),
+            "/timer/toggle": withGlobalAuthed(withAuth(withCSRF(routes.timerToggle))),
+            "/timer/end": withGlobalAuthed(withAuth(withCSRF(routes.timerEnd))),
+            "/timer/get": withGlobalAuthed(withAuth(withCSRF(routes.timerGet))),
+            "/timer/get-inactive": withGlobalAuthed(withAuth(withCSRF(routes.timerGetInactive))),
+            "/timers": withGlobalAuthed(withAuth(withCSRF(routes.timers))),
         },
     });
 
