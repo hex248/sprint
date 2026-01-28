@@ -1,7 +1,7 @@
-import { stripe } from "../stripe/client";
-import { getOrganisationsByUserId, getOrganisationMembers } from "../db/queries/organisations";
+import { getOrganisationMembers, getOrganisationsByUserId } from "../db/queries/organisations";
 import { getSubscriptionByUserId, updateSubscription } from "../db/queries/subscriptions";
 import { getUserById } from "../db/queries/users";
+import { stripe } from "../stripe/client";
 
 export async function updateSeatCount(userId: number) {
     const user = await getUserById(userId);

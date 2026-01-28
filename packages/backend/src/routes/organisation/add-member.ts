@@ -6,6 +6,7 @@ import {
     getOrganisationMemberRole,
     getUserById,
 } from "../../db/queries";
+import { updateSeatCount } from "../../lib/seats";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function organisationAddMember(req: AuthedRequest) {
@@ -39,6 +40,11 @@ export default async function organisationAddMember(req: AuthedRequest) {
     }
 
     const member = await createOrganisationMember(organisationId, userId, role);
+
+    // update seat count if the requester is the owner
+    if (requesterMember.role === "owner") {
+        await updateSeatCount(req.userId);
+    }
 
     return Response.json(member);
 }

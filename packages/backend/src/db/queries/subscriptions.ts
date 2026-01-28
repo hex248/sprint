@@ -26,10 +26,7 @@ export async function createSubscription(data: {
 }
 
 export async function getSubscriptionByUserId(userId: number) {
-    const [subscription] = await db
-        .select()
-        .from(Subscription)
-        .where(eq(Subscription.userId, userId));
+    const [subscription] = await db.select().from(Subscription).where(eq(Subscription.userId, userId));
     return subscription;
 }
 
@@ -51,7 +48,7 @@ export async function updateSubscription(
         cancelAtPeriodEnd: boolean;
         trialEnd: Date;
         quantity: number;
-    }>
+    }>,
 ) {
     const [subscription] = await db
         .update(Subscription)
