@@ -48,13 +48,13 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
       <div className={`flex gap-${BREATHING_ROOM} items-center`}>
         <OrganisationSelect
           noDecoration
-          triggerClassName="px-1 rounded-full hover:bg-transparent dark:hover:bg-transparent"
+          triggerClassName="w-8 h-8 ml-1 mr-1 rounded-full hover:bg-transparent dark:hover:bg-transparent"
           trigger={
             <OrgIcon
               name={selectedOrganisation?.Organisation.name ?? ""}
               slug={selectedOrganisation?.Organisation.slug ?? ""}
               iconURL={selectedOrganisation?.Organisation.iconURL || undefined}
-              size={7}
+              size={8}
             />
           }
         />

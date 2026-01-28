@@ -1,7 +1,8 @@
 import type { UserRecord } from "@sprint/shared";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+
 import Loading from "@/components/loading";
+import { LoginModal } from "@/components/login-modal";
 import { clearAuth, getServerURL, setCsrfToken } from "@/lib/utils";
 
 interface SessionContextValue {
@@ -74,15 +75,22 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useSession();
-  const location = useLocation();
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setLoginModalOpen(true);
+    } else if (user) {
+      setLoginModalOpen(false);
+    }
+  }, [user, isLoading]);
 
   if (isLoading) {
     return <Loading message={"Checking authentication"} />;
   }
 
   if (!user) {
-    const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?next=${next}`} replace />;
+    return <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} dismissible={false} />;
   }
 
   return <>{children}</>;

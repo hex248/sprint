@@ -1,8 +1,6 @@
 # HIGH PRIORITY
 
 - BUGS:
-- org slug and project code should only be added to url on issues/timeline pages. it happens on any page right now
-- on the first attempt since page load, pressing the create issue button the default type and status are not loaded
 - FEATURES:
 - make login/register into a modal that appears atop the landing page
 - user preferences
@@ -30,3 +28,4 @@
 - figure out if it's possible to remove the "lib/server/..." helpers altogether, and have some sort of dynamic route maker in the shared package
 - request logging
 - explore payment providers (stripe is the only one i know)
+- trial system

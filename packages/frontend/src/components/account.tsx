@@ -24,7 +24,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [avatarURL, setAvatarUrl] = useState<string | null>(null);
-  const [iconPreference, setIconPreference] = useState<IconStyle>("lucide");
+  const [iconPreference, setIconPreference] = useState<IconStyle>("pixel");
   const [error, setError] = useState("");
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
@@ -34,7 +34,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
     setName(currentUser.name);
     setUsername(currentUser.username);
     setAvatarUrl(currentUser.avatarURL || null);
-    setIconPreference((currentUser.iconPreference as IconStyle) ?? "lucide");
+    setIconPreference((currentUser.iconPreference as IconStyle) ?? "pixel");
 
     setPassword("");
     setError("");
@@ -136,16 +136,16 @@ function Account({ trigger }: { trigger?: ReactNode }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent position="popper" side="bottom" align="start">
-                  <SelectItem value="lucide">
-                    <div className="flex items-center gap-2">
-                      <Icon icon="sun" iconStyle="lucide" size={16} />
-                      Lucide
-                    </div>
-                  </SelectItem>
                   <SelectItem value="pixel">
                     <div className="flex items-center gap-2">
                       <Icon icon="sun" iconStyle="pixel" size={16} />
                       Pixel
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="lucide">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="sun" iconStyle="lucide" size={16} />
+                      Lucide
                     </div>
                   </SelectItem>
                   <SelectItem value="phosphor">

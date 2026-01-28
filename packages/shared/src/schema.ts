@@ -49,7 +49,7 @@ export const DEFAULT_FEATURES: Record<string, boolean> = {
     sprints: true,
 };
 
-export const iconStyles = ["lucide", "pixel", "phosphor"] as const;
+export const iconStyles = ["pixel", "lucide", "phosphor"] as const;
 export type IconStyle = (typeof iconStyles)[number];
 
 export const User = pgTable("User", {
@@ -58,7 +58,7 @@ export const User = pgTable("User", {
     username: varchar({ length: USER_USERNAME_MAX_LENGTH }).notNull().unique(),
     passwordHash: varchar({ length: 255 }).notNull(),
     avatarURL: varchar({ length: 512 }),
-    iconPreference: varchar({ length: 10 }).notNull().default("lucide").$type<IconStyle>(),
+    iconPreference: varchar({ length: 10 }).notNull().default("pixel").$type<IconStyle>(),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });

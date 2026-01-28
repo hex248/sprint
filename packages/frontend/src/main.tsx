@@ -11,7 +11,6 @@ import { Toaster } from "@/components/ui/sonner";
 import Font from "@/pages/Font";
 import Issues from "@/pages/Issues";
 import Landing from "@/pages/Landing";
-import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import Test from "@/pages/Test";
 import Timeline from "@/pages/Timeline";
@@ -21,13 +20,12 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryProvider>
         <SessionProvider>
-          <SelectionProvider>
-            <BrowserRouter>
+          <BrowserRouter>
+            <SelectionProvider>
               <Routes>
                 {/* public routes */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/font" element={<Font />} />
-                <Route path="/login" element={<Login />} />
 
                 {/* authed routes */}
                 <Route
@@ -57,10 +55,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-            <ActiveTimersOverlay />
-            <Toaster visibleToasts={1} duration={2000} />
-          </SelectionProvider>
+            </SelectionProvider>
+          </BrowserRouter>
+          <ActiveTimersOverlay />
+          <Toaster visibleToasts={1} duration={2000} />
         </SessionProvider>
       </QueryProvider>
     </ThemeProvider>

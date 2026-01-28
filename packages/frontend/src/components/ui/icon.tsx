@@ -208,7 +208,7 @@ const icons = {
 
 export type IconName = keyof typeof icons;
 export const iconNames = Object.keys(icons) as IconName[];
-export const iconStyles = ["lucide", "pixel", "phosphor"] as const;
+export const iconStyles = ["pixel", "lucide", "phosphor"] as const;
 export type { IconStyle };
 
 export default function Icon({
@@ -227,7 +227,7 @@ export default function Icon({
   const resolvedStyle = (iconStyle ??
     session?.user?.iconPreference ??
     localStorage.getItem("iconPreference") ??
-    "lucide") as IconStyle;
+    "pixel") as IconStyle;
   const IconComponent = icons[icon]?.[resolvedStyle];
 
   if (localStorage.getItem("iconPreference") !== resolvedStyle)

@@ -1,6 +1,7 @@
 import type { IssueResponse, OrganisationResponse, ProjectResponse } from "@sprint/shared";
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 type SelectionContextValue = {
   selectedOrganisationId: number | null;
@@ -69,6 +70,8 @@ const updateUrlParams = (updates: {
 };
 
 export function SelectionProvider({ children }: { children: ReactNode }) {
+  const location = useLocation();
+
   const initialParams = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     const orgSlug = params.get("o")?.trim().toLowerCase() ?? "";
@@ -153,24 +156,25 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const allowIssue = window.location.pathname.startsWith("/issues");
+    const pathname = location.pathname;
+    const allowParams = pathname.startsWith("/issues") || pathname.startsWith("/timeline");
     const updates: {
       orgSlug?: string | null;
       projectKey?: string | null;
       issueNumber?: number | null;
     } = {};
 
-    if (!params.get("o")) {
+    if (allowParams && !params.get("o")) {
       const storedOrgSlug = readStoredString("selectedOrganisationSlug");
       if (storedOrgSlug) updates.orgSlug = storedOrgSlug;
     }
 
-    if (!params.get("p")) {
+    if (allowParams && !params.get("p")) {
       const storedProjectKey = readStoredString("selectedProjectKey");
       if (storedProjectKey) updates.projectKey = storedProjectKey;
     }
 
-    if (allowIssue && !params.get("i")) {
+    if (allowParams && !params.get("i")) {
       const storedIssueNumber = readStoredId("selectedIssueNumber");
       if (storedIssueNumber != null) updates.issueNumber = storedIssueNumber;
     }
@@ -178,7 +182,7 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
     if (Object.keys(updates).length > 0) {
       updateUrlParams(updates);
     }
-  }, []);
+  }, [location.pathname]);
 
   const value = useMemo<SelectionContextValue>(
     () => ({
