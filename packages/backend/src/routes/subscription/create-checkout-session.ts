@@ -37,7 +37,7 @@ async function handler(req: BunRequest) {
             totalMembers += members.length;
         }
 
-        const quantity = Math.max(1, totalMembers - 4);
+        const quantity = Math.max(1, totalMembers - 5);
         const priceId = billingPeriod === "annual" ? STRIPE_PRICE_ANNUAL : STRIPE_PRICE_MONTHLY;
 
         // build customer data - use username as email if no email field exists

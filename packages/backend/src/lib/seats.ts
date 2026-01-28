@@ -26,7 +26,7 @@ export async function updateSeatCount(userId: number) {
         totalMembers += members.length;
     }
 
-    const newQuantity = Math.max(1, totalMembers - 4);
+    const newQuantity = Math.max(1, totalMembers - 5);
 
     // skip if quantity hasn't changed
     if (newQuantity === subscription.quantity) {
