@@ -55,9 +55,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <ActiveTimersOverlay />
             </SelectionProvider>
           </BrowserRouter>
-          <ActiveTimersOverlay />
           <Toaster visibleToasts={1} duration={2000} />
         </SessionProvider>
       </QueryProvider>
