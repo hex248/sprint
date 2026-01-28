@@ -1,5 +1,4 @@
-import type { SubscriptionResponse } from "@sprint/shared";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginModal } from "@/components/login-modal";
 import { PricingCard, pricingTiers } from "@/components/pricing-card";
@@ -7,9 +6,7 @@ import { useSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 import { Switch } from "@/components/ui/switch";
-import { createCheckoutSession } from "@/lib/server/subscription/createCheckoutSession";
-import { createPortalSession } from "@/lib/server/subscription/createPortalSession";
-import { getSubscription } from "@/lib/server/subscription/getSubscription";
+import { useCreateCheckoutSession, useCreatePortalSession, useSubscription } from "@/lib/query/hooks";
 import { cn } from "@/lib/utils";
 
 export default function Plans() {
@@ -17,27 +14,13 @@ export default function Plans() {
   const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null);
   const [processingTier, setProcessingTier] = useState<string | null>(null);
 
-  // fetch subscription if user is logged in
-  useEffect(() => {
-    if (user) {
-      getSubscription()
-        .then((result) => {
-          const data = result.data as { subscription?: SubscriptionResponse } | null;
-          if (data?.subscription) {
-            setSubscription(data.subscription);
-          } else {
-            setSubscription(null);
-          }
-        })
-        .catch(() => {
-          setSubscription(null);
-        });
-    }
-  }, [user]);
+  const { data: subscriptionData } = useSubscription();
+  const createCheckoutSession = useCreateCheckoutSession();
+  const createPortalSession = useCreatePortalSession();
 
+  const subscription = subscriptionData?.subscription ?? null;
   const hasProSubscription = subscription?.status === "active";
 
   const handleTierAction = async (tierName: string) => {
@@ -50,21 +33,27 @@ export default function Plans() {
       if (hasProSubscription) {
         // open customer portal
         setProcessingTier(tierName);
-        const result = await createPortalSession();
-        const portalData = result.data as { url?: string } | null;
-        if (portalData?.url) {
-          window.location.href = portalData.url;
-        } else {
+        try {
+          const result = await createPortalSession.mutateAsync();
+          if (result.url) {
+            window.location.href = result.url;
+          } else {
+            setProcessingTier(null);
+          }
+        } catch {
           setProcessingTier(null);
         }
       } else {
         // start checkout
         setProcessingTier(tierName);
-        const result = await createCheckoutSession({ billingPeriod });
-        const checkoutData = result.data as { url?: string } | null;
-        if (checkoutData?.url) {
-          window.location.href = checkoutData.url;
-        } else {
+        try {
+          const result = await createCheckoutSession.mutateAsync({ billingPeriod });
+          if (result.url) {
+            window.location.href = result.url;
+          } else {
+            setProcessingTier(null);
+          }
+        } catch {
           setProcessingTier(null);
         }
       }
