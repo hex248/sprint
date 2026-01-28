@@ -39,4 +39,8 @@ export const queryKeys = {
     all: ["users"] as const,
     byUsername: (username: string) => [...queryKeys.users.all, "by-username", username] as const,
   },
+  subscription: {
+    all: ["subscription"] as const,
+    current: () => [...queryKeys.subscription.all, "current"] as const,
+  },
 };

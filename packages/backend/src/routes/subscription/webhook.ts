@@ -9,7 +9,15 @@ import {
 import { updateUser } from "../../db/queries/users";
 import { stripe } from "../../stripe/client";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+const webhookSecret = requireEnv("STRIPE_WEBHOOK_SECRET");
+
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) {
+        throw new Error(`${name} is required`);
+    }
+    return value;
+}
 
 export default async function webhook(req: BunRequest) {
     if (req.method !== "POST") {
@@ -61,6 +69,13 @@ export default async function webhook(req: BunRequest) {
                     break;
                 }
 
+                // stripe types use snake_case for these fields
+                const sub = stripeSubscription as unknown as {
+                    current_period_start: number;
+                    current_period_end: number;
+                    trial_end: number | null;
+                };
+
                 await createSubscription({
                     userId,
                     stripeCustomerId: session.customer as string,
@@ -69,11 +84,9 @@ export default async function webhook(req: BunRequest) {
                     stripePriceId: session.metadata?.priceId || "",
                     status: stripeSubscription.status,
                     quantity: parseInt(session.metadata?.quantity || "1", 10),
-                    currentPeriodStart: new Date((stripeSubscription as any).current_period_start * 1000),
-                    currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
-                    trialEnd: stripeSubscription.trial_end
-                        ? new Date(stripeSubscription.trial_end * 1000)
-                        : undefined,
+                    currentPeriodStart: new Date(sub.current_period_start * 1000),
+                    currentPeriodEnd: new Date(sub.current_period_end * 1000),
+                    trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : undefined,
                 });
 
                 await updateUser(userId, { plan: "pro" });
@@ -99,11 +112,16 @@ export default async function webhook(req: BunRequest) {
                     break;
                 }
                 // safely convert timestamps to dates
-                const currentPeriodStart = (subscription as any).current_period_start
-                    ? new Date((subscription as any).current_period_start * 1000)
+                // stripe types use snake_case for these fields
+                const sub = subscription as unknown as {
+                    current_period_start: number | null;
+                    current_period_end: number | null;
+                };
+                const currentPeriodStart = sub.current_period_start
+                    ? new Date(sub.current_period_start * 1000)
                     : undefined;
-                const currentPeriodEnd = (subscription as any).current_period_end
-                    ? new Date((subscription as any).current_period_end * 1000)
+                const currentPeriodEnd = sub.current_period_end
+                    ? new Date(sub.current_period_end * 1000)
                     : undefined;
 
                 await updateSubscription(localSub.id, {
@@ -136,34 +154,45 @@ export default async function webhook(req: BunRequest) {
             case "invoice.payment_succeeded": {
                 const invoice = event.data.object as Stripe.Invoice;
 
-                if (!(invoice as any).subscription) break;
+                // stripe types use snake_case for these fields
+                const inv = invoice as unknown as {
+                    subscription: string | null;
+                    payment_intent: string | null;
+                };
 
-                const localSub = await getSubscriptionByStripeId((invoice as any).subscription as string);
+                if (!inv.subscription) break;
+
+                const localSub = await getSubscriptionByStripeId(inv.subscription);
                 if (!localSub) break;
 
                 await createPayment({
                     subscriptionId: localSub.id,
-                    stripePaymentIntentId: (invoice as any).payment_intent as string,
+                    stripePaymentIntentId: inv.payment_intent || "",
                     amount: invoice.amount_paid,
                     currency: invoice.currency,
                     status: "succeeded",
                 });
 
-                console.log(`payment recorded for subscription ${(invoice as any).subscription}`);
+                console.log(`payment recorded for subscription ${inv.subscription}`);
                 break;
             }
 
             case "invoice.payment_failed": {
                 const invoice = event.data.object as Stripe.Invoice;
 
-                if (!(invoice as any).subscription) break;
+                // stripe types use snake_case for these fields
+                const inv = invoice as unknown as {
+                    subscription: string | null;
+                };
 
-                const localSub = await getSubscriptionByStripeId((invoice as any).subscription as string);
+                if (!inv.subscription) break;
+
+                const localSub = await getSubscriptionByStripeId(inv.subscription);
                 if (!localSub) break;
 
                 await updateSubscription(localSub.id, { status: "past_due" });
 
-                console.log(`payment failed for subscription ${(invoice as any).subscription}`);
+                console.log(`payment failed for subscription ${inv.subscription}`);
                 break;
             }
         }

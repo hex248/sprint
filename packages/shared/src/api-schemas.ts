@@ -602,3 +602,48 @@ export const SuccessResponseSchema = z.object({
 });
 
 export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
+
+// subscription schemas
+
+export const CreateCheckoutSessionRequestSchema = z.object({
+    billingPeriod: z.enum(["monthly", "annual"]),
+});
+
+export type CreateCheckoutSessionRequest = z.infer<typeof CreateCheckoutSessionRequestSchema>;
+
+export const CreateCheckoutSessionResponseSchema = z.object({
+    url: z.string(),
+});
+
+export type CreateCheckoutSessionResponse = z.infer<typeof CreateCheckoutSessionResponseSchema>;
+
+export const CreatePortalSessionResponseSchema = z.object({
+    url: z.string(),
+});
+
+export type CreatePortalSessionResponse = z.infer<typeof CreatePortalSessionResponseSchema>;
+
+export const SubscriptionRecordSchema = z.object({
+    id: z.number(),
+    userId: z.number(),
+    stripeCustomerId: z.string().nullable(),
+    stripeSubscriptionId: z.string().nullable(),
+    stripeSubscriptionItemId: z.string().nullable(),
+    stripePriceId: z.string().nullable(),
+    status: z.string(),
+    currentPeriodStart: z.string().nullable().optional(),
+    currentPeriodEnd: z.string().nullable().optional(),
+    cancelAtPeriodEnd: z.boolean(),
+    trialEnd: z.string().nullable().optional(),
+    quantity: z.number(),
+    createdAt: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
+});
+
+export type SubscriptionRecord = z.infer<typeof SubscriptionRecordSchema>;
+
+export const GetSubscriptionResponseSchema = z.object({
+    subscription: SubscriptionRecordSchema.nullable(),
+});
+
+export type GetSubscriptionResponse = z.infer<typeof GetSubscriptionResponseSchema>;

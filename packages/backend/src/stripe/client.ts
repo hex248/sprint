@@ -1,14 +1,18 @@
 import Stripe from "stripe";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-
-if (!stripeSecretKey) {
-    throw new Error("STRIPE_SECRET_KEY is required");
-}
+const stripeSecretKey = requireEnv("STRIPE_SECRET_KEY");
 
 export const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: "2024-12-18.acacia",
+    apiVersion: "2025-12-15.clover",
 });
 
-export const STRIPE_PRICE_MONTHLY = process.env.STRIPE_PRICE_MONTHLY!;
-export const STRIPE_PRICE_ANNUAL = process.env.STRIPE_PRICE_ANNUAL!;
+export const STRIPE_PRICE_MONTHLY = requireEnv("STRIPE_PRICE_MONTHLY");
+export const STRIPE_PRICE_ANNUAL = requireEnv("STRIPE_PRICE_ANNUAL");
+
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) {
+        throw new Error(`${name} is required`);
+    }
+    return value;
+}

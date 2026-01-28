@@ -3,6 +3,10 @@ import { z } from "zod";
 import {
     ApiErrorSchema,
     AuthResponseSchema,
+    CreateCheckoutSessionRequestSchema,
+    CreateCheckoutSessionResponseSchema,
+    CreatePortalSessionResponseSchema,
+    GetSubscriptionResponseSchema,
     IssueByIdQuerySchema,
     IssueCommentCreateRequestSchema,
     IssueCommentDeleteRequestSchema,
@@ -598,6 +602,38 @@ export const apiContract = c.router({
         query: timersQuerySchema,
         responses: {
             200: z.array(timerListItemResponseSchema),
+        },
+    },
+
+    subscriptionCreateCheckoutSession: {
+        method: "POST",
+        path: "/subscription/create-checkout-session",
+        body: CreateCheckoutSessionRequestSchema,
+        responses: {
+            200: CreateCheckoutSessionResponseSchema,
+            400: ApiErrorSchema,
+            404: ApiErrorSchema,
+            500: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    subscriptionCreatePortalSession: {
+        method: "POST",
+        path: "/subscription/create-portal-session",
+        body: emptyBodySchema,
+        responses: {
+            200: CreatePortalSessionResponseSchema,
+            404: ApiErrorSchema,
+            500: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    subscriptionGet: {
+        method: "GET",
+        path: "/subscription/get",
+        responses: {
+            200: GetSubscriptionResponseSchema,
+            500: ApiErrorSchema,
         },
     },
 });

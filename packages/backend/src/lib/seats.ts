@@ -33,8 +33,13 @@ export async function updateSeatCount(userId: number) {
         return;
     }
 
+    const stripeSubscriptionItemId = subscription.stripeSubscriptionItemId;
+    if (!stripeSubscriptionItemId) {
+        return;
+    }
+
     // update stripe
-    await stripe.subscriptionItems.update(subscription.stripeSubscriptionItemId!, {
+    await stripe.subscriptionItems.update(stripeSubscriptionItemId, {
         quantity: newQuantity,
         proration_behavior: "always_invoice",
     });

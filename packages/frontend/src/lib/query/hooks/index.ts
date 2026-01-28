@@ -4,5 +4,6 @@ export * from "@/lib/query/hooks/issues";
 export * from "@/lib/query/hooks/organisations";
 export * from "@/lib/query/hooks/projects";
 export * from "@/lib/query/hooks/sprints";
+export * from "@/lib/query/hooks/subscriptions";
 export * from "@/lib/query/hooks/timers";
 export * from "@/lib/query/hooks/users";

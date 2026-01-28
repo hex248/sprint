@@ -1,18 +1,17 @@
-import type { BunRequest } from "bun";
-import { withAuth, withCors, withCSRF } from "../../auth/middleware";
+import { type AuthedRequest, withAuth, withCors, withCSRF } from "../../auth/middleware";
 import { getSubscriptionByUserId } from "../../db/queries/subscriptions";
 import { stripe } from "../../stripe/client";
 import { errorResponse } from "../../validation";
 
 const BASE_URL = process.env.FRONTEND_URL || "http://localhost:1420";
 
-async function handler(req: BunRequest) {
+async function handler(req: AuthedRequest) {
     if (req.method !== "POST") {
         return errorResponse("method not allowed", "METHOD_NOT_ALLOWED", 405);
     }
 
     try {
-        const userId = (req as any).userId;
+        const { userId } = req;
         const subscription = await getSubscriptionByUserId(userId);
         if (!subscription?.stripeCustomerId) {
             return errorResponse("no active subscription found", "NOT_FOUND", 404);

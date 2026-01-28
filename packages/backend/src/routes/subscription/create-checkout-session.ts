@@ -1,5 +1,4 @@
-import type { BunRequest } from "bun";
-import { withAuth, withCors, withCSRF } from "../../auth/middleware";
+import { type AuthedRequest, withAuth, withCors, withCSRF } from "../../auth/middleware";
 import { getOrganisationMembers, getOrganisationsByUserId } from "../../db/queries/organisations";
 import { getUserById } from "../../db/queries/users";
 import { STRIPE_PRICE_ANNUAL, STRIPE_PRICE_MONTHLY, stripe } from "../../stripe/client";
@@ -7,7 +6,7 @@ import { errorResponse } from "../../validation";
 
 const BASE_URL = process.env.FRONTEND_URL || "http://localhost:1420";
 
-async function handler(req: BunRequest) {
+async function handler(req: AuthedRequest) {
     if (req.method !== "POST") {
         return errorResponse("method not allowed", "METHOD_NOT_ALLOWED", 405);
     }
@@ -20,7 +19,7 @@ async function handler(req: BunRequest) {
             return errorResponse("missing required fields", "VALIDATION_ERROR", 400);
         }
 
-        const userId = (req as any).userId;
+        const { userId } = req;
         const user = await getUserById(userId);
 
         if (!user) {

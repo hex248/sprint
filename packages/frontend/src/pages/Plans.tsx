@@ -1,3 +1,4 @@
+import type { SubscriptionResponse } from "@sprint/shared";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginModal } from "@/components/login-modal";
@@ -9,44 +10,37 @@ import { Switch } from "@/components/ui/switch";
 import { createCheckoutSession } from "@/lib/server/subscription/createCheckoutSession";
 import { createPortalSession } from "@/lib/server/subscription/createPortalSession";
 import { getSubscription } from "@/lib/server/subscription/getSubscription";
-import { cn, getCsrfToken } from "@/lib/utils";
-
-interface SubscriptionData {
-  status: string;
-  currentPeriodEnd: Date | null;
-  quantity: number;
-}
+import { cn } from "@/lib/utils";
 
 export default function Plans() {
   const { user, isLoading } = useSession();
   const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
-  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null);
   const [processingTier, setProcessingTier] = useState<string | null>(null);
 
   // fetch subscription if user is logged in
   useEffect(() => {
     if (user) {
-      setLoadingSubscription(true);
-      getSubscription({
-        onSuccess: (data) => {
-          setSubscription(data);
-          setLoadingSubscription(false);
-        },
-        onError: () => {
+      getSubscription()
+        .then((result) => {
+          const data = result.data as { subscription?: SubscriptionResponse } | null;
+          if (data?.subscription) {
+            setSubscription(data.subscription);
+          } else {
+            setSubscription(null);
+          }
+        })
+        .catch(() => {
           setSubscription(null);
-          setLoadingSubscription(false);
-        },
-      });
+        });
     }
   }, [user]);
 
   const hasProSubscription = subscription?.status === "active";
-  const csrfToken = getCsrfToken() || "";
 
-  const handleTierAction = (tierName: string) => {
+  const handleTierAction = async (tierName: string) => {
     if (!user) {
       setLoginModalOpen(true);
       return;
@@ -56,28 +50,23 @@ export default function Plans() {
       if (hasProSubscription) {
         // open customer portal
         setProcessingTier(tierName);
-        createPortalSession({
-          csrfToken,
-          onSuccess: (url) => {
-            window.location.href = url;
-          },
-          onError: () => {
-            setProcessingTier(null);
-          },
-        });
+        const result = await createPortalSession();
+        const portalData = result.data as { url?: string } | null;
+        if (portalData?.url) {
+          window.location.href = portalData.url;
+        } else {
+          setProcessingTier(null);
+        }
       } else {
         // start checkout
         setProcessingTier(tierName);
-        createCheckoutSession({
-          billingPeriod,
-          csrfToken,
-          onSuccess: (url) => {
-            window.location.href = url;
-          },
-          onError: () => {
-            setProcessingTier(null);
-          },
-        });
+        const result = await createCheckoutSession({ billingPeriod });
+        const checkoutData = result.data as { url?: string } | null;
+        if (checkoutData?.url) {
+          window.location.href = checkoutData.url;
+        } else {
+          setProcessingTier(null);
+        }
       }
     }
     // starter tier - just go to issues if not already there
@@ -218,6 +207,33 @@ export default function Plans() {
               <Icon icon="rotateCcw" iconStyle={"pixel"} className="size-8" color="var(--personality)" />
               <p className="font-700">Money Back Guarantee</p>
               <p className="text-sm text-muted-foreground">30-day no-risk policy</p>
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div className="max-w-2xl mx-auto space-y-8 border-t pt-16">
+            <h2 className="text-3xl font-basteleur font-700 text-center">Frequently Asked Questions</h2>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h3 className="font-700">Can I switch plans?</h3>
+                <p className="text-muted-foreground">
+                  Yes, you can upgrade or downgrade at any time. Changes take effect immediately.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-700">What happens when I add team members?</h3>
+                <p className="text-muted-foreground">
+                  Pro plan pricing scales with your team. Add or remove users anytime, and we'll adjust your
+                  billing automatically.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-700">Can I cancel my subscription?</h3>
+                <p className="text-muted-foreground">
+                  Absolutely. Cancel anytime with no questions asked. You'll keep access until the end of your
+                  billing period.
+                </p>
+              </div>
             </div>
           </div>
         </div>
