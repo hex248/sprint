@@ -70,7 +70,7 @@ export default function OrgIcon({
       {iconURL ? (
         <img src={iconURL} alt={name} className={`rounded-md object-cover w-${size || 6} h-${size || 6}`} />
       ) : (
-        <span className={textClass}>{getInitials(name)}</span>
+        <span className={cn(textClass)}>{getInitials(name)}</span>
       )}
     </div>
   );
