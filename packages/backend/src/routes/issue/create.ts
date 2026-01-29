@@ -1,6 +1,13 @@
 import { IssueCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
-import { createIssue, getOrganisationMemberRole, getProjectByID } from "../../db/queries";
+import {
+    createIssue,
+    FREE_TIER_LIMITS,
+    getOrganisationIssueCount,
+    getOrganisationMemberRole,
+    getProjectByID,
+    getUserById,
+} from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function issueCreate(req: AuthedRequest) {
@@ -24,6 +31,19 @@ export default async function issueCreate(req: AuthedRequest) {
             "PERMISSION_DENIED",
             403,
         );
+    }
+
+    // check free tier limit
+    const user = await getUserById(req.userId);
+    if (user && user.plan !== "pro") {
+        const issueCount = await getOrganisationIssueCount(project.organisationId);
+        if (issueCount >= FREE_TIER_LIMITS.issuesPerOrganisation) {
+            return errorResponse(
+                `free tier is limited to ${FREE_TIER_LIMITS.issuesPerOrganisation} issues per organisation. upgrade to pro for unlimited issues.`,
+                "FREE_TIER_ISSUE_LIMIT",
+                403,
+            );
+        }
     }
 
     const issue = await createIssue(

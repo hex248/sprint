@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getServerURL } from "@/lib/utils";
 
-const DEFAULT_URL = "https://tnirps.ob248.com";
+const DEFAULT_URL = "https://server.sprintpm.org";
 
 const formatURL = (url: string) => {
   if (url.endsWith("/")) {

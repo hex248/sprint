@@ -8,10 +8,12 @@ import { SelectionProvider } from "@/components/selection-provider";
 import { RequireAuth, SessionProvider } from "@/components/session-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import BoringStuff from "@/pages/BoringStuff";
 import Font from "@/pages/Font";
 import Issues from "@/pages/Issues";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
+import Plans from "@/pages/Plans";
 import Test from "@/pages/Test";
 import Timeline from "@/pages/Timeline";
 
@@ -26,8 +28,17 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                 {/* public routes */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/font" element={<Font />} />
+                <Route path="/the-boring-stuff" element={<BoringStuff />} />
 
                 {/* authed routes */}
+                <Route
+                  path="/plans"
+                  element={
+                    <RequireAuth>
+                      <Plans />
+                    </RequireAuth>
+                  }
+                />
                 <Route
                   path="/issues"
                   element={
@@ -55,9 +66,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <ActiveTimersOverlay />
             </SelectionProvider>
           </BrowserRouter>
-          <ActiveTimersOverlay />
           <Toaster visibleToasts={1} duration={2000} />
         </SessionProvider>
       </QueryProvider>

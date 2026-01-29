@@ -41,6 +41,8 @@ const main = async () => {
             "/auth/login": withGlobal(routes.authLogin),
             "/auth/logout": withGlobalAuthed(withAuth(withCSRF(routes.authLogout))),
             "/auth/me": withGlobalAuthed(withAuth(routes.authMe)),
+            "/auth/verify-email": withGlobalAuthed(withAuth(withCSRF(routes.authVerifyEmail))),
+            "/auth/resend-verification": withGlobalAuthed(withAuth(withCSRF(routes.authResendVerification))),
 
             "/user/by-username": withGlobalAuthed(withAuth(routes.userByUsername)),
             "/user/update": withGlobalAuthed(withAuth(withCSRF(routes.userUpdate))),
@@ -68,6 +70,9 @@ const main = async () => {
             "/organisation/upload-icon": withGlobalAuthed(withAuth(withCSRF(routes.organisationUploadIcon))),
             "/organisation/add-member": withGlobalAuthed(withAuth(withCSRF(routes.organisationAddMember))),
             "/organisation/members": withGlobalAuthed(withAuth(routes.organisationMembers)),
+            "/organisation/member-time-tracking": withGlobalAuthed(
+                withAuth(routes.organisationMemberTimeTracking),
+            ),
             "/organisation/remove-member": withGlobalAuthed(
                 withAuth(withCSRF(routes.organisationRemoveMember)),
             ),
@@ -97,6 +102,17 @@ const main = async () => {
             "/timer/get": withGlobalAuthed(withAuth(withCSRF(routes.timerGet))),
             "/timer/get-inactive": withGlobalAuthed(withAuth(withCSRF(routes.timerGetInactive))),
             "/timers": withGlobalAuthed(withAuth(withCSRF(routes.timers))),
+
+            // subscription routes - webhook has no auth
+            "/subscription/create-checkout-session": withGlobalAuthed(
+                withAuth(withCSRF(routes.subscriptionCreateCheckoutSession)),
+            ),
+            "/subscription/create-portal-session": withGlobalAuthed(
+                withAuth(withCSRF(routes.subscriptionCreatePortalSession)),
+            ),
+            "/subscription/cancel": withGlobalAuthed(withAuth(withCSRF(routes.subscriptionCancel))),
+            "/subscription/get": withGlobalAuthed(withAuth(routes.subscriptionGet)),
+            "/subscription/webhook": withGlobal(routes.subscriptionWebhook),
         },
     });
 

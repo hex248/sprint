@@ -3,12 +3,16 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 
 import Loading from "@/components/loading";
 import { LoginModal } from "@/components/login-modal";
+import { VerificationModal } from "@/components/verification-modal";
 import { clearAuth, getServerURL, setCsrfToken } from "@/lib/utils";
 
 interface SessionContextValue {
   user: UserResponse | null;
   setUser: (user: UserResponse) => void;
   isLoading: boolean;
+  emailVerified: boolean;
+  setEmailVerified: (verified: boolean) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -39,12 +43,26 @@ export function useAuthenticatedSession(): { user: UserResponse; setUser: (user:
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [emailVerified, setEmailVerified] = useState(true);
   const fetched = useRef(false);
 
   const setUser = useCallback((user: UserResponse) => {
     setUserState(user);
     localStorage.setItem("user", JSON.stringify(user));
   }, []);
+
+  const refreshUser = useCallback(async () => {
+    const res = await fetch(`${getServerURL()}/auth/me`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      throw new Error(`auth check failed: ${res.status}`);
+    }
+    const data = (await res.json()) as { user: UserResponse; csrfToken: string; emailVerified: boolean };
+    setUser(data.user);
+    setCsrfToken(data.csrfToken);
+    setEmailVerified(data.emailVerified);
+  }, [setUser]);
 
   useEffect(() => {
     if (fetched.current) return;
@@ -57,9 +75,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         if (!res.ok) {
           throw new Error(`auth check failed: ${res.status}`);
         }
-        const data = (await res.json()) as { user: UserResponse; csrfToken: string };
+        const data = (await res.json()) as { user: UserResponse; csrfToken: string; emailVerified: boolean };
         setUser(data.user);
         setCsrfToken(data.csrfToken);
+        setEmailVerified(data.emailVerified);
       })
       .catch(() => {
         setUserState(null);
@@ -70,11 +89,17 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       });
   }, [setUser]);
 
-  return <SessionContext.Provider value={{ user, setUser, isLoading }}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider
+      value={{ user, setUser, isLoading, emailVerified, setEmailVerified, refreshUser }}
+    >
+      {children}
+    </SessionContext.Provider>
+  );
 }
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useSession();
+  const { user, isLoading, emailVerified } = useSession();
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   useEffect(() => {
@@ -91,6 +116,10 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} dismissible={false} />;
+  }
+
+  if (user && !emailVerified) {
+    return <VerificationModal open={true} onOpenChange={() => {}} />;
   }
 
   return <>{children}</>;

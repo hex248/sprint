@@ -2,6 +2,7 @@ import { ISSUE_DESCRIPTION_MAX_LENGTH, ISSUE_TITLE_MAX_LENGTH } from "@sprint/sh
 
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { FreeTierLimit } from "@/components/free-tier-limit";
 import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { SprintSelect } from "@/components/sprint-select";
@@ -23,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { SelectTrigger } from "@/components/ui/select";
 import {
   useCreateIssue,
+  useIssues,
   useOrganisationMembers,
   useSelectedOrganisation,
   useSelectedProject,
@@ -31,13 +33,20 @@ import {
 import { parseError } from "@/lib/server";
 import { cn, issueID } from "@/lib/utils";
 
+const FREE_TIER_ISSUE_LIMIT = 100;
+
 export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const { user } = useAuthenticatedSession();
   const selectedOrganisation = useSelectedOrganisation();
   const selectedProject = useSelectedProject();
   const { data: sprints = [] } = useSprints(selectedProject?.Project.id);
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisation?.Organisation.id);
+  const { data: issues = [] } = useIssues(selectedProject?.Project.id);
   const createIssue = useCreateIssue();
+
+  const isPro = user.plan === "pro";
+  const issueCount = issues.length;
+  const isAtIssueLimit = !isPro && issueCount >= FREE_TIER_ISSUE_LIMIT;
 
   const members = useMemo(() => membersData.map((member) => member.User), [membersData]);
   const statuses = selectedOrganisation?.Organisation.statuses ?? {};
@@ -138,7 +147,17 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" disabled={!selectedProject}>
+          <Button
+            variant="outline"
+            disabled={!selectedProject || isAtIssueLimit}
+            title={
+              isAtIssueLimit
+                ? "Free tier limited to 100 issues per organisation. Upgrade to Pro for unlimited."
+                : !selectedProject
+                  ? "Select a project first"
+                  : undefined
+            }
+          >
             Create Issue
           </Button>
         )}
@@ -148,6 +167,18 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
         <DialogHeader>
           <DialogTitle>Create Issue</DialogTitle>
         </DialogHeader>
+
+        {!isPro && selectedProject && (
+          <div className="mb-2">
+            <FreeTierLimit
+              current={issueCount}
+              limit={FREE_TIER_ISSUE_LIMIT}
+              itemName="issue"
+              isPro={isPro}
+              showUpgrade={isAtIssueLimit}
+            />
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid">
@@ -270,9 +301,15 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
                 type="submit"
                 disabled={
                   submitting ||
+                  isAtIssueLimit ||
                   ((title.trim() === "" || title.trim().length > ISSUE_TITLE_MAX_LENGTH) &&
                     submitAttempted) ||
                   (description.trim().length > ISSUE_DESCRIPTION_MAX_LENGTH && submitAttempted)
+                }
+                title={
+                  isAtIssueLimit
+                    ? "Free tier limited to 100 issues per organisation. Upgrade to Pro for unlimited."
+                    : undefined
                 }
               >
                 {submitting ? "Creating..." : "Create"}

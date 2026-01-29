@@ -39,6 +39,7 @@ export default async function login(req: BunRequest) {
                 username: user.username,
                 avatarURL: user.avatarURL,
                 iconPreference: user.iconPreference,
+                emailVerified: user.emailVerified,
             },
             csrfToken: session.csrfToken,
         }),

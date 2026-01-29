@@ -5,6 +5,8 @@ export const queryKeys = {
     all: ["organisations"] as const,
     byUser: () => [...queryKeys.organisations.all, "by-user"] as const,
     members: (orgId: number) => [...queryKeys.organisations.all, orgId, "members"] as const,
+    memberTimeTracking: (orgId: number, fromDate?: string) =>
+      [...queryKeys.organisations.all, orgId, "member-time-tracking", fromDate ?? "all"] as const,
   },
   projects: {
     all: ["projects"] as const,
@@ -36,5 +38,9 @@ export const queryKeys = {
   users: {
     all: ["users"] as const,
     byUsername: (username: string) => [...queryKeys.users.all, "by-username", username] as const,
+  },
+  subscription: {
+    all: ["subscription"] as const,
+    current: () => [...queryKeys.subscription.all, "current"] as const,
   },
 };

@@ -3,6 +3,11 @@ import { z } from "zod";
 import {
     ApiErrorSchema,
     AuthResponseSchema,
+    CancelSubscriptionResponseSchema,
+    CreateCheckoutSessionRequestSchema,
+    CreateCheckoutSessionResponseSchema,
+    CreatePortalSessionResponseSchema,
+    GetSubscriptionResponseSchema,
     IssueByIdQuerySchema,
     IssueCommentCreateRequestSchema,
     IssueCommentDeleteRequestSchema,
@@ -29,6 +34,7 @@ import {
     OrgCreateRequestSchema,
     OrgDeleteRequestSchema,
     OrgMembersQuerySchema,
+    OrgMemberTimeTrackingQuerySchema,
     OrgRemoveMemberRequestSchema,
     OrgUpdateMemberRoleRequestSchema,
     OrgUpdateRequestSchema,
@@ -171,6 +177,7 @@ export const apiContract = c.router({
         responses: {
             200: z.object({ avatarURL: z.string() }),
             400: ApiErrorSchema,
+            403: ApiErrorSchema,
         },
         headers: csrfHeaderSchema,
     },
@@ -379,6 +386,30 @@ export const apiContract = c.router({
             200: z.array(OrganisationMemberResponseSchema),
         },
     },
+    organisationMemberTimeTracking: {
+        method: "GET",
+        path: "/organisation/member-time-tracking",
+        query: OrgMemberTimeTrackingQuerySchema,
+        responses: {
+            200: z.array(
+                z.object({
+                    id: z.number(),
+                    userId: z.number(),
+                    issueId: z.number(),
+                    issueNumber: z.number(),
+                    projectKey: z.string(),
+                    timestamps: z.array(z.string()),
+                    endedAt: z.string().nullable(),
+                    createdAt: z.string().nullable(),
+                    workTimeMs: z.number(),
+                    breakTimeMs: z.number(),
+                    isRunning: z.boolean(),
+                }),
+            ),
+            403: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+    },
     organisationRemoveMember: {
         method: "POST",
         path: "/organisation/remove-member",
@@ -574,6 +605,73 @@ export const apiContract = c.router({
         responses: {
             200: z.array(timerListItemResponseSchema),
         },
+    },
+
+    subscriptionCreateCheckoutSession: {
+        method: "POST",
+        path: "/subscription/create-checkout-session",
+        body: CreateCheckoutSessionRequestSchema,
+        responses: {
+            200: CreateCheckoutSessionResponseSchema,
+            400: ApiErrorSchema,
+            404: ApiErrorSchema,
+            500: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    subscriptionCreatePortalSession: {
+        method: "POST",
+        path: "/subscription/create-portal-session",
+        body: emptyBodySchema,
+        responses: {
+            200: CreatePortalSessionResponseSchema,
+            404: ApiErrorSchema,
+            500: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    subscriptionCancel: {
+        method: "POST",
+        path: "/subscription/cancel",
+        body: emptyBodySchema,
+        responses: {
+            200: CancelSubscriptionResponseSchema,
+            404: ApiErrorSchema,
+            500: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    subscriptionGet: {
+        method: "GET",
+        path: "/subscription/get",
+        responses: {
+            200: GetSubscriptionResponseSchema,
+            500: ApiErrorSchema,
+        },
+    },
+
+    authVerifyEmail: {
+        method: "POST",
+        path: "/auth/verify-email",
+        body: z.object({ code: z.string() }),
+        responses: {
+            200: SuccessResponseSchema,
+            400: ApiErrorSchema,
+            401: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    authResendVerification: {
+        method: "POST",
+        path: "/auth/resend-verification",
+        body: emptyBodySchema,
+        responses: {
+            200: SuccessResponseSchema,
+            400: ApiErrorSchema,
+            401: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
     },
 });
 

@@ -259,6 +259,25 @@ export async function getIssueAssigneeCount(issueId: number): Promise<number> {
     return result?.count ?? 0;
 }
 
+export async function getOrganisationIssueCount(organisationId: number): Promise<number> {
+    const { Project } = await import("@sprint/shared");
+
+    const projects = await db
+        .select({ id: Project.id })
+        .from(Project)
+        .where(eq(Project.organisationId, organisationId));
+    const projectIds = projects.map((p) => p.id);
+
+    if (projectIds.length === 0) return 0;
+
+    const [result] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(Issue)
+        .where(inArray(Issue.projectId, projectIds));
+
+    return result?.count ?? 0;
+}
+
 export async function isIssueAssignee(issueId: number, userId: number): Promise<boolean> {
     const [assignee] = await db
         .select({ id: IssueAssignee.id })

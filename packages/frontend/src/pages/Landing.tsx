@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LoginModal } from "@/components/login-modal";
+import { PricingCard, pricingTiers } from "@/components/pricing-card";
 import { useSession } from "@/components/session-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -8,57 +9,7 @@ import Icon from "@/components/ui/icon";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-const pricingTiers = [
-  {
-    name: "Starter",
-    price: "£0",
-    priceAnnual: "£0",
-    period: "Free forever",
-    periodAnnual: "Free forever",
-    description: "Perfect for side projects and solo developers",
-    tagline: "For solo devs and small projects",
-    features: [
-      "1 organisation (owned or joined)",
-      "1 project",
-      "100 issues",
-      "Up to 5 team members",
-      "Email support",
-    ],
-    cta: "Get started free",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "£11.99",
-    priceAnnual: "£9.99",
-    period: "per user/month",
-    periodAnnual: "per user/month",
-    description: "For growing teams and professionals",
-    tagline: "Most Popular",
-    features: [
-      "Everything in starter",
-      "Unlimited organisations",
-      "Unlimited projects",
-      "Unlimited issues",
-      "Advanced time tracking & reports",
-      "Custom issue statuses",
-      "Priority email support",
-    ],
-    cta: "Try pro free for 14 days",
-    highlighted: true,
-  },
-];
-
 const faqs = [
-  {
-    question: "Can I switch plans?",
-    answer:
-      "Yes, you can upgrade or downgrade at any time. Changes take effect immediately, and we'll prorate any charges.",
-  },
-  {
-    question: "Is there a free trial?",
-    answer: "Yes, pro plan includes a 14-day free trial with full access. No credit card required to start.",
-  },
   {
     question: "What payment methods do you accept?",
     answer: "We accept all major credit cards.",
@@ -67,11 +18,6 @@ const faqs = [
     question: "What if I need more users?",
     answer:
       "Pro plan pricing scales with your team. Add or remove users anytime, and we'll adjust your billing automatically.",
-  },
-  {
-    question: "What happens when my trial ends?",
-    answer:
-      "You'll automatically downgrade to the free starter plan. No charges unless you actively upgrade to pro.",
   },
   {
     question: "Can I cancel anytime?",
@@ -86,7 +32,7 @@ const faqs = [
 
 export default function Landing() {
   const { user, isLoading } = useSession();
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   return (
@@ -163,7 +109,7 @@ export default function Landing() {
               ) : (
                 <>
                   <Button size="lg" className="text-lg px-8 py-6" onClick={() => setLoginModalOpen(true)}>
-                    Start free trial
+                    Get started
                   </Button>
                   <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
                     <a href="#pricing">See pricing</a>
@@ -172,7 +118,7 @@ export default function Landing() {
               )}
             </div>
 
-            <p className="text-sm text-muted-foreground">No credit card required · Full access for 14 days</p>
+            <p className="text-sm text-muted-foreground">Free forever · Upgrade when you need more</p>
           </div>
 
           {/* problem section */}
@@ -323,57 +269,12 @@ export default function Landing() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
               {pricingTiers.map((tier) => (
-                <div
+                <PricingCard
                   key={tier.name}
-                  className={cn(
-                    "flex flex-col border p-8 space-y-6 relative",
-                    tier.highlighted ? "border-2 border-personality shadow-lg scale-105" : "border-border",
-                  )}
-                >
-                  {tier.highlighted && (
-                    <div className="absolute -top-4 left-4 bg-personality text-background px-3 py-1 text-xs font-700">
-                      {tier.tagline}
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <h3 className="text-3xl font-basteleur font-700">{tier.name}</h3>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-700">
-                        {billingPeriod === "annual" ? tier.priceAnnual : tier.price}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {billingPeriod === "annual" ? tier.periodAnnual : tier.period}
-                      </span>
-                    </div>
-                    <p className="text-muted-foreground">{tier.description}</p>
-                  </div>
-
-                  <ul className="space-y-3 flex-1">
-                    {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2 text-sm">
-                        <Icon
-                          icon="check"
-                          iconStyle={"pixel"}
-                          className="size-6 -mt-0.5"
-                          color="var(--personality)"
-                        />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    variant={tier.highlighted ? "default" : "outline"}
-                    className={cn(
-                      "font-700 py-6",
-                      tier.highlighted ? "bg-personality hover:bg-personality/90 text-background" : "",
-                    )}
-                    onClick={() => setLoginModalOpen(true)}
-                  >
-                    {tier.cta}
-                  </Button>
-                </div>
+                  tier={tier}
+                  billingPeriod={billingPeriod}
+                  onCtaClick={() => setLoginModalOpen(true)}
+                />
               ))}
             </div>
 
@@ -391,8 +292,8 @@ export default function Landing() {
                   className="size-8"
                   color="var(--personality)"
                 />
-                <p className="font-700">No Card Required</p>
-                <p className="text-sm text-muted-foreground">Start your trial instantly</p>
+                <p className="font-700">Free Starter Plan</p>
+                <p className="text-sm text-muted-foreground">Get started instantly</p>
               </div>
               <div className="flex flex-col items-center text-center gap-2">
                 <Icon icon="rotateCcw" iconStyle={"pixel"} className="size-8" color="var(--personality)" />
@@ -456,12 +357,12 @@ export default function Landing() {
                 </Button>
               ) : (
                 <Button size="lg" className="text-lg px-8 py-6" onClick={() => setLoginModalOpen(true)}>
-                  Start your free trial
+                  Get started
                 </Button>
               )}
             </div>
             <p className="text-sm text-muted-foreground">
-              No credit card required · 14-day free trial · Cancel anytime
+              Free forever · Upgrade when you need more · Cancel anytime
             </p>
           </div>
         </div>
@@ -469,21 +370,29 @@ export default function Landing() {
 
       <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
 
-      <footer className="flex justify-center gap-2 items-center py-1 border-t">
-        <span className="font-300 text-lg text-muted-foreground">
-          Built by{" "}
-          <a
-            href="https://ob248.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-personality font-700"
-          >
-            Oliver Bryan
+      <footer className="flex flex-col items-center gap-2 py-1 border-t">
+        <div className="flex justify-center gap-2 items-center">
+          <span className="font-300 text-lg text-muted-foreground">
+            Built by{" "}
+            <a
+              href="https://ob248.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-personality font-700"
+            >
+              Oliver Bryan
+            </a>
+          </span>
+          <a href="https://ob248.com" target="_blank" rel="noopener noreferrer">
+            <img src="oliver-bryan.svg" alt="Oliver Bryan" className="w-4 h-4" />
           </a>
-        </span>
-        <a href="https://ob248.com" target="_blank" rel="noopener noreferrer">
-          <img src="oliver-bryan.svg" alt="Oliver Bryan" className="w-4 h-4" />
-        </a>
+        </div>
+        <Link
+          to="/the-boring-stuff"
+          className="text-sm text-muted-foreground hover:text-personality transition-colors"
+        >
+          The boring stuff — Privacy Policy & ToS
+        </Link>
       </footer>
     </div>
   );

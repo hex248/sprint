@@ -1,6 +1,13 @@
 import { ProjectCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
-import { createProject, getOrganisationMemberRole, getProjectByKey, getUserById } from "../../db/queries";
+import {
+    createProject,
+    FREE_TIER_LIMITS,
+    getOrganisationMemberRole,
+    getOrganisationProjectCount,
+    getProjectByKey,
+    getUserById,
+} from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function projectCreate(req: AuthedRequest) {
@@ -22,7 +29,19 @@ export default async function projectCreate(req: AuthedRequest) {
         return errorResponse("only owners and admins can create projects", "PERMISSION_DENIED", 403);
     }
 
+    // check free tier limit
     const creator = await getUserById(req.userId);
+    if (creator && creator.plan !== "pro") {
+        const projectCount = await getOrganisationProjectCount(organisationId);
+        if (projectCount >= FREE_TIER_LIMITS.projectsPerOrganisation) {
+            return errorResponse(
+                `free tier is limited to ${FREE_TIER_LIMITS.projectsPerOrganisation} project per organisation. upgrade to pro for unlimited projects.`,
+                "FREE_TIER_PROJECT_LIMIT",
+                403,
+            );
+        }
+    }
+
     if (!creator) {
         return errorResponse(`creator not found`, "CREATOR_NOT_FOUND", 404);
     }

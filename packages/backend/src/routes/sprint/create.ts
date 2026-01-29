@@ -2,8 +2,11 @@ import { SprintCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     createSprint,
+    FREE_TIER_LIMITS,
     getOrganisationMemberRole,
     getProjectByID,
+    getProjectSprintCount,
+    getSubscriptionByUserId,
     hasOverlappingSprints,
 } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
@@ -26,6 +29,20 @@ export default async function sprintCreate(req: AuthedRequest) {
 
     if (membership.role !== "owner" && membership.role !== "admin") {
         return errorResponse("Only owners and admins can create sprints", "PERMISSION_DENIED", 403);
+    }
+
+    // check free tier sprint limit
+    const subscription = await getSubscriptionByUserId(req.userId);
+    const isPro = subscription?.status === "active";
+    if (!isPro) {
+        const sprintCount = await getProjectSprintCount(projectId);
+        if (sprintCount >= FREE_TIER_LIMITS.sprintsPerProject) {
+            return errorResponse(
+                `Free tier limited to ${FREE_TIER_LIMITS.sprintsPerProject} sprints per project. Upgrade to Pro for unlimited sprints.`,
+                "SPRINT_LIMIT_REACHED",
+                403,
+            );
+        }
     }
 
     const start = new Date(startDate);

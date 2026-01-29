@@ -97,15 +97,15 @@ const issueComments = [
 
 const passwordHash = await hashPassword("a");
 const users = [
-    { name: "user 1", username: "u1", passwordHash, avatarURL: null },
-    { name: "user 2", username: "u2", passwordHash, avatarURL: null },
+    { name: "user 1", username: "u1", email: "user1@example.com", passwordHash, avatarURL: null },
+    { name: "user 2", username: "u2", email: "user2@example.com", passwordHash, avatarURL: null },
     // anything past here is just to have more users to assign issues to
-    { name: "user 3", username: "u3", passwordHash, avatarURL: null },
-    { name: "user 4", username: "u4", passwordHash, avatarURL: null },
-    { name: "user 5", username: "u5", passwordHash, avatarURL: null },
-    { name: "user 6", username: "u6", passwordHash, avatarURL: null },
-    { name: "user 7", username: "u7", passwordHash, avatarURL: null },
-    { name: "user 8", username: "u8", passwordHash, avatarURL: null },
+    { name: "user 3", username: "u3", email: "user3@example.com", passwordHash, avatarURL: null },
+    { name: "user 4", username: "u4", email: "user4@example.com", passwordHash, avatarURL: null },
+    { name: "user 5", username: "u5", email: "user5@example.com", passwordHash, avatarURL: null },
+    { name: "user 6", username: "u6", email: "user6@example.com", passwordHash, avatarURL: null },
+    { name: "user 7", username: "u7", email: "user7@example.com", passwordHash, avatarURL: null },
+    { name: "user 8", username: "u8", email: "user8@example.com", passwordHash, avatarURL: null },
 ];
 
 async function seed() {

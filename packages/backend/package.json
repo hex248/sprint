@@ -20,6 +20,8 @@
         "@types/bun": "latest",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/pg": "^8.15.6",
+        "@types/react": "^19.2.10",
+        "@types/react-dom": "^19.2.3",
         "drizzle-kit": "^0.31.8",
         "tsx": "^4.21.0"
     },
@@ -27,13 +29,19 @@
         "typescript": "^5"
     },
     "dependencies": {
+        "@react-email/components": "^1.0.6",
+        "@react-email/render": "^2.0.4",
         "@sprint/shared": "workspace:*",
         "bcrypt": "^6.0.0",
         "dotenv": "^17.2.3",
         "drizzle-orm": "^0.45.0",
         "jsonwebtoken": "^9.0.3",
         "pg": "^8.16.3",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "resend": "^6.9.1",
         "sharp": "^0.34.5",
+        "stripe": "^20.2.0",
         "zod": "^3.23.8"
     }
 }

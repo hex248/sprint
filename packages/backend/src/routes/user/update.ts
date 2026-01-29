@@ -1,7 +1,7 @@
 import { UserUpdateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { hashPassword } from "../../auth/utils";
-import { getUserById } from "../../db/queries";
+import { getSubscriptionByUserId, getUserById } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function update(req: AuthedRequest) {
@@ -21,6 +21,19 @@ export default async function update(req: AuthedRequest) {
             "NO_UPDATES",
             400,
         );
+    }
+
+    // block free users from changing icon preference
+    if (iconPreference !== undefined && iconPreference !== user.iconPreference) {
+        const subscription = await getSubscriptionByUserId(req.userId);
+        const isPro = subscription?.status === "active";
+        if (!isPro) {
+            return errorResponse(
+                "icon style customization is only available on Pro. Upgrade to customize your icon style.",
+                "ICON_STYLE_PRO_ONLY",
+                403,
+            );
+        }
     }
 
     let passwordHash: string | undefined;

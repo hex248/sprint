@@ -1,8 +1,7 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <> */
 
-import { USER_NAME_MAX_LENGTH, USER_USERNAME_MAX_LENGTH } from "@sprint/shared";
+import { USER_EMAIL_MAX_LENGTH, USER_NAME_MAX_LENGTH, USER_USERNAME_MAX_LENGTH } from "@sprint/shared";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import Avatar from "@/components/avatar";
 import { useSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
@@ -26,9 +25,7 @@ export default function LogInForm({
   showWarning: boolean;
   setShowWarning: (value: boolean) => void;
 }) {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { setUser } = useSession();
+  const { setUser, setEmailVerified } = useSession();
 
   const [loginDetailsOpen, setLoginDetailsOpen] = useState(false);
 
@@ -36,6 +33,7 @@ export default function LogInForm({
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [avatarURL, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -58,8 +56,7 @@ export default function LogInForm({
           const data = await res.json();
           setCsrfToken(data.csrfToken);
           setUser(data.user);
-          const next = searchParams.get("next") || "/issues";
-          navigate(next, { replace: true });
+          setEmailVerified(data.user.emailVerified);
         }
         // unauthorized
         else if (res.status === 401) {
@@ -75,7 +72,7 @@ export default function LogInForm({
   };
 
   const register = () => {
-    if (name.trim() === "" || username.trim() === "" || password.trim() === "") {
+    if (name.trim() === "" || username.trim() === "" || email.trim() === "" || password.trim() === "") {
       return;
     }
 
@@ -85,6 +82,7 @@ export default function LogInForm({
       body: JSON.stringify({
         name,
         username,
+        email,
         password,
         avatarURL,
       }),
@@ -96,8 +94,7 @@ export default function LogInForm({
           const data = await res.json();
           setCsrfToken(data.csrfToken);
           setUser(data.user);
-          const next = searchParams.get("next") || "/issues";
-          navigate(next, { replace: true });
+          setEmailVerified(data.user.emailVerified);
         }
         // bad request (probably a bad user input)
         else if (res.status === 400) {
@@ -129,6 +126,7 @@ export default function LogInForm({
     setError("");
     setSubmitAttempted(false);
     setAvatarUrl(null);
+    setEmail("");
     requestAnimationFrame(() => focusFirstInput());
   };
 
@@ -248,6 +246,15 @@ export default function LogInForm({
                     submitAttempted={submitAttempted}
                     spellcheck={false}
                     maxLength={USER_NAME_MAX_LENGTH}
+                  />
+                  <Field
+                    label="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                    submitAttempted={submitAttempted}
+                    spellcheck={false}
+                    maxLength={USER_EMAIL_MAX_LENGTH}
                   />
                 </>
               )}

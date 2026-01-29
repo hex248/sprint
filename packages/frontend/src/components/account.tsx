@@ -1,6 +1,7 @@
 import type { IconStyle } from "@sprint/shared";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import ThemeToggle from "@/components/theme-toggle";
@@ -14,6 +15,9 @@ import { UploadAvatar } from "@/components/upload-avatar";
 import { useUpdateUser } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
+
+// icon style is locked to pixel for free users
+const DEFAULT_ICON_STYLE: IconStyle = "pixel";
 
 function Account({ trigger }: { trigger?: ReactNode }) {
   const { user: currentUser, setUser } = useAuthenticatedSession();
@@ -34,7 +38,12 @@ function Account({ trigger }: { trigger?: ReactNode }) {
     setName(currentUser.name);
     setUsername(currentUser.username);
     setAvatarUrl(currentUser.avatarURL || null);
-    setIconPreference((currentUser.iconPreference as IconStyle) ?? "pixel");
+    // free users are locked to pixel icon style
+    const effectiveIconStyle =
+      currentUser.plan === "pro"
+        ? ((currentUser.iconPreference as IconStyle) ?? DEFAULT_ICON_STYLE)
+        : DEFAULT_ICON_STYLE;
+    setIconPreference(effectiveIconStyle);
 
     setPassword("");
     setError("");
@@ -50,11 +59,13 @@ function Account({ trigger }: { trigger?: ReactNode }) {
     }
 
     try {
+      // only send iconPreference for pro users
+      const effectiveIconPreference = currentUser.plan === "pro" ? iconPreference : undefined;
       const data = await updateUser.mutateAsync({
         name: name.trim(),
         password: password.trim() || undefined,
         avatarURL,
-        iconPreference,
+        iconPreference: effectiveIconPreference,
       });
       setError("");
       setUser(data);
@@ -130,9 +141,22 @@ function Account({ trigger }: { trigger?: ReactNode }) {
               <ThemeToggle withText />
             </div>
             <div className="flex flex-col items-start gap-1">
-              <Label className="text-sm">Icon Style</Label>
-              <Select value={iconPreference} onValueChange={(v) => setIconPreference(v as IconStyle)}>
-                <SelectTrigger className="w-full">
+              <Label className={cn("text-sm", currentUser.plan !== "pro" && "text-muted-foreground")}>
+                Icon Style
+              </Label>
+              <Select
+                value={iconPreference}
+                onValueChange={(v) => setIconPreference(v as IconStyle)}
+                disabled={currentUser.plan !== "pro"}
+              >
+                <SelectTrigger
+                  className={cn("w-full", currentUser.plan !== "pro" && "cursor-not-allowed opacity-60")}
+                  title={
+                    currentUser.plan !== "pro"
+                      ? "icon style customization is only available on Pro"
+                      : undefined
+                  }
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent position="popper" side="bottom" align="start">
@@ -156,12 +180,33 @@ function Account({ trigger }: { trigger?: ReactNode }) {
                   </SelectItem>
                 </SelectContent>
               </Select>
+              {currentUser.plan !== "pro" && (
+                <span className="text-xs text-muted-foreground">
+                  <Link to="/plans" className="text-personality hover:underline">
+                    Upgrade to Pro
+                  </Link>{" "}
+                  to customize icon style
+                </span>
+              )}
             </div>
           </div>
 
           {error !== "" && <Label className="text-destructive text-sm">{error}</Label>}
 
-          <div className="flex justify-end mt-4">
+          {/* Show subscription management link */}
+          <div className="pt-2">
+            {currentUser.plan === "pro" ? (
+              <Button asChild className="w-fit bg-personality hover:bg-personality/90 font-700">
+                <Link to="/plans">Manage subscription</Link>
+              </Button>
+            ) : (
+              <Button asChild className="w-fit bg-personality hover:bg-personality/90 font-700">
+                <Link to="/plans">Upgrade to Pro</Link>
+              </Button>
+            )}
+          </div>
+
+          <div className="flex justify-end mt-2">
             <Button variant={"outline"} type={"submit"} className="px-12">
               Save
             </Button>

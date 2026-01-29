@@ -1,5 +1,5 @@
 import { Issue, Organisation, Project, Sprint, User } from "@sprint/shared";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createProject(key: string, name: string, creatorId: number, organisationId: number) {
@@ -81,4 +81,12 @@ export async function getProjectsByOrganisationId(organisationId: number) {
         .leftJoin(User, eq(Project.creatorId, User.id))
         .leftJoin(Organisation, eq(Project.organisationId, Organisation.id));
     return projects;
+}
+
+export async function getOrganisationProjectCount(organisationId: number): Promise<number> {
+    const [result] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(Project)
+        .where(eq(Project.organisationId, organisationId));
+    return result?.count ?? 0;
 }

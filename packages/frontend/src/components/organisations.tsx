@@ -8,8 +8,10 @@ import {
 } from "@sprint/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { AddMember } from "@/components/add-member";
+import { FreeTierLimit } from "@/components/free-tier-limit";
 import OrgIcon from "@/components/org-icon";
 import { OrganisationForm } from "@/components/organisation-form";
 import { OrganisationSelect } from "@/components/organisation-select";
@@ -22,6 +24,7 @@ import SmallUserDisplay from "@/components/small-user-display";
 import { SprintForm } from "@/components/sprint-form";
 import StatusTag from "@/components/status-tag";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import ColourPicker from "@/components/ui/colour-picker";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -34,13 +37,16 @@ import {
 import Icon, { type IconName, iconNames } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useDeleteOrganisation,
   useDeleteProject,
   useDeleteSprint,
+  useIssues,
   useOrganisationMembers,
+  useOrganisationMemberTimeTracking,
   useOrganisations,
   useProjects,
   useRemoveOrganisationMember,
@@ -52,8 +58,15 @@ import {
 } from "@/lib/query/hooks";
 import { queryKeys } from "@/lib/query/keys";
 import { apiClient } from "@/lib/server";
-import { capitalise, unCamelCase } from "@/lib/utils";
+import { capitalise, cn, formatDuration, unCamelCase } from "@/lib/utils";
 import { Switch } from "./ui/switch";
+
+const FREE_TIER_LIMITS = {
+  organisationsPerUser: 1,
+  projectsPerOrganisation: 1,
+  issuesPerOrganisation: 100,
+  membersPerOrganisation: 5,
+} as const;
 
 function Organisations({ trigger }: { trigger?: ReactNode }) {
   const { user } = useAuthenticatedSession();
@@ -63,6 +76,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   const { data: projectsData = [] } = useProjects(selectedOrganisationId);
   const { data: sprints = [] } = useSprints(selectedProjectId);
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
+  const { data: issues = [] } = useIssues(selectedProjectId);
   const updateOrganisation = useUpdateOrganisation();
   const updateMemberRole = useUpdateOrganisationMemberRole();
   const removeMember = useRemoveOrganisationMember();
@@ -71,6 +85,12 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   const deleteSprint = useDeleteSprint();
   const replaceIssueStatus = useReplaceIssueStatus();
   const replaceIssueType = useReplaceIssueType();
+
+  const isPro = user.plan === "pro";
+  const orgCount = organisationsData.length;
+  const projectCount = projectsData.length;
+  const issueCount = issues.length;
+  const memberCount = membersData.length;
 
   const organisations = useMemo(
     () => [...organisationsData].sort((a, b) => a.Organisation.name.localeCompare(b.Organisation.name)),
@@ -104,6 +124,15 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   );
   const invalidateSprints = () =>
     queryClient.invalidateQueries({ queryKey: queryKeys.sprints.byProject(selectedProjectId ?? 0) });
+  // time tracking state - must be before membersWithTimeTracking useMemo
+  const [fromDate, setFromDate] = useState<Date>(() => {
+    // default to same day of previous month
+    const now = new Date();
+    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    return prevMonth;
+  });
+  const { data: timeTrackingData = [] } = useOrganisationMemberTimeTracking(selectedOrganisationId, fromDate);
+
   const members = useMemo(() => {
     const roleOrder: Record<string, number> = { owner: 0, admin: 1, member: 2 };
     return [...membersData].sort((a, b) => {
@@ -113,6 +142,118 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
       return a.User.name.localeCompare(b.User.name);
     });
   }, [membersData]);
+
+  const membersWithTimeTracking = useMemo(() => {
+    const timePerUser = new Map<number, number>();
+    for (const session of timeTrackingData) {
+      const current = timePerUser.get(session.userId) ?? 0;
+      timePerUser.set(session.userId, current + (session.workTimeMs ?? 0));
+    }
+
+    const membersWithTime = members.map((member) => ({
+      ...member,
+      totalTimeMs: timePerUser.get(member.User.id) ?? 0,
+    }));
+
+    const roleOrder: Record<string, number> = { owner: 0, admin: 1, member: 2 };
+    return membersWithTime.sort((a, b) => {
+      if (b.totalTimeMs !== a.totalTimeMs) {
+        return b.totalTimeMs - a.totalTimeMs;
+      }
+      const roleA = roleOrder[a.OrganisationMember.role] ?? 3;
+      const roleB = roleOrder[b.OrganisationMember.role] ?? 3;
+      if (roleA !== roleB) return roleA - roleB;
+      return a.User.name.localeCompare(b.User.name);
+    });
+  }, [members, timeTrackingData]);
+
+  const downloadTimeTrackingData = (format: "csv" | "json") => {
+    if (!selectedOrganisation) return;
+
+    const userData = new Map<
+      number,
+      {
+        userId: number;
+        name: string;
+        username: string;
+        totalTimeMs: number;
+        sessions: typeof timeTrackingData;
+      }
+    >();
+
+    for (const member of members) {
+      userData.set(member.User.id, {
+        userId: member.User.id,
+        name: member.User.name,
+        username: member.User.username,
+        totalTimeMs: 0,
+        sessions: [],
+      });
+    }
+
+    for (const session of timeTrackingData) {
+      const user = userData.get(session.userId);
+      if (user) {
+        user.totalTimeMs += session.workTimeMs;
+        user.sessions.push(session);
+      }
+    }
+
+    const data = Array.from(userData.values()).sort((a, b) => b.totalTimeMs - a.totalTimeMs);
+
+    // generate CSV or JSON
+    if (format === "csv") {
+      const headers = ["User ID", "Name", "Username", "Total Time (ms)", "Total Time (formatted)"];
+      const rows = data.map((user) => [
+        user.userId,
+        user.name,
+        user.username,
+        user.totalTimeMs,
+        formatDuration(user.totalTimeMs),
+      ]);
+      const csv = [headers.join(","), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(","))].join(
+        "\n",
+      );
+
+      // download
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedOrganisation.Organisation.slug}-time-tracking-${fromDate.toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      const json = JSON.stringify(
+        {
+          organisation: selectedOrganisation.Organisation.name,
+          fromDate: fromDate.toISOString(),
+          generatedAt: new Date().toISOString(),
+          members: data.map((user) => ({
+            ...user,
+            totalTimeFormatted: formatDuration(user.totalTimeMs),
+          })),
+        },
+        null,
+        2,
+      );
+
+      // download
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedOrganisation.Organisation.slug}-time-tracking-${fromDate.toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    toast.success(`Downloaded time tracking data as ${format.toUpperCase()}`);
+  };
 
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
@@ -699,6 +840,49 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                       <p className="text-sm text-muted-foreground break-words">No description</p>
                     )}
                   </div>
+
+                  {/* Free tier limits section */}
+                  {!isPro && (
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-600">Plan Limits</h3>
+                        <Button asChild variant="link" size="sm" className="h-auto p-0 text-xs">
+                          <Link to="/plans">Upgrade to Pro</Link>
+                        </Button>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <FreeTierLimit
+                          current={orgCount}
+                          limit={FREE_TIER_LIMITS.organisationsPerUser}
+                          itemName="organisation"
+                          isPro={isPro}
+                          showUpgrade={false}
+                        />
+                        <FreeTierLimit
+                          current={projectCount}
+                          limit={FREE_TIER_LIMITS.projectsPerOrganisation}
+                          itemName="project"
+                          isPro={isPro}
+                          showUpgrade={false}
+                        />
+                        <FreeTierLimit
+                          current={issueCount}
+                          limit={FREE_TIER_LIMITS.issuesPerOrganisation}
+                          itemName="issue"
+                          isPro={isPro}
+                          showUpgrade={false}
+                        />
+                        <FreeTierLimit
+                          current={memberCount}
+                          limit={FREE_TIER_LIMITS.membersPerOrganisation}
+                          itemName="member"
+                          isPro={isPro}
+                          showUpgrade={false}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {isAdmin && (
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm" onClick={() => setEditOrgOpen(true)}>
@@ -753,12 +937,52 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
 
               <TabsContent value="users">
                 <div className="border p-2 min-w-0 overflow-hidden">
-                  <h2 className="text-xl font-600 mb-2">
-                    {members.length} Member{members.length !== 1 ? "s" : ""}
-                  </h2>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-xl font-600">
+                      {members.length} Member{members.length !== 1 ? "s" : ""}
+                    </h2>
+                    {isAdmin && (
+                      <div className="flex items-center gap-2">
+                        {isPro && (
+                          <>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  From: {fromDate.toLocaleDateString()}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="end">
+                                <Calendar
+                                  mode="single"
+                                  selected={fromDate}
+                                  onSelect={(date) => date && setFromDate(date)}
+                                  autoFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  Export
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => downloadTimeTrackingData("csv")}>
+                                  Download CSV
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => downloadTimeTrackingData("json")}>
+                                  Download JSON
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex flex-col gap-2 w-full">
                     <div className="flex flex-col gap-2 max-h-56 overflow-y-scroll">
-                      {members.map((member) => (
+                      {membersWithTimeTracking.map((member) => (
                         <div
                           key={member.OrganisationMember.id}
                           className="flex items-center justify-between p-2 border"
@@ -770,6 +994,11 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
+                            {isAdmin && isPro && (
+                              <span className="text-sm font-mono text-muted-foreground mr-2">
+                                {formatDuration(member.totalTimeMs)}
+                              </span>
+                            )}
                             {isAdmin &&
                               member.OrganisationMember.role !== "owner" &&
                               member.User.id !== user.id && (
@@ -803,25 +1032,46 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                       ))}
                     </div>
                     {isAdmin && (
-                      <AddMember
-                        organisationId={selectedOrganisation.Organisation.id}
-                        existingMembers={members.map((m) => m.User.username)}
-                        onSuccess={(user) => {
-                          toast.success(
-                            `${user.name} added to ${selectedOrganisation.Organisation.name} successfully`,
-                            {
-                              dismissible: false,
-                            },
-                          );
+                      <>
+                        {!isPro && (
+                          <div className="px-1">
+                            <FreeTierLimit
+                              current={memberCount}
+                              limit={FREE_TIER_LIMITS.membersPerOrganisation}
+                              itemName="member"
+                              isPro={isPro}
+                              showUpgrade={memberCount >= FREE_TIER_LIMITS.membersPerOrganisation}
+                            />
+                          </div>
+                        )}
+                        <AddMember
+                          organisationId={selectedOrganisation.Organisation.id}
+                          existingMembers={members.map((m) => m.User.username)}
+                          onSuccess={(user) => {
+                            toast.success(
+                              `${user.name} added to ${selectedOrganisation.Organisation.name} successfully`,
+                              {
+                                dismissible: false,
+                              },
+                            );
 
-                          void invalidateMembers();
-                        }}
-                        trigger={
-                          <Button variant="outline">
-                            Add user <Icon icon="plus" className="size-4" />
-                          </Button>
-                        }
-                      />
+                            void invalidateMembers();
+                          }}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              disabled={!isPro && memberCount >= FREE_TIER_LIMITS.membersPerOrganisation}
+                              title={
+                                !isPro && memberCount >= FREE_TIER_LIMITS.membersPerOrganisation
+                                  ? "Free tier limited to 5 members per organisation. Upgrade to Pro for unlimited."
+                                  : undefined
+                              }
+                            >
+                              Add user <Icon icon="plus" className="size-4" />
+                            </Button>
+                          }
+                        />
+                      </>
                     )}
                   </div>
                 </div>
@@ -1272,6 +1522,14 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
               <TabsContent value="features">
                 <div className="border p-2 min-w-0 overflow-hidden">
                   <h2 className="text-xl font-600 mb-2">Features</h2>
+                  {!isPro && (
+                    <div className="mb-3 p-2 bg-muted/50 rounded text-sm text-muted-foreground">
+                      Feature toggling is only available on Pro.{" "}
+                      <Link to="/plans" className="text-personality hover:underline">
+                        Upgrade to customize features.
+                      </Link>
+                    </div>
+                  )}
                   <div className="flex flex-col gap-2 w-full">
                     {Object.keys(DEFAULT_FEATURES).map((feature) => (
                       <div key={feature} className="flex items-center gap-2 p-1">
@@ -1293,9 +1551,12 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                             );
                             await invalidateOrganisations();
                           }}
+                          disabled={!isPro}
                           color={"#ff0000"}
                         />
-                        <span className={"text-sm"}>{unCamelCase(feature)}</span>
+                        <span className={cn("text-sm", !isPro && "text-muted-foreground")}>
+                          {unCamelCase(feature)}
+                        </span>
                       </div>
                     ))}
                   </div>

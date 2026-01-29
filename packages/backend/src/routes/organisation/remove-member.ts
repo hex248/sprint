@@ -1,6 +1,7 @@
 import { OrgRemoveMemberRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import { getOrganisationById, getOrganisationMemberRole, removeOrganisationMember } from "../../db/queries";
+import { updateSeatCount } from "../../lib/seats";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function organisationRemoveMember(req: AuthedRequest) {
@@ -33,6 +34,11 @@ export default async function organisationRemoveMember(req: AuthedRequest) {
     }
 
     await removeOrganisationMember(organisationId, userId);
+
+    // update seat count if the requester is the owner
+    if (requesterMember.role === "owner") {
+        await updateSeatCount(req.userId);
+    }
 
     return Response.json({ success: true });
 }

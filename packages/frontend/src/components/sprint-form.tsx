@@ -1,6 +1,7 @@
 import { DEFAULT_SPRINT_COLOUR, type SprintRecord } from "@sprint/shared";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { FreeTierLimit } from "@/components/free-tier-limit";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,6 +22,7 @@ import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
 const SPRINT_NAME_MAX_LENGTH = 64;
+const FREE_TIER_SPRINT_LIMIT = 5;
 
 const getStartOfDay = (date: Date) => {
   const next = new Date(date);
@@ -301,6 +303,16 @@ export function SprintForm({
             )}
           </div>
 
+          {!isEdit && (
+            <FreeTierLimit
+              current={sprints.length}
+              limit={FREE_TIER_SPRINT_LIMIT}
+              itemName="sprint"
+              isPro={user.plan === "pro"}
+              showUpgrade={sprints.length >= FREE_TIER_SPRINT_LIMIT}
+            />
+          )}
+
           <div className="flex gap-2 w-full justify-end mt-2">
             <DialogClose asChild>
               <Button variant="outline" type="button">
@@ -312,7 +324,13 @@ export function SprintForm({
               disabled={
                 submitting ||
                 ((name.trim() === "" || name.trim().length > SPRINT_NAME_MAX_LENGTH) && submitAttempted) ||
-                (dateError !== "" && submitAttempted)
+                (dateError !== "" && submitAttempted) ||
+                (!isEdit && user.plan !== "pro" && sprints.length >= FREE_TIER_SPRINT_LIMIT)
+              }
+              title={
+                !isEdit && user.plan !== "pro" && sprints.length >= FREE_TIER_SPRINT_LIMIT
+                  ? `Free tier limited to ${FREE_TIER_SPRINT_LIMIT} sprints per project. Upgrade to Pro for unlimited sprints.`
+                  : undefined
               }
             >
               {submitting ? (isEdit ? "Saving..." : "Creating...") : isEdit ? "Save" : "Create"}

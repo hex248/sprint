@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Account from "@/components/account";
 import { IssueForm } from "@/components/issue-form";
 import LogOutButton from "@/components/log-out-button";
@@ -11,6 +11,7 @@ import { useSelection } from "@/components/selection-provider";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
 import { SprintForm } from "@/components/sprint-form";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,6 +123,11 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
         )}
       </div>
       <div className={`flex gap-${BREATHING_ROOM} items-center`}>
+        {user.plan !== "pro" && (
+          <Button asChild className="bg-personality hover:bg-personality/90 text-background font-600">
+            <Link to="/plans">Upgrade</Link>
+          </Button>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger className="text-sm">
             <SmallUserDisplay user={user} />

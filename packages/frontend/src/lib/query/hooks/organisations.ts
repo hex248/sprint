@@ -14,6 +14,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query/keys";
 import { apiClient } from "@/lib/server";
 
+export interface MemberTimeTrackingSession {
+  id: number;
+  userId: number;
+  issueId: number;
+  issueNumber: number;
+  projectKey: string;
+  timestamps: string[];
+  endedAt: string | null;
+  createdAt: string | null;
+  workTimeMs: number;
+  breakTimeMs: number;
+  isRunning: boolean;
+}
+
 export function useOrganisations() {
   return useQuery<OrganisationResponse[]>({
     queryKey: queryKeys.organisations.byUser(),
@@ -34,6 +48,23 @@ export function useOrganisationMembers(organisationId?: number | null) {
       });
       if (error) throw new Error(error);
       return (data ?? []) as OrganisationMemberResponse[];
+    },
+    enabled: Boolean(organisationId),
+  });
+}
+
+export function useOrganisationMemberTimeTracking(organisationId?: number | null, fromDate?: Date) {
+  return useQuery<MemberTimeTrackingSession[]>({
+    queryKey: queryKeys.organisations.memberTimeTracking(organisationId ?? 0, fromDate?.toISOString()),
+    queryFn: async () => {
+      const { data, error } = await apiClient.organisationMemberTimeTracking({
+        query: {
+          organisationId: organisationId ?? 0,
+          fromDate: fromDate,
+        },
+      });
+      if (error) throw new Error(error);
+      return (data ?? []) as MemberTimeTrackingSession[];
     },
     enabled: Boolean(organisationId),
   });

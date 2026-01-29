@@ -1,6 +1,11 @@
 import { OrgUpdateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
-import { getOrganisationById, getOrganisationMemberRole, updateOrganisation } from "../../db/queries";
+import {
+    getOrganisationById,
+    getOrganisationMemberRole,
+    getSubscriptionByUserId,
+    updateOrganisation,
+} from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function organisationUpdate(req: AuthedRequest) {
@@ -20,6 +25,19 @@ export default async function organisationUpdate(req: AuthedRequest) {
     }
     if (requesterMember.role !== "owner" && requesterMember.role !== "admin") {
         return errorResponse("only owners and admins can edit organisations", "PERMISSION_DENIED", 403);
+    }
+
+    // block free users from updating features
+    if (features !== undefined) {
+        const subscription = await getSubscriptionByUserId(req.userId);
+        const isPro = subscription?.status === "active";
+        if (!isPro) {
+            return errorResponse(
+                "Feature toggling is only available on Pro. Upgrade to customize features.",
+                "FEATURE_TOGGLE_PRO_ONLY",
+                403,
+            );
+        }
     }
 
     if (!name && !description && !slug && !statuses && !features && !issueTypes && iconURL === undefined) {

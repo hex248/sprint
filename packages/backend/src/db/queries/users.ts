@@ -5,10 +5,14 @@ import { db } from "../client";
 export async function createUser(
     name: string,
     username: string,
+    email: string,
     passwordHash: string,
     avatarURL?: string | null,
 ) {
-    const [user] = await db.insert(User).values({ name, username, passwordHash, avatarURL }).returning();
+    const [user] = await db
+        .insert(User)
+        .values({ name, username, email, passwordHash, avatarURL })
+        .returning();
     return user;
 }
 
@@ -22,6 +26,11 @@ export async function getUserByUsername(username: string) {
     return user;
 }
 
+export async function getUserByEmail(email: string) {
+    const [user] = await db.select().from(User).where(eq(User.email, email));
+    return user;
+}
+
 export async function updateById(
     id: number,
     updates: {
@@ -29,8 +38,14 @@ export async function updateById(
         passwordHash?: string;
         avatarURL?: string | null;
         iconPreference?: IconStyle;
+        plan?: string;
     },
 ): Promise<UserRecord | undefined> {
+    const [user] = await db.update(User).set(updates).where(eq(User.id, id)).returning();
+    return user;
+}
+
+export async function updateUser(id: number, updates: { plan?: string }) {
     const [user] = await db.update(User).set(updates).where(eq(User.id, id)).returning();
     return user;
 }

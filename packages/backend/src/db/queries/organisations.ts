@@ -1,5 +1,5 @@
 import { Organisation, OrganisationMember, User } from "@sprint/shared";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createOrganisation(name: string, slug: string, description?: string) {
@@ -143,4 +143,22 @@ export async function updateOrganisationMemberRole(organisationId: number, userI
         )
         .returning();
     return member;
+}
+
+export async function getUserOrganisationCount(userId: number): Promise<number> {
+    const [result] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(OrganisationMember)
+        .where(eq(OrganisationMember.userId, userId));
+    return result?.count ?? 0;
+}
+
+export async function getOrganisationOwner(organisationId: number) {
+    const [owner] = await db
+        .select({ userId: OrganisationMember.userId })
+        .from(OrganisationMember)
+        .where(
+            and(eq(OrganisationMember.organisationId, organisationId), eq(OrganisationMember.role, "owner")),
+        );
+    return owner;
 }

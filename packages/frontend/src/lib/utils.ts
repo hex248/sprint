@@ -37,7 +37,7 @@ export function getServerURL() {
   let serverURL =
     localStorage.getItem("serverURL") || // user-defined server URL
     ENV_SERVER_URL || // environment variable
-    "https://tnirps.ob248.com"; // fallback
+    "https://server.sprintpm.org"; // fallback
   if (serverURL.endsWith("/")) {
     serverURL = serverURL.slice(0, -1);
   }
@@ -68,4 +68,20 @@ export const isLight = (hex: string): boolean => {
 
 export const unCamelCase = (str: string): string => {
   return str.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (char) => char.toUpperCase());
+};
+
+export const formatDuration = (ms: number): string => {
+  if (ms === 0) return "0s";
+
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || (hours === 0 && minutes === 0)) parts.push(`${seconds}s`);
+
+  return parts.join(" ") || "0s";
 };

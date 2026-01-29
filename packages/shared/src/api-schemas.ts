@@ -9,6 +9,7 @@ import {
     ORG_NAME_MAX_LENGTH,
     ORG_SLUG_MAX_LENGTH,
     PROJECT_NAME_MAX_LENGTH,
+    USER_EMAIL_MAX_LENGTH,
     USER_NAME_MAX_LENGTH,
     USER_USERNAME_MAX_LENGTH,
 } from "./constants";
@@ -40,6 +41,7 @@ export const RegisterRequestSchema = z.object({
         .min(1, "Username is required")
         .max(USER_USERNAME_MAX_LENGTH)
         .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
+    email: z.string().min(1, "Email is required").email("Invalid email address").max(USER_EMAIL_MAX_LENGTH),
     password: z
         .string()
         .min(8, "Password must be at least 8 characters")
@@ -58,11 +60,20 @@ export const AuthResponseSchema = z.object({
         username: z.string(),
         avatarURL: z.string().nullable(),
         iconPreference: z.enum(["lucide", "pixel", "phosphor"]),
+        emailVerified: z.boolean(),
     }),
     csrfToken: z.string(),
 });
 
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
+
+// email verification schemas
+
+export const VerifyEmailRequestSchema = z.object({
+    code: z.string().length(6, "Verification code must be 6 digits"),
+});
+
+export type VerifyEmailRequest = z.infer<typeof VerifyEmailRequestSchema>;
 
 // issue schemas
 
@@ -226,6 +237,13 @@ export const OrgMembersQuerySchema = z.object({
 });
 
 export type OrgMembersQuery = z.infer<typeof OrgMembersQuerySchema>;
+
+export const OrgMemberTimeTrackingQuerySchema = z.object({
+    organisationId: z.coerce.number().int().positive("organisationId must be a positive integer"),
+    fromDate: z.coerce.date().optional(),
+});
+
+export type OrgMemberTimeTrackingQuery = z.infer<typeof OrgMemberTimeTrackingQuerySchema>;
 
 export const OrgAddMemberRequestSchema = z.object({
     organisationId: z.number().int().positive("organisationId must be a positive integer"),
@@ -412,6 +430,7 @@ export const UserResponseSchema = z.object({
     username: z.string(),
     avatarURL: z.string().nullable(),
     iconPreference: z.enum(["lucide", "pixel", "phosphor"]),
+    plan: z.string().nullable().optional(),
     createdAt: z.string().nullable().optional(),
     updatedAt: z.string().nullable().optional(),
 });
@@ -594,3 +613,54 @@ export const SuccessResponseSchema = z.object({
 });
 
 export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
+
+// subscription schemas
+
+export const CreateCheckoutSessionRequestSchema = z.object({
+    billingPeriod: z.enum(["monthly", "annual"]),
+});
+
+export type CreateCheckoutSessionRequest = z.infer<typeof CreateCheckoutSessionRequestSchema>;
+
+export const CreateCheckoutSessionResponseSchema = z.object({
+    url: z.string(),
+});
+
+export type CreateCheckoutSessionResponse = z.infer<typeof CreateCheckoutSessionResponseSchema>;
+
+export const CreatePortalSessionResponseSchema = z.object({
+    url: z.string(),
+});
+
+export type CreatePortalSessionResponse = z.infer<typeof CreatePortalSessionResponseSchema>;
+
+export const SubscriptionRecordSchema = z.object({
+    id: z.number(),
+    userId: z.number(),
+    stripeCustomerId: z.string().nullable(),
+    stripeSubscriptionId: z.string().nullable(),
+    stripeSubscriptionItemId: z.string().nullable(),
+    stripePriceId: z.string().nullable(),
+    status: z.string(),
+    currentPeriodStart: z.string().nullable().optional(),
+    currentPeriodEnd: z.string().nullable().optional(),
+    cancelAtPeriodEnd: z.boolean(),
+    trialEnd: z.string().nullable().optional(),
+    quantity: z.number(),
+    createdAt: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
+});
+
+export type SubscriptionRecord = z.infer<typeof SubscriptionRecordSchema>;
+
+export const GetSubscriptionResponseSchema = z.object({
+    subscription: SubscriptionRecordSchema.nullable(),
+});
+
+export type GetSubscriptionResponse = z.infer<typeof GetSubscriptionResponseSchema>;
+
+export const CancelSubscriptionResponseSchema = z.object({
+    subscription: SubscriptionRecordSchema,
+});
+
+export type CancelSubscriptionResponse = z.infer<typeof CancelSubscriptionResponseSchema>;

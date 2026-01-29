@@ -1,5 +1,5 @@
 import { Issue, Sprint } from "@sprint/shared";
-import { and, desc, eq, gte, lte, ne } from "drizzle-orm";
+import { and, desc, eq, gte, lte, ne, sql } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createSprint(
@@ -71,4 +71,12 @@ export async function updateSprint(
 export async function deleteSprint(sprintId: number) {
     await db.update(Issue).set({ sprintId: null }).where(eq(Issue.sprintId, sprintId));
     await db.delete(Sprint).where(eq(Sprint.id, sprintId));
+}
+
+export async function getProjectSprintCount(projectId: number) {
+    const result = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(Sprint)
+        .where(eq(Sprint.projectId, projectId));
+    return result[0]?.count ?? 0;
 }

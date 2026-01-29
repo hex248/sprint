@@ -2,6 +2,8 @@ import authLogin from "./auth/login";
 import authLogout from "./auth/logout";
 import authMe from "./auth/me";
 import authRegister from "./auth/register";
+import authResendVerification from "./auth/resend-verification";
+import authVerifyEmail from "./auth/verify-email";
 import issueById from "./issue/by-id";
 import issueCreate from "./issue/create";
 import issueDelete from "./issue/delete";
@@ -20,6 +22,7 @@ import organisationById from "./organisation/by-id";
 import organisationsByUser from "./organisation/by-user";
 import organisationCreate from "./organisation/create";
 import organisationDelete from "./organisation/delete";
+import organisationMemberTimeTracking from "./organisation/member-time-tracking";
 import organisationMembers from "./organisation/members";
 import organisationRemoveMember from "./organisation/remove-member";
 import organisationUpdate from "./organisation/update";
@@ -37,6 +40,11 @@ import sprintCreate from "./sprint/create";
 import sprintDelete from "./sprint/delete";
 import sprintUpdate from "./sprint/update";
 import sprintsByProject from "./sprints/by-project";
+import subscriptionCancel from "./subscription/cancel";
+import subscriptionCreateCheckoutSession from "./subscription/create-checkout-session";
+import subscriptionCreatePortalSession from "./subscription/create-portal-session";
+import subscriptionGet from "./subscription/get";
+import subscriptionWebhook from "./subscription/webhook";
 import timerEnd from "./timer/end";
 import timerGet from "./timer/get";
 import timerGetInactive from "./timer/get-inactive";
@@ -51,6 +59,8 @@ export const routes = {
     authLogin,
     authLogout,
     authMe,
+    authVerifyEmail,
+    authResendVerification,
 
     userByUsername,
     userUpdate,
@@ -77,6 +87,7 @@ export const routes = {
     organisationUpdate,
     organisationDelete,
     organisationAddMember,
+    organisationMemberTimeTracking,
     organisationMembers,
     organisationRemoveMember,
     organisationUpdateMemberRole,
@@ -104,4 +115,10 @@ export const routes = {
     timerGetInactive,
     timerEnd,
     timers,
+
+    subscriptionCreateCheckoutSession,
+    subscriptionCreatePortalSession,
+    subscriptionCancel,
+    subscriptionGet,
+    subscriptionWebhook,
 };

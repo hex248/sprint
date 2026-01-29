@@ -1,5 +1,6 @@
 export const USER_NAME_MAX_LENGTH = 64;
 export const USER_USERNAME_MAX_LENGTH = 32;
+export const USER_EMAIL_MAX_LENGTH = 256;
 
 export const ORG_NAME_MAX_LENGTH = 64;
 export const ORG_DESCRIPTION_MAX_LENGTH = 1024;
