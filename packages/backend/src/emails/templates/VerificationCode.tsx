@@ -1,3 +1,3 @@
 export function VerificationCode({ code }: { code: string }) {
-    return <body>{code}</body>;
+    return <body>Your sprint verification code is: {code}</body>;
 }
