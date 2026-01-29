@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { FreeTierLimit } from "@/components/free-tier-limit";
+// import { FreeTierLimit } from "@/components/free-tier-limit";
 import { ProjectForm } from "@/components/project-form";
 import { useSelection } from "@/components/selection-provider";
-import { useAuthenticatedSession } from "@/components/session-provider";
+// import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useProjects } from "@/lib/query/hooks";
 
-const FREE_TIER_PROJECT_LIMIT = 1;
+// const free_tier_project_limit = 1;
 
 export function ProjectSelect({
   placeholder = "Select Project",
@@ -33,11 +33,10 @@ export function ProjectSelect({
   const [pendingProjectId, setPendingProjectId] = useState<number | null>(null);
   const { selectedOrganisationId, selectedProjectId, selectProject } = useSelection();
   const { data: projectsData = [] } = useProjects(selectedOrganisationId);
-  const { user } = useAuthenticatedSession();
-
-  const isPro = user.plan === "pro";
-  const projectCount = projectsData.length;
-  const isAtProjectLimit = !isPro && projectCount >= FREE_TIER_PROJECT_LIMIT;
+  // const { user } = useAuthenticatedSession();
+  // const isPro = user.plan === "pro";
+  // const projectCount = projectsData.length;
+  // const isAtProjectLimit = !isPro && projectCount >= FREE_TIER_PROJECT_LIMIT;
 
   const projects = useMemo(
     () => [...projectsData].sort((a, b) => a.Project.name.localeCompare(b.Project.name)),
@@ -91,7 +90,7 @@ export function ProjectSelect({
           {projects.length > 0 && <SelectSeparator />}
         </SelectGroup>
 
-        {!isPro && selectedOrganisationId && (
+        {/* {!isPro && selectedOrganisationId && (
           <div className="px-2 py-2">
             <FreeTierLimit
               current={projectCount}
@@ -101,7 +100,7 @@ export function ProjectSelect({
               showUpgrade={isAtProjectLimit}
             />
           </div>
-        )}
+        )} */}
 
         <ProjectForm
           organisationId={selectedOrganisationId ?? undefined}
@@ -110,14 +109,8 @@ export function ProjectSelect({
               size={"sm"}
               variant="ghost"
               className={"w-full"}
-              disabled={!selectedOrganisationId || isAtProjectLimit}
-              title={
-                isAtProjectLimit
-                  ? "Free tier limited to 1 project per organisation. Upgrade to Pro for unlimited."
-                  : !selectedOrganisationId
-                    ? "Select an organisation first"
-                    : undefined
-              }
+              disabled={!selectedOrganisationId}
+              title={!selectedOrganisationId ? "Select an organisation first" : undefined}
             >
               Create Project
             </Button>

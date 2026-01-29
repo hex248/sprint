@@ -2,10 +2,10 @@ import { OrgAddMemberRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     createOrganisationMember,
-    FREE_TIER_LIMITS,
+    // FREE_TIER_LIMITS,
     getOrganisationById,
     getOrganisationMemberRole,
-    getOrganisationMembers,
+    // getOrganisationMembers,
     getUserById,
 } from "../../db/queries";
 import { updateSeatCount } from "../../lib/seats";
@@ -42,17 +42,17 @@ export default async function organisationAddMember(req: AuthedRequest) {
     }
 
     // check free tier member limit
-    const requester = await getUserById(req.userId);
-    if (requester && requester.plan !== "pro") {
-        const members = await getOrganisationMembers(organisationId);
-        if (members.length >= FREE_TIER_LIMITS.membersPerOrganisation) {
-            return errorResponse(
-                `free tier is limited to ${FREE_TIER_LIMITS.membersPerOrganisation} members per organisation. upgrade to pro for unlimited members.`,
-                "FREE_TIER_MEMBER_LIMIT",
-                403,
-            );
-        }
-    }
+    // const requester = await getUserById(req.userId);
+    // if (requester && requester.plan !== "pro") {
+    //     const members = await getOrganisationMembers(organisationId);
+    //     if (members.length >= FREE_TIER_LIMITS.membersPerOrganisation) {
+    //         return errorResponse(
+    //             `free tier is limited to ${FREE_TIER_LIMITS.membersPerOrganisation} members per organisation. upgrade to pro for unlimited members.`,
+    //             "FREE_TIER_MEMBER_LIMIT",
+    //             403,
+    //         );
+    //     }
+    // }
 
     const member = await createOrganisationMember(organisationId, userId, role);
 

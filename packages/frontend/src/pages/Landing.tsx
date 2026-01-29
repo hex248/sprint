@@ -1,38 +1,34 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LoginModal } from "@/components/login-modal";
-import { PricingCard, pricingTiers } from "@/components/pricing-card";
 import { useSession } from "@/components/session-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
 
-const faqs = [
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards.",
-  },
-  {
-    question: "What if I need more users?",
-    answer:
-      "Pro plan pricing scales with your team. Add or remove users anytime, and we'll adjust your billing automatically.",
-  },
-  {
-    question: "Can I cancel anytime?",
-    answer:
-      "Absolutely. Cancel anytime with no questions asked. You'll keep access until the end of your billing period.",
-  },
-  {
-    question: "Do you offer refunds?",
-    answer: "Yes, we offer a 30-day money-back guarantee. If Sprint isn't right for you, just let us know.",
-  },
-];
+// const faqs = [
+//   {
+//     question: "What payment methods do you accept?",
+//     answer: "We accept all major credit cards.",
+//   },
+//   {
+//     question: "What if I need more users?",
+//     answer:
+//       "Pro plan pricing scales with your team. Add or remove users anytime, and we'll adjust your billing automatically.",
+//   },
+//   {
+//     question: "Can I cancel anytime?",
+//     answer:
+//       "Absolutely. Cancel anytime with no questions asked. You'll keep access until the end of your billing period.",
+//   },
+//   {
+//     question: "Do you offer refunds?",
+//     answer: "Yes, we offer a 30-day money-back guarantee. If Sprint isn't right for you, just let us know.",
+//   },
+// ];
 
 export default function Landing() {
   const { user, isLoading } = useSession();
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   return (
@@ -56,12 +52,12 @@ export default function Landing() {
             >
               Features
             </a>
-            <a
+            {/* <a
               href="#pricing"
               className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
             >
               Pricing
-            </a>
+            </a> */}
             <a
               href="#faq"
               className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
@@ -111,14 +107,14 @@ export default function Landing() {
                   <Button size="lg" className="text-lg px-8 py-6" onClick={() => setLoginModalOpen(true)}>
                     Get started
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
+                  {/* <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
                     <a href="#pricing">See pricing</a>
-                  </Button>
+                  </Button> */}
                 </>
               )}
             </div>
 
-            <p className="text-sm text-muted-foreground">Free forever · Upgrade when you need more</p>
+            {/* <p className="text-sm text-muted-foreground">Free forever · Upgrade when you need more</p> */}
           </div>
 
           {/* problem section */}
@@ -221,102 +217,32 @@ export default function Landing() {
           </div>
 
           {/* pricing section */}
-          <div
-            id="pricing"
-            className="max-w-5xl mx-auto space-y-16 flex flex-col items-center border-t pt-24 scroll-mt-4"
-          >
+          {/* <div id="pricing" className="max-w-5xl mx-auto space-y-12 scroll-mt-4 border-t pt-24">
             <div className="text-center space-y-6">
               <h2 className="text-5xl font-basteleur font-700">Simple, transparent pricing</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Choose the plan that fits your team. Scale as you grow.
               </p>
+              <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
+                <Link to="/plans">View plans</Link>
+              </Button>
+            </div>
+          </div> */}
 
-              {/* billing toggle */}
-              <div className="flex items-center justify-center gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setBillingPeriod("monthly")}
-                  className={cn(
-                    "text-lg transition-colors",
-                    billingPeriod === "monthly" ? "text-foreground font-700" : "text-muted-foreground",
-                  )}
-                >
-                  monthly
-                </button>
-                <Switch
-                  size="lg"
-                  checked={billingPeriod === "annual"}
-                  onCheckedChange={(checked) => setBillingPeriod(checked ? "annual" : "monthly")}
-                  className="bg-border data-[state=checked]:bg-border! data-[state=unchecked]:bg-border!"
-                  thumbClassName="bg-personality dark:bg-personality data-[state=checked]:bg-personality! data-[state=unchecked]:bg-personality!"
-                  aria-label="toggle billing period"
-                />
-                <button
-                  type="button"
-                  onClick={() => setBillingPeriod("annual")}
-                  className={cn(
-                    "text-lg transition-colors",
-                    billingPeriod === "annual" ? "text-foreground font-700" : "text-muted-foreground",
-                  )}
-                >
-                  annual
-                </button>
-                <span className="text-sm px-3 py-1 bg-personality/10 text-personality rounded-full font-600">
-                  Save 17%
-                </span>
+          {/* faq section */}
+          {/* <div id="faq" className="w-full max-w-5xl flex justify-center scroll-mt-4 border-t pt-24">
+            <div className="w-full max-w-4xl flex flex-col items-center space-y-12">
+              <h2 className="text-5xl font-basteleur font-700 text-center">Frequently Asked Questions</h2>
+              <div className="grid gap-8 max-w-3xl">
+                {faqs.map((faq) => (
+                  <div key={faq.question} className="space-y-2">
+                    <h4 className="text-lg font-700">{faq.question}</h4>
+                    <p className="text-muted-foreground">{faq.answer}</p>
+                  </div>
+                ))}
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-              {pricingTiers.map((tier) => (
-                <PricingCard
-                  key={tier.name}
-                  tier={tier}
-                  billingPeriod={billingPeriod}
-                  onCtaClick={() => setLoginModalOpen(true)}
-                />
-              ))}
-            </div>
-
-            {/* trust signals */}
-            <div className="grid md:grid-cols-3 gap-8 w-full border-t pt-16 pb-8">
-              <div className="flex flex-col items-center text-center gap-2">
-                <Icon icon="eyeClosed" iconStyle={"pixel"} className="size-8" color="var(--personality)" />
-                <p className="font-700">Secure & Encrypted</p>
-                <p className="text-sm text-muted-foreground">Your data is safe with us</p>
-              </div>
-              <div className="flex flex-col items-center text-center gap-2">
-                <Icon
-                  icon="creditCardDelete"
-                  iconStyle={"pixel"}
-                  className="size-8"
-                  color="var(--personality)"
-                />
-                <p className="font-700">Free Starter Plan</p>
-                <p className="text-sm text-muted-foreground">Get started instantly</p>
-              </div>
-              <div className="flex flex-col items-center text-center gap-2">
-                <Icon icon="rotateCcw" iconStyle={"pixel"} className="size-8" color="var(--personality)" />
-                <p className="font-700">Money Back Guarantee</p>
-                <p className="text-sm text-muted-foreground">30-day no-risk policy</p>
-              </div>
-            </div>
-
-            {/* faq section */}
-            <div className="w-full max-w-5xl flex justify-center border-t pt-24 scroll-mt-4" id="faq">
-              <div className="w-full max-w-4xl flex flex-col items-center space-y-12">
-                <h2 className="text-5xl font-basteleur font-700 text-center">Frequently Asked Questions</h2>
-                <div className="grid gap-8 max-w-3xl">
-                  {faqs.map((faq) => (
-                    <div key={faq.question} className="space-y-2">
-                      <h4 className="text-lg font-700">{faq.question}</h4>
-                      <p className="text-muted-foreground">{faq.answer}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          </div> */}
 
           {/* TODO:> commented out until we have actual testimonies */}
           {/* social proof placeholder */}
@@ -361,9 +287,9 @@ export default function Landing() {
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
+            {/* <p className="text-sm text-muted-foreground">
               Free forever · Upgrade when you need more · Cancel anytime
-            </p>
+            </p> */}
           </div>
         </div>
       </main>

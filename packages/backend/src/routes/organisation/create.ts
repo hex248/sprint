@@ -2,10 +2,10 @@ import { OrgCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     createOrganisationWithOwner,
-    FREE_TIER_LIMITS,
+    // FREE_TIER_LIMITS,
     getOrganisationBySlug,
-    getUserById,
-    getUserOrganisationCount,
+    // getUserById,
+    // getUserOrganisationCount,
 } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
 
@@ -21,17 +21,17 @@ export default async function organisationCreate(req: AuthedRequest) {
     }
 
     // check free tier limit
-    const user = await getUserById(req.userId);
-    if (user && user.plan !== "pro") {
-        const orgCount = await getUserOrganisationCount(req.userId);
-        if (orgCount >= FREE_TIER_LIMITS.organisationsPerUser) {
-            return errorResponse(
-                `free tier is limited to ${FREE_TIER_LIMITS.organisationsPerUser} organisation. upgrade to pro for unlimited organisations.`,
-                "FREE_TIER_ORG_LIMIT",
-                403,
-            );
-        }
-    }
+    // const user = await getUserById(req.userId);
+    // if (user && user.plan !== "pro") {
+    //     const orgCount = await getUserOrganisationCount(req.userId);
+    //     if (orgCount >= FREE_TIER_LIMITS.organisationsPerUser) {
+    //         return errorResponse(
+    //             `free tier is limited to ${FREE_TIER_LIMITS.organisationsPerUser} organisation. upgrade to pro for unlimited organisations.`,
+    //             "FREE_TIER_ORG_LIMIT",
+    //             403,
+    //         );
+    //     }
+    // }
 
     const organisation = await createOrganisationWithOwner(name, slug, req.userId, description);
 

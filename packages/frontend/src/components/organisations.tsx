@@ -8,10 +8,10 @@ import {
 } from "@sprint/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { AddMember } from "@/components/add-member";
-import { FreeTierLimit } from "@/components/free-tier-limit";
+// import { FreeTierLimit } from "@/components/free-tier-limit";
 import OrgIcon from "@/components/org-icon";
 import { OrganisationForm } from "@/components/organisation-form";
 import { OrganisationSelect } from "@/components/organisation-select";
@@ -44,7 +44,7 @@ import {
   useDeleteOrganisation,
   useDeleteProject,
   useDeleteSprint,
-  useIssues,
+  // useIssues,
   useOrganisationMembers,
   useOrganisationMemberTimeTracking,
   useOrganisations,
@@ -58,15 +58,15 @@ import {
 } from "@/lib/query/hooks";
 import { queryKeys } from "@/lib/query/keys";
 import { apiClient } from "@/lib/server";
-import { capitalise, cn, formatDuration, unCamelCase } from "@/lib/utils";
+import { capitalise, formatDuration, unCamelCase } from "@/lib/utils";
 import { Switch } from "./ui/switch";
 
-const FREE_TIER_LIMITS = {
-  organisationsPerUser: 1,
-  projectsPerOrganisation: 1,
-  issuesPerOrganisation: 100,
-  membersPerOrganisation: 5,
-} as const;
+// const FREE_TIER_LIMITS = {
+//   organisationsPerUser: 1,
+//   projectsPerOrganisation: 1,
+//   issuesPerOrganisation: 100,
+//   membersPerOrganisation: 5,
+// } as const;
 
 function Organisations({ trigger }: { trigger?: ReactNode }) {
   const { user } = useAuthenticatedSession();
@@ -76,7 +76,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   const { data: projectsData = [] } = useProjects(selectedOrganisationId);
   const { data: sprints = [] } = useSprints(selectedProjectId);
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
-  const { data: issues = [] } = useIssues(selectedProjectId);
+  // const { data: issues = [] } = useIssues(selectedProjectId);
   const updateOrganisation = useUpdateOrganisation();
   const updateMemberRole = useUpdateOrganisationMemberRole();
   const removeMember = useRemoveOrganisationMember();
@@ -86,11 +86,11 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   const replaceIssueStatus = useReplaceIssueStatus();
   const replaceIssueType = useReplaceIssueType();
 
-  const isPro = user.plan === "pro";
-  const orgCount = organisationsData.length;
-  const projectCount = projectsData.length;
-  const issueCount = issues.length;
-  const memberCount = membersData.length;
+  // const isPro = user.plan === "pro";
+  // const orgCount = organisationsData.length;
+  // const projectCount = projectsData.length;
+  // const issueCount = issues.length;
+  // const memberCount = membersData.length;
 
   const organisations = useMemo(
     () => [...organisationsData].sort((a, b) => a.Organisation.name.localeCompare(b.Organisation.name)),
@@ -842,7 +842,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                   </div>
 
                   {/* Free tier limits section */}
-                  {!isPro && (
+                  {/* {!isPro && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-600">Plan Limits</h3>
@@ -881,7 +881,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                         />
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {isAdmin && (
                     <div className="flex gap-2 mt-3">
@@ -943,40 +943,36 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                     </h2>
                     {isAdmin && (
                       <div className="flex items-center gap-2">
-                        {isPro && (
-                          <>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  From: {fromDate.toLocaleDateString()}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="end">
-                                <Calendar
-                                  mode="single"
-                                  selected={fromDate}
-                                  onSelect={(date) => date && setFromDate(date)}
-                                  autoFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  Export
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={() => downloadTimeTrackingData("csv")}>
-                                  Download CSV
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => downloadTimeTrackingData("json")}>
-                                  Download JSON
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </>
-                        )}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              From: {fromDate.toLocaleDateString()}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={fromDate}
+                              onSelect={(date) => date && setFromDate(date)}
+                              autoFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Export
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => downloadTimeTrackingData("csv")}>
+                              Download CSV
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => downloadTimeTrackingData("json")}>
+                              Download JSON
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     )}
                   </div>
@@ -994,7 +990,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {isAdmin && isPro && (
+                            {isAdmin && (
                               <span className="text-sm font-mono text-muted-foreground mr-2">
                                 {formatDuration(member.totalTimeMs)}
                               </span>
@@ -1033,7 +1029,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                     </div>
                     {isAdmin && (
                       <>
-                        {!isPro && (
+                        {/* {!isPro && (
                           <div className="px-1">
                             <FreeTierLimit
                               current={memberCount}
@@ -1043,7 +1039,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                               showUpgrade={memberCount >= FREE_TIER_LIMITS.membersPerOrganisation}
                             />
                           </div>
-                        )}
+                        )} */}
                         <AddMember
                           organisationId={selectedOrganisation.Organisation.id}
                           existingMembers={members.map((m) => m.User.username)}
@@ -1058,15 +1054,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                             void invalidateMembers();
                           }}
                           trigger={
-                            <Button
-                              variant="outline"
-                              disabled={!isPro && memberCount >= FREE_TIER_LIMITS.membersPerOrganisation}
-                              title={
-                                !isPro && memberCount >= FREE_TIER_LIMITS.membersPerOrganisation
-                                  ? "Free tier limited to 5 members per organisation. Upgrade to Pro for unlimited."
-                                  : undefined
-                              }
-                            >
+                            <Button variant="outline">
                               Add user <Icon icon="plus" className="size-4" />
                             </Button>
                           }
@@ -1522,14 +1510,14 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
               <TabsContent value="features">
                 <div className="border p-2 min-w-0 overflow-hidden">
                   <h2 className="text-xl font-600 mb-2">Features</h2>
-                  {!isPro && (
+                  {/* {!isPro && (
                     <div className="mb-3 p-2 bg-muted/50 rounded text-sm text-muted-foreground">
                       Feature toggling is only available on Pro.{" "}
                       <Link to="/plans" className="text-personality hover:underline">
                         Upgrade to customize features.
                       </Link>
                     </div>
-                  )}
+                  )} */}
                   <div className="flex flex-col gap-2 w-full">
                     {Object.keys(DEFAULT_FEATURES).map((feature) => (
                       <div key={feature} className="flex items-center gap-2 p-1">
@@ -1551,12 +1539,9 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                             );
                             await invalidateOrganisations();
                           }}
-                          disabled={!isPro}
                           color={"#ff0000"}
                         />
-                        <span className={cn("text-sm", !isPro && "text-muted-foreground")}>
-                          {unCamelCase(feature)}
-                        </span>
+                        <span className="text-sm">{unCamelCase(feature)}</span>
                       </div>
                     ))}
                   </div>

@@ -2,11 +2,11 @@ import { SprintCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     createSprint,
-    FREE_TIER_LIMITS,
+    // FREE_TIER_LIMITS,
     getOrganisationMemberRole,
     getProjectByID,
-    getProjectSprintCount,
-    getSubscriptionByUserId,
+    // getProjectSprintCount,
+    // getSubscriptionByUserId,
     hasOverlappingSprints,
 } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
@@ -32,18 +32,18 @@ export default async function sprintCreate(req: AuthedRequest) {
     }
 
     // check free tier sprint limit
-    const subscription = await getSubscriptionByUserId(req.userId);
-    const isPro = subscription?.status === "active";
-    if (!isPro) {
-        const sprintCount = await getProjectSprintCount(projectId);
-        if (sprintCount >= FREE_TIER_LIMITS.sprintsPerProject) {
-            return errorResponse(
-                `Free tier limited to ${FREE_TIER_LIMITS.sprintsPerProject} sprints per project. Upgrade to Pro for unlimited sprints.`,
-                "SPRINT_LIMIT_REACHED",
-                403,
-            );
-        }
-    }
+    // const subscription = await getSubscriptionByUserId(req.userId);
+    // const isPro = subscription?.status === "active";
+    // if (!isPro) {
+    //     const sprintCount = await getProjectSprintCount(projectId);
+    //     if (sprintCount >= FREE_TIER_LIMITS.sprintsPerProject) {
+    //         return errorResponse(
+    //             `Free tier limited to ${FREE_TIER_LIMITS.sprintsPerProject} sprints per project. Upgrade to Pro for unlimited sprints.`,
+    //             "SPRINT_LIMIT_REACHED",
+    //             403,
+    //         );
+    //     }
+    // }
 
     const start = new Date(startDate);
     const end = new Date(endDate);

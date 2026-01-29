@@ -65,10 +65,10 @@ export default function BoringStuff() {
                 <strong className="text-foreground">Your account:</strong> You're responsible for keeping your
                 login details secure. Don't share your account.
               </p>
-              <p>
+              {/* <p>
                 <strong className="text-foreground">Payments:</strong> Pro plans are billed monthly or
                 annually. Cancel anytime from your account settings. No refunds for partial months.
-              </p>
+              </p> */}
               <p>
                 <strong className="text-foreground">Service availability:</strong> We aim for 99.9% uptime but
                 can't guarantee it. We may occasionally need downtime for maintenance.

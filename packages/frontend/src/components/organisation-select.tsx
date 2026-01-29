@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FreeTierLimit } from "@/components/free-tier-limit";
+// import { FreeTierLimit } from "@/components/free-tier-limit";
 import { OrganisationForm } from "@/components/organisation-form";
 import { useSelection } from "@/components/selection-provider";
-import { useAuthenticatedSession } from "@/components/session-provider";
+// import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -19,7 +19,7 @@ import { useOrganisations } from "@/lib/query/hooks";
 import { cn } from "@/lib/utils";
 import OrgIcon from "./org-icon";
 
-const FREE_TIER_ORG_LIMIT = 1;
+// const free_tier_org_limit = 1;
 
 export function OrganisationSelect({
   placeholder = "Select Organisation",
@@ -44,11 +44,10 @@ export function OrganisationSelect({
   const [pendingOrganisationId, setPendingOrganisationId] = useState<number | null>(null);
   const { data: organisationsData = [] } = useOrganisations();
   const { selectedOrganisationId, selectOrganisation } = useSelection();
-  const { user } = useAuthenticatedSession();
-
-  const isPro = user.plan === "pro";
-  const orgCount = organisationsData.length;
-  const isAtOrgLimit = !isPro && orgCount >= FREE_TIER_ORG_LIMIT;
+  // const { user } = useAuthenticatedSession();
+  // const isPro = user.plan === "pro";
+  // const orgCount = organisationsData.length;
+  // const isAtOrgLimit = !isPro && orgCount >= FREE_TIER_ORG_LIMIT;
 
   const organisations = useMemo(
     () => [...organisationsData].sort((a, b) => a.Organisation.name.localeCompare(b.Organisation.name)),
@@ -116,7 +115,7 @@ export function OrganisationSelect({
           {organisations.length > 0 && <SelectSeparator />}
         </SelectGroup>
 
-        {!isPro && (
+        {/* {!isPro && (
           <div className="px-2 py-2">
             <FreeTierLimit
               current={orgCount}
@@ -126,21 +125,11 @@ export function OrganisationSelect({
               showUpgrade={isAtOrgLimit}
             />
           </div>
-        )}
+        )} */}
 
         <OrganisationForm
           trigger={
-            <Button
-              variant="ghost"
-              className={"w-full"}
-              size={"sm"}
-              disabled={isAtOrgLimit}
-              title={
-                isAtOrgLimit
-                  ? "Free tier limited to 1 organisation. Upgrade to Pro for unlimited."
-                  : undefined
-              }
-            >
+            <Button variant="ghost" className={"w-full"} size={"sm"} disabled={false}>
               Create Organisation
             </Button>
           }

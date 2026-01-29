@@ -1,19 +1,16 @@
 # HIGH PRIORITY
 
+- trial system (IN HOUSE)
+
 - BUGS:
 - FEATURES:
-- make login/register into a modal that appears atop the landing page
-- user preferences
-  - make pixel the default icon scheme
 
 # LOW PRIORITY
 
-- organisation
-  - see members' time tracking numbers
-  - export times to csv, json, etc.
 - issues
   - assignee "note" for extra context on their role in the task
   - deadline
+  - attachments (description or comment)
 - user preferences
   - colour scheme
   - "assign to me by default" option for new issues
@@ -25,7 +22,19 @@
     - pull request (github/gitlab/bitbucket)
     - view:
       - open git diff in a new tab
-- figure out if it's possible to remove the "lib/server/..." helpers altogether, and have some sort of dynamic route maker in the shared package
-- request logging
-- explore payment providers (stripe is the only one i know)
 - trial system
+
+# PRO BENEFITS COMING SOON:
+
+- git integration
+
+## still need to lock these behid paywall:
+
+- Advanced time tracking & reports
+- Custom issue types
+
+# EMAILS:
+
+- welcome to sprint
+- thank you for subscribing to Sprint Pro. here is what you get.
+- your trial is coming to an end. manage your subscription to renew.

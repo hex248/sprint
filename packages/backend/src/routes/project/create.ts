@@ -2,9 +2,9 @@ import { ProjectCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     createProject,
-    FREE_TIER_LIMITS,
+    // FREE_TIER_LIMITS,
     getOrganisationMemberRole,
-    getOrganisationProjectCount,
+    // getOrganisationProjectCount,
     getProjectByKey,
     getUserById,
 } from "../../db/queries";
@@ -30,18 +30,19 @@ export default async function projectCreate(req: AuthedRequest) {
     }
 
     // check free tier limit
-    const creator = await getUserById(req.userId);
-    if (creator && creator.plan !== "pro") {
-        const projectCount = await getOrganisationProjectCount(organisationId);
-        if (projectCount >= FREE_TIER_LIMITS.projectsPerOrganisation) {
-            return errorResponse(
-                `free tier is limited to ${FREE_TIER_LIMITS.projectsPerOrganisation} project per organisation. upgrade to pro for unlimited projects.`,
-                "FREE_TIER_PROJECT_LIMIT",
-                403,
-            );
-        }
-    }
+    // const creator = await getUserById(req.userId);
+    // if (creator && creator.plan !== "pro") {
+    //     const projectCount = await getOrganisationProjectCount(organisationId);
+    //     if (projectCount >= FREE_TIER_LIMITS.projectsPerOrganisation) {
+    //         return errorResponse(
+    //             `free tier is limited to ${FREE_TIER_LIMITS.projectsPerOrganisation} project per organisation. upgrade to pro for unlimited projects.`,
+    //             "FREE_TIER_PROJECT_LIMIT",
+    //             403,
+    //         );
+    //     }
+    // }
 
+    const creator = await getUserById(req.userId);
     if (!creator) {
         return errorResponse(`creator not found`, "CREATOR_NOT_FOUND", 404);
     }
