@@ -204,6 +204,13 @@
       "when": 1769643481882,
       "tag": "0028_quick_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1769726204311,
+      "tag": "0029_fantastic_venom",
+      "breakpoints": true
     }
   ]
 }

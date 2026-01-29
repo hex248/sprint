@@ -39,6 +39,7 @@ export async function updateById(
         avatarURL?: string | null;
         iconPreference?: IconStyle;
         plan?: string;
+        preferences?: Record<string, boolean>;
     },
 ): Promise<UserRecord | undefined> {
     const [user] = await db.update(User).set(updates).where(eq(User.id, id)).returning();

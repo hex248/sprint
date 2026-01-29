@@ -14,5 +14,6 @@ export default async function me(req: AuthedRequest) {
         user: safeUser as Omit<UserRecord, "passwordHash">,
         csrfToken: req.csrfToken,
         emailVerified: user.emailVerified,
+        preferences: user.preferences,
     });
 }

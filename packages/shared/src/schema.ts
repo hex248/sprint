@@ -50,6 +50,10 @@ export const DEFAULT_FEATURES: Record<string, boolean> = {
     sprints: true,
 };
 
+export const DEFAULT_USER_PREFERENCES: Record<string, boolean> = {
+    assignByDefault: false,
+};
+
 export const iconStyles = ["pixel", "lucide", "phosphor"] as const;
 export type IconStyle = (typeof iconStyles)[number];
 
@@ -64,6 +68,10 @@ export const User = pgTable("User", {
     plan: varchar({ length: 32 }).notNull().default("free"),
     emailVerified: boolean().notNull().default(false),
     emailVerifiedAt: timestamp({ withTimezone: false }),
+    preferences: json("preferences")
+        .$type<Record<string, boolean>>()
+        .notNull()
+        .default(DEFAULT_USER_PREFERENCES),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });
@@ -227,7 +235,9 @@ export const SessionInsertSchema = createInsertSchema(Session);
 export const TimedSessionSelectSchema = createSelectSchema(TimedSession);
 export const TimedSessionInsertSchema = createInsertSchema(TimedSession);
 
-export type UserRecord = z.infer<typeof UserSelectSchema>;
+export type UserRecord = z.infer<typeof UserSelectSchema> & {
+    preferences: Record<string, boolean>;
+};
 export type UserInsert = z.infer<typeof UserInsertSchema>;
 
 export type OrganisationRecord = z.infer<typeof OrganisationSelectSchema> & {

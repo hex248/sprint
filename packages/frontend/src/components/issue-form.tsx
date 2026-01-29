@@ -66,6 +66,14 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const [assigneeIds, setAssigneeIds] = useState<string[]>(["unassigned"]);
   const [status, setStatus] = useState<string>(defaultStatus);
   const [type, setType] = useState<string>(defaultType);
+
+  // set default assignee based on user preference when dialog opens
+  useEffect(() => {
+    if (open && user.preferences?.assignByDefault) {
+      setAssigneeIds([`${user.id}`]);
+    }
+  }, [open, user]);
+
   useEffect(() => {
     if (!status && defaultStatus) setStatus(defaultStatus);
     if (!type && defaultType) setType(defaultType);
