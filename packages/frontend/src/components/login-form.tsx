@@ -2,32 +2,15 @@
 
 import { USER_EMAIL_MAX_LENGTH, USER_NAME_MAX_LENGTH, USER_USERNAME_MAX_LENGTH } from "@sprint/shared";
 import { useEffect, useState } from "react";
-import Avatar from "@/components/avatar";
 import { useSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
-import Icon from "@/components/ui/icon";
-import { IconButton } from "@/components/ui/icon-button";
 import { Label } from "@/components/ui/label";
 import { UploadAvatar } from "@/components/upload-avatar";
 import { capitalise, cn, getServerURL, setCsrfToken } from "@/lib/utils";
 
-const DEMO_USERS = [
-  { name: "User 1", username: "u1", password: "a" },
-  { name: "User 2", username: "u2", password: "a" },
-];
-
-export default function LogInForm({
-  showWarning,
-  setShowWarning,
-}: {
-  showWarning: boolean;
-  setShowWarning: (value: boolean) => void;
-}) {
+export default function LogInForm() {
   const { setUser, setEmailVerified } = useSession();
-
-  const [loginDetailsOpen, setLoginDetailsOpen] = useState(false);
 
   const [mode, setMode] = useState<"login" | "register">("login");
 
@@ -141,189 +124,124 @@ export default function LogInForm({
   };
 
   return (
-    <>
-      {/* under construction warning */}
-      {showWarning && (
-        <div className="relative flex flex-col items-center gap-2 max-w-lg">
-          <IconButton
-            size="md"
-            className="absolute top-2 right-2"
-            onClick={() => {
-              localStorage.setItem("hide-under-construction", "true");
-              setShowWarning(false);
-            }}
-          >
-            <Icon icon="x" />
-          </IconButton>
-          <Icon icon="alertTriangle" className="w-16 h-16 text-yellow-500" />
-          <div className="text-center text-sm text-muted-foreground font-500">
-            <p>
-              This application is currently under construction. Your data is very likely to be lost at some
-              point.
-            </p>
-            <p className="font-700 underline underline-offset-3 text-foreground/85 decoration-yellow-500 mt-2">
-              It is not recommended for production use.
-            </p>
-            <p className="mt-2">But you're more than welcome to have a look around!</p>
-            <Dialog open={loginDetailsOpen} onOpenChange={setLoginDetailsOpen}>
-              <DialogTrigger className="text-primary hover:text-personality cursor-pointer mt-2">
-                Login Details
-              </DialogTrigger>
-              <DialogContent showCloseButton={false}>
-                <DialogTitle className="sr-only">Demo Login Credentials</DialogTitle>
-                <div className="grid grid-cols-2 gap-4">
-                  {DEMO_USERS.map((user) => (
-                    <button
-                      type="button"
-                      key={user.username}
-                      className="space-y-2 border border-background hover:border-border hover:bg-border/10 cursor-pointer p-2 text-left"
-                      onClick={() => {
-                        setMode("login");
-                        setUsername(user.username);
-                        setPassword(user.password);
-                        setLoginDetailsOpen(false);
-                        resetForm();
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Avatar name={user.name} username={user.username} />
-                        <span className="font-semibold">{user.name}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p>
-                          <span className="font-medium text-foreground">Username:</span> {user.username}
-                        </p>
-                        <p>
-                          <span className="font-medium text-foreground">Password:</span> {user.password}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      )}
-      <div>
-        <form onSubmit={handleSubmit}>
-          <div
-            className={cn(
-              "relative flex flex-col gap-2 items-center p-4 pb-2",
-              error !== "" && "border-destructive",
-            )}
-          >
-            <span className="text-xl font-basteleur mb-2">{capitalise(mode)}</span>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <div
+          className={cn(
+            "relative flex flex-col gap-2 items-center p-4 pb-2",
+            error !== "" && "border-destructive",
+          )}
+        >
+          <span className="text-xl font-basteleur mb-2">{capitalise(mode)}</span>
 
-            <div className={"flex flex-col items-center mb-0"}>
-              {mode === "register" && (
-                <>
-                  <UploadAvatar
-                    name={name}
-                    username={username || undefined}
-                    avatarURL={avatarURL}
-                    onAvatarUploaded={setAvatarUrl}
-                    skipOrgCheck
-                    className="mb-2"
-                  />
-                  {avatarURL && (
-                    <Button
-                      variant={"dummy"}
-                      type={"button"}
-                      onClick={() => {
-                        setAvatarUrl(null);
-                      }}
-                      className="-mt-2 mb-2 hover:text-personality"
-                    >
-                      Remove Avatar
-                    </Button>
-                  )}
-                  <Field
-                    label="Full Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                    submitAttempted={submitAttempted}
-                    spellcheck={false}
-                    maxLength={USER_NAME_MAX_LENGTH}
-                  />
-                  <Field
-                    label="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                    submitAttempted={submitAttempted}
-                    spellcheck={false}
-                    maxLength={USER_EMAIL_MAX_LENGTH}
-                  />
-                </>
-              )}
-              <Field
-                label="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                submitAttempted={submitAttempted}
-                spellcheck={false}
-                maxLength={USER_USERNAME_MAX_LENGTH}
-                showCounter={mode === "register"}
-              />
-              <Field
-                label="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
-                hidden={true}
-                submitAttempted={submitAttempted}
-                spellcheck={false}
-              />
-            </div>
-
-            {mode === "login" ? (
+          <div className={"flex flex-col items-center mb-0"}>
+            {mode === "register" && (
               <>
-                <Button variant={"outline"} type={"submit"}>
-                  Log in
-                </Button>
-                <Button
-                  className="text-xs hover:text-personality p-0"
-                  variant={"dummy"}
-                  type="button"
-                  onClick={() => {
-                    setMode("register");
-                    resetForm();
-                  }}
-                >
-                  I don't have an account
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant={"outline"} type={"submit"}>
-                  Register
-                </Button>
-                <Button
-                  className="text-xs hover:text-personality p-0"
-                  variant={"dummy"}
-                  type="button"
-                  onClick={() => {
-                    setMode("login");
-                    resetForm();
-                  }}
-                >
-                  I already have an account
-                </Button>
+                <UploadAvatar
+                  name={name}
+                  username={username || undefined}
+                  avatarURL={avatarURL}
+                  onAvatarUploaded={setAvatarUrl}
+                  skipOrgCheck
+                  className="mb-2"
+                />
+                {avatarURL && (
+                  <Button
+                    variant={"dummy"}
+                    type={"button"}
+                    onClick={() => {
+                      setAvatarUrl(null);
+                    }}
+                    className="-mt-2 mb-2 hover:text-personality"
+                  >
+                    Remove Avatar
+                  </Button>
+                )}
+                <Field
+                  label="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                  submitAttempted={submitAttempted}
+                  spellcheck={false}
+                  maxLength={USER_NAME_MAX_LENGTH}
+                />
+                <Field
+                  label="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+                  submitAttempted={submitAttempted}
+                  spellcheck={false}
+                  maxLength={USER_EMAIL_MAX_LENGTH}
+                />
               </>
             )}
+            <Field
+              label="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+              submitAttempted={submitAttempted}
+              spellcheck={false}
+              maxLength={USER_USERNAME_MAX_LENGTH}
+              showCounter={mode === "register"}
+            />
+            <Field
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
+              hidden={true}
+              submitAttempted={submitAttempted}
+              spellcheck={false}
+            />
           </div>
-        </form>
-        <div className="flex items-end justify-end w-full text-xs -mb-4">
-          {error !== "" ? (
-            <Label className="text-destructive text-sm">{error}</Label>
+
+          {mode === "login" ? (
+            <>
+              <Button variant={"outline"} type={"submit"}>
+                Log in
+              </Button>
+              <Button
+                className="text-xs hover:text-personality p-0"
+                variant={"dummy"}
+                type="button"
+                onClick={() => {
+                  setMode("register");
+                  resetForm();
+                }}
+              >
+                I don't have an account
+              </Button>
+            </>
           ) : (
-            <Label className="opacity-0 text-sm">a</Label>
+            <>
+              <Button variant={"outline"} type={"submit"}>
+                Register
+              </Button>
+              <Button
+                className="text-xs hover:text-personality p-0"
+                variant={"dummy"}
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  resetForm();
+                }}
+              >
+                I already have an account
+              </Button>
+            </>
           )}
         </div>
+      </form>
+      <div className="flex items-end justify-end w-full text-xs -mb-4">
+        {error !== "" ? (
+          <Label className="text-destructive text-sm">{error}</Label>
+        ) : (
+          <Label className="opacity-0 text-sm">a</Label>
+        )}
       </div>
-    </>
+    </div>
   );
 }
