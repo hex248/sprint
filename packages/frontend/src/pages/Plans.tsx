@@ -286,6 +286,15 @@ export default function Plans() {
               <p className="text-sm text-muted-foreground">30-day no-risk policy</p>
             </div>
           </div>
+
+          <div className="w-full max-w-4xl mx-auto border-t pt-4 pb-2 text-center">
+            <Link
+              to="/the-boring-stuff"
+              className="text-sm text-muted-foreground hover:text-personality transition-colors"
+            >
+              The boring stuff — Privacy Policy & ToS
+            </Link>
+          </div>
         </div>
       </main>
 

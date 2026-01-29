@@ -8,6 +8,7 @@ import { SelectionProvider } from "@/components/selection-provider";
 import { RequireAuth, SessionProvider } from "@/components/session-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import BoringStuff from "@/pages/BoringStuff";
 import Font from "@/pages/Font";
 import Issues from "@/pages/Issues";
 import Landing from "@/pages/Landing";
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                 {/* public routes */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/font" element={<Font />} />
+                <Route path="/the-boring-stuff" element={<BoringStuff />} />
 
                 {/* authed routes */}
                 <Route
