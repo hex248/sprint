@@ -7,9 +7,10 @@ export async function createIssue(
     title: string,
     description: string,
     creatorId: number,
+    status: string,
+    type: string,
     sprintId?: number,
     assigneeIds?: number[],
-    status?: string,
 ) {
     // prevents two issues with the same unique number
     return await db.transaction(async (tx) => {
@@ -31,7 +32,8 @@ export async function createIssue(
                 number: nextNumber,
                 creatorId,
                 sprintId,
-                ...(status && { status }),
+                status,
+                type,
             })
             .returning();
 

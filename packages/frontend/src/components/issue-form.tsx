@@ -125,8 +125,8 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
         description,
         sprintId: sprintId === "unassigned" ? null : Number(sprintId),
         assigneeIds: assigneeIds.filter((id) => id !== "unassigned").map((id) => Number(id)),
-        status: status.trim() === "" ? undefined : status,
-        type: type.trim() === "" ? undefined : type,
+        status: status.trim(),
+        type: type.trim(),
       });
       setOpen(false);
       reset();
