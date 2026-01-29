@@ -58,12 +58,12 @@ export default function Landing() {
             >
               Pricing
             </a> */}
-            <a
+            {/* <a
               href="#faq"
               className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
             >
               FAQ
-            </a>
+            </a> */}
             <div className="flex items-center gap-2">
               <ThemeToggle />
               {!isLoading && user ? (
