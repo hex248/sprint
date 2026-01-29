@@ -6,26 +6,26 @@ import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 
-const faqs = [
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards.",
-  },
-  {
-    question: "What if I need more users?",
-    answer:
-      "Pro plan pricing scales with your team. Add or remove users anytime, and we'll adjust your billing automatically.",
-  },
-  {
-    question: "Can I cancel anytime?",
-    answer:
-      "Absolutely. Cancel anytime with no questions asked. You'll keep access until the end of your billing period.",
-  },
-  {
-    question: "Do you offer refunds?",
-    answer: "Yes, we offer a 30-day money-back guarantee. If Sprint isn't right for you, just let us know.",
-  },
-];
+// const faqs = [
+//   {
+//     question: "What payment methods do you accept?",
+//     answer: "We accept all major credit cards.",
+//   },
+//   {
+//     question: "What if I need more users?",
+//     answer:
+//       "Pro plan pricing scales with your team. Add or remove users anytime, and we'll adjust your billing automatically.",
+//   },
+//   {
+//     question: "Can I cancel anytime?",
+//     answer:
+//       "Absolutely. Cancel anytime with no questions asked. You'll keep access until the end of your billing period.",
+//   },
+//   {
+//     question: "Do you offer refunds?",
+//     answer: "Yes, we offer a 30-day money-back guarantee. If Sprint isn't right for you, just let us know.",
+//   },
+// ];
 
 export default function Landing() {
   const { user, isLoading } = useSession();
@@ -52,12 +52,12 @@ export default function Landing() {
             >
               Features
             </a>
-            <a
+            {/* <a
               href="#pricing"
               className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
             >
               Pricing
-            </a>
+            </a> */}
             <a
               href="#faq"
               className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
@@ -107,14 +107,14 @@ export default function Landing() {
                   <Button size="lg" className="text-lg px-8 py-6" onClick={() => setLoginModalOpen(true)}>
                     Get started
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
+                  {/* <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6">
                     <a href="#pricing">See pricing</a>
-                  </Button>
+                  </Button> */}
                 </>
               )}
             </div>
 
-            <p className="text-sm text-muted-foreground">Free forever · Upgrade when you need more</p>
+            {/* <p className="text-sm text-muted-foreground">Free forever · Upgrade when you need more</p> */}
           </div>
 
           {/* problem section */}
@@ -217,7 +217,7 @@ export default function Landing() {
           </div>
 
           {/* pricing section */}
-          <div id="pricing" className="max-w-5xl mx-auto space-y-12 scroll-mt-4 border-t pt-24">
+          {/* <div id="pricing" className="max-w-5xl mx-auto space-y-12 scroll-mt-4 border-t pt-24">
             <div className="text-center space-y-6">
               <h2 className="text-5xl font-basteleur font-700">Simple, transparent pricing</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -227,10 +227,10 @@ export default function Landing() {
                 <Link to="/plans">View plans</Link>
               </Button>
             </div>
-          </div>
+          </div> */}
 
           {/* faq section */}
-          <div id="faq" className="w-full max-w-5xl flex justify-center scroll-mt-4 border-t pt-24">
+          {/* <div id="faq" className="w-full max-w-5xl flex justify-center scroll-mt-4 border-t pt-24">
             <div className="w-full max-w-4xl flex flex-col items-center space-y-12">
               <h2 className="text-5xl font-basteleur font-700 text-center">Frequently Asked Questions</h2>
               <div className="grid gap-8 max-w-3xl">
@@ -242,7 +242,7 @@ export default function Landing() {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* TODO:> commented out until we have actual testimonies */}
           {/* social proof placeholder */}
@@ -287,9 +287,9 @@ export default function Landing() {
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
+            {/* <p className="text-sm text-muted-foreground">
               Free forever · Upgrade when you need more · Cancel anytime
-            </p>
+            </p> */}
           </div>
         </div>
       </main>

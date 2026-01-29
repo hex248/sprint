@@ -13,7 +13,7 @@ import Font from "@/pages/Font";
 import Issues from "@/pages/Issues";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
-import Plans from "@/pages/Plans";
+// import plans from "@/pages/Plans";
 import Test from "@/pages/Test";
 import Timeline from "@/pages/Timeline";
 
@@ -31,14 +31,14 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                 <Route path="/the-boring-stuff" element={<BoringStuff />} />
 
                 {/* authed routes */}
-                <Route
+                {/* <Route
                   path="/plans"
                   element={
                     <RequireAuth>
                       <Plans />
                     </RequireAuth>
                   }
-                />
+                /> */}
                 <Route
                   path="/issues"
                   element={
