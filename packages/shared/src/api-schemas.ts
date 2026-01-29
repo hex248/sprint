@@ -79,8 +79,8 @@ export type VerifyEmailRequest = z.infer<typeof VerifyEmailRequestSchema>;
 
 export const IssueCreateRequestSchema = z.object({
     projectId: z.number().int().positive("projectId must be a positive integer"),
-    type: z.string().max(ISSUE_TYPE_MAX_LENGTH).optional(),
-    status: z.string().max(ISSUE_STATUS_MAX_LENGTH).optional(),
+    type: z.string().max(ISSUE_TYPE_MAX_LENGTH),
+    status: z.string().max(ISSUE_STATUS_MAX_LENGTH),
     title: z.string().min(1, "Title is required").max(ISSUE_TITLE_MAX_LENGTH),
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).default(""),
     assigneeIds: z.array(z.number().int().positive()).optional(),

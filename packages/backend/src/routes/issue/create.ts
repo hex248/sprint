@@ -14,7 +14,7 @@ export default async function issueCreate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, IssueCreateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { projectId, title, description = "", status, assigneeIds, sprintId } = parsed.data;
+    const { projectId, title, description = "", status, assigneeIds, sprintId, type } = parsed.data;
 
     const project = await getProjectByID(projectId);
     if (!project) {
@@ -51,9 +51,10 @@ export default async function issueCreate(req: AuthedRequest) {
         title,
         description,
         req.userId,
+        status,
+        type,
         sprintId ?? undefined,
         assigneeIds,
-        status,
     );
 
     return Response.json(issue);
