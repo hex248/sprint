@@ -331,6 +331,16 @@ export const apiContract = c.router({
             404: ApiErrorSchema,
         },
     },
+    organisationExport: {
+        method: "GET",
+        path: "/organisation/export",
+        query: OrgByIdQuerySchema,
+        responses: {
+            200: z.any(),
+            403: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+    },
     organisationUpdate: {
         method: "POST",
         path: "/organisation/update",
