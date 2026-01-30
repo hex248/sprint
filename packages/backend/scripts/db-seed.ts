@@ -95,17 +95,24 @@ const issueComments = [
     "needs product input before proceeding",
 ];
 
-const passwordHash = await hashPassword("a");
+const SEED_PASSWORD = process.env.SEED_PASSWORD;
+
+if (!SEED_PASSWORD) {
+    console.error("SEED_PASSWORD is not set");
+    process.exit(1);
+}
+
+const passwordHash = await hashPassword(SEED_PASSWORD);
 const users = [
-    { name: "user 1", username: "u1", email: "user1@example.com", passwordHash, avatarURL: null },
-    { name: "user 2", username: "u2", email: "user2@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 1", username: "demo1", email: "demo1@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 2", username: "demo2", email: "demo2@example.com", passwordHash, avatarURL: null },
     // anything past here is just to have more users to assign issues to
-    { name: "user 3", username: "u3", email: "user3@example.com", passwordHash, avatarURL: null },
-    { name: "user 4", username: "u4", email: "user4@example.com", passwordHash, avatarURL: null },
-    { name: "user 5", username: "u5", email: "user5@example.com", passwordHash, avatarURL: null },
-    { name: "user 6", username: "u6", email: "user6@example.com", passwordHash, avatarURL: null },
-    { name: "user 7", username: "u7", email: "user7@example.com", passwordHash, avatarURL: null },
-    { name: "user 8", username: "u8", email: "user8@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 3", username: "demo3", email: "demo3@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 4", username: "demo4", email: "demo4@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 5", username: "demo5", email: "demo5@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 6", username: "demo6", email: "demo6@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 7", username: "demo7", email: "demo7@example.com", passwordHash, avatarURL: null },
+    { name: "demo user 8", username: "demo8", email: "demo8@example.com", passwordHash, avatarURL: null },
 ];
 
 async function seed() {
@@ -312,9 +319,9 @@ async function seed() {
         console.log(`created ${commentValues.length} issue comments`);
 
         console.log("database seeding complete");
-        console.log("\ndemo accounts (password: a):");
-        console.log("  - u1");
-        console.log("  - u2");
+        console.log("\ndemo accounts:");
+        console.log("  - demo1");
+        console.log("  - demo2");
     } catch (error) {
         console.error("failed to seed database:", error);
         process.exit(1);

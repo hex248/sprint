@@ -17,9 +17,6 @@ export function LoginModal({ open, onOpenChange, onSuccess, dismissible = true }
   const [searchParams] = useSearchParams();
   const { user, isLoading, emailVerified } = useSession();
   const [hasRedirected, setHasRedirected] = useState(false);
-  const [showWarning, setShowWarning] = useState(() => {
-    return localStorage.getItem("hide-under-construction") !== "true";
-  });
 
   useEffect(() => {
     if (open && !isLoading && user && emailVerified && !hasRedirected) {
@@ -46,9 +43,9 @@ export function LoginModal({ open, onOpenChange, onSuccess, dismissible = true }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent showCloseButton={false} className={cn("p-0  w-xs py-8", showWarning && "w-md pt-4")}>
+      <DialogContent showCloseButton={false} className={cn("p-0 w-xs py-8")}>
         <DialogTitle className="sr-only">Log In or Register</DialogTitle>
-        <LogInForm showWarning={showWarning} setShowWarning={setShowWarning} />
+        <LogInForm />
       </DialogContent>
     </Dialog>
   );

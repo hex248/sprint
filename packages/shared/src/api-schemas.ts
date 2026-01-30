@@ -412,6 +412,7 @@ export const UserUpdateRequestSchema = z.object({
         .optional(),
     avatarURL: z.string().url().nullable().optional(),
     iconPreference: z.enum(["lucide", "pixel", "phosphor"]).optional(),
+    preferences: z.record(z.boolean()).optional(),
 });
 
 export type UserUpdateRequest = z.infer<typeof UserUpdateRequestSchema>;
@@ -431,6 +432,7 @@ export const UserResponseSchema = z.object({
     avatarURL: z.string().nullable(),
     iconPreference: z.enum(["lucide", "pixel", "phosphor"]),
     plan: z.string().nullable().optional(),
+    preferences: z.record(z.boolean()).optional(),
     createdAt: z.string().nullable().optional(),
     updatedAt: z.string().nullable().optional(),
 });

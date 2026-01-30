@@ -62,17 +62,30 @@ export default function OrgIcon({
         "flex items-center justify-center rounded-sm overflow-hidden",
         "text-white font-medium select-none",
         !iconURL && backgroundClass,
-        `w-${size || 6}`,
-        `h-${size || 6}`,
         className,
       )}
+      style={{ width: `calc(var(--spacing) * ${size || 6})`, height: `calc(var(--spacing) * ${size || 6})` }}
     >
       {iconURL ? (
-        <img src={iconURL} alt={name} className={`rounded-md object-cover w-${size || 6} h-${size || 6}`} />
+        <img
+          src={iconURL}
+          alt={name}
+          className={`rounded-md object-cover`}
+          style={{
+            width: `calc(var(--spacing) * ${size || 6})`,
+            height: `calc(var(--spacing) * ${size || 6})`,
+          }}
+        />
       ) : (
-        <div className={cn("flex items-center justify-center", `w-${size || 6}`, `h-${size || 6}`)}>
-          <span className={cn("", textClass)}>{getInitials(name)}</span>
-        </div>
+        <span
+          className={cn("flex items-center justify-center", textClass)}
+          style={{
+            width: `calc(var(--spacing) * ${size || 6})`,
+            height: `calc(var(--spacing) * ${size || 6})`,
+          }}
+        >
+          {getInitials(name)}
+        </span>
       )}
     </div>
   );

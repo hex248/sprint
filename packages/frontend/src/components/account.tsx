@@ -11,6 +11,7 @@ import { Field } from "@/components/ui/field";
 import Icon from "@/components/ui/icon";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { UploadAvatar } from "@/components/upload-avatar";
 import { useUpdateUser } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
@@ -29,6 +30,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
   const [password, setPassword] = useState("");
   const [avatarURL, setAvatarUrl] = useState<string | null>(null);
   const [iconPreference, setIconPreference] = useState<IconStyle>("pixel");
+  const [preferences, setPreferences] = useState<Record<string, boolean>>({});
   const [error, setError] = useState("");
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
@@ -40,6 +42,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
     setAvatarUrl(currentUser.avatarURL || null);
     const effectiveIconStyle = (currentUser.iconPreference as IconStyle) ?? DEFAULT_ICON_STYLE;
     setIconPreference(effectiveIconStyle);
+    setPreferences(currentUser.preferences ?? {});
 
     setPassword("");
     setError("");
@@ -60,6 +63,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
         password: password.trim() || undefined,
         avatarURL,
         iconPreference,
+        preferences,
       });
       setError("");
       setUser(data);
@@ -128,6 +132,18 @@ function Account({ trigger }: { trigger?: ReactNode }) {
             hidden={true}
           />
           <Label className="text-lg -mt-2">Preferences</Label>
+
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={Boolean(preferences.assignByDefault)}
+                onCheckedChange={(checked) => {
+                  setPreferences((prev) => ({ ...prev, assignByDefault: checked }));
+                }}
+              />
+              <span className="text-sm">Assign to me by default</span>
+            </div>
+          </div>
 
           <div className="flex gap-8 justify w-full">
             <div className="flex flex-col items-start gap-1">
