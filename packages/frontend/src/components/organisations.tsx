@@ -203,13 +203,14 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
 
     // generate CSV or JSON
     if (format === "csv") {
-      const headers = ["User ID", "Name", "Username", "Total Time (ms)", "Total Time (formatted)"];
+      const headers = ["User ID", "Name", "Username", "Total Time (ms)", "Total Time (formatted)", "Hours"];
       const rows = data.map((user) => [
         user.userId,
         user.name,
         user.username,
         user.totalTimeMs,
         formatDuration(user.totalTimeMs),
+        (user.totalTimeMs / 3600000).toFixed(2),
       ]);
       const csv = [headers.join(","), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(","))].join(
         "\n",
@@ -234,6 +235,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
           members: data.map((user) => ({
             ...user,
             totalTimeFormatted: formatDuration(user.totalTimeMs),
+            hours: Number((user.totalTimeMs / 3600000).toFixed(2)),
           })),
         },
         null,

@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import Avatar from "@/components/avatar";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
 import { defaultIssuesTableFilters, IssuesTable, type IssuesTableFilters } from "@/components/issues-table";
 import { useSelection } from "@/components/selection-provider";
+import SmallSprintDisplay from "@/components/small-sprint-display";
 import SmallUserDisplay from "@/components/small-user-display";
 import StatusTag from "@/components/status-tag";
 import TopBar from "@/components/top-bar";
@@ -353,12 +355,6 @@ export default function Issues() {
     "title-desc": "Title Z-A",
     status: "Status",
   };
-  const sprintLabel = useMemo(() => {
-    if (issueFilters.sprintId === "all") return "Sprint";
-    if (issueFilters.sprintId === "none") return "No sprint";
-    const sprintMatch = sprintsData.find((sprint) => sprint.id === issueFilters.sprintId);
-    return sprintMatch?.name ?? "Sprint";
-  }, [issueFilters.sprintId, sprintsData]);
 
   return (
     <main className={`w-full h-screen flex flex-col gap-${BREATHING_ROOM} p-${BREATHING_ROOM}`}>
@@ -384,7 +380,17 @@ export default function Issues() {
           {selectedOrganisation?.Organisation.features.issueStatus && (
             <DropdownMenu>
               <DropdownMenuTrigger size="default" className="h-9">
-                Status
+                {issueFilters.statuses.length === 0 ? (
+                  "Status"
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    {Object.entries(statuses)
+                      .filter(([status]) => issueFilters.statuses.includes(status))
+                      .map(([status, colour]) => (
+                        <StatusTag key={status} status={status} colour={colour} />
+                      ))}
+                  </div>
+                )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuLabel>Status</DropdownMenuLabel>
@@ -414,7 +420,20 @@ export default function Issues() {
           {selectedOrganisation?.Organisation.features.issueTypes && (
             <DropdownMenu>
               <DropdownMenuTrigger size="default" className="h-9">
-                Type
+                {issueFilters.types.length === 0 ? (
+                  "Type"
+                ) : (
+                  <div className="flex items-center gap-3">
+                    {Object.entries(issueTypes)
+                      .filter(([type]) => issueFilters.types.includes(type))
+                      .map(([type, definition]) => (
+                        <div key={type} className="flex items-center gap-1.5">
+                          <Icon icon={definition.icon} size={14} color={definition.color} />
+                          <span>{type}</span>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuLabel>Type</DropdownMenuLabel>
@@ -446,7 +465,25 @@ export default function Issues() {
           )}
           <DropdownMenu>
             <DropdownMenuTrigger size="default" className="h-9">
-              Assignee
+              {issueFilters.assignees.length === 0 ? (
+                "Assignee"
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  {issueFilters.assignees.includes("unassigned") && <span>Unassigned</span>}
+                  {members
+                    .filter((member) => issueFilters.assignees.includes(String(member.id)))
+                    .map((member) => (
+                      <Avatar
+                        key={member.id}
+                        name={member.name}
+                        username={member.username}
+                        avatarURL={member.avatarURL}
+                        size={6}
+                        textClass="text-[10px]"
+                      />
+                    ))}
+                </div>
+              )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuLabel>Assignee</DropdownMenuLabel>
@@ -486,7 +523,16 @@ export default function Issues() {
           {selectedOrganisation?.Organisation.features.sprints && (
             <DropdownMenu>
               <DropdownMenuTrigger size="default" className="h-9">
-                {sprintLabel}
+                {issueFilters.sprintId === "all" ? (
+                  "Sprint"
+                ) : issueFilters.sprintId === "none" ? (
+                  <SmallSprintDisplay />
+                ) : (
+                  (() => {
+                    const sprint = sprintsData.find((s) => s.id === issueFilters.sprintId);
+                    return sprint ? <SmallSprintDisplay sprint={sprint} /> : "Sprint";
+                  })()
+                )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuLabel>Sprint</DropdownMenuLabel>
@@ -554,6 +600,64 @@ export default function Issues() {
             }}
           >
             <Icon icon="undo" />
+          </IconButton>
+          <IconButton
+            variant="outline"
+            className="w-9 h-9"
+            aria-label="Copy filters URL"
+            title="Copy filters URL"
+            disabled={
+              !issueFilters.query &&
+              issueFilters.statuses.length === 0 &&
+              issueFilters.types.length === 0 &&
+              issueFilters.assignees.length === 0 &&
+              issueFilters.sprintId === defaultIssuesTableFilters.sprintId &&
+              issueFilters.sort === defaultIssuesTableFilters.sort
+            }
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+
+              if (issueFilters.query) {
+                params.set("q", issueFilters.query);
+              } else {
+                params.delete("q");
+              }
+
+              if (issueFilters.statuses.length > 0) {
+                params.set("status", issueFilters.statuses.join(","));
+              } else {
+                params.delete("status");
+              }
+
+              if (issueFilters.types.length > 0) {
+                params.set("type", issueFilters.types.join(","));
+              } else {
+                params.delete("type");
+              }
+
+              if (issueFilters.assignees.length > 0) {
+                params.set("assignee", issueFilters.assignees.join(","));
+              } else {
+                params.delete("assignee");
+              }
+
+              if (issueFilters.sprintId !== defaultIssuesTableFilters.sprintId) {
+                params.set("sprint", String(issueFilters.sprintId));
+              } else {
+                params.delete("sprint");
+              }
+
+              if (issueFilters.sort !== defaultIssuesTableFilters.sort) {
+                params.set("sort", issueFilters.sort);
+              } else {
+                params.delete("sort");
+              }
+
+              const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+              navigator.clipboard.writeText(url);
+            }}
+          >
+            <Icon icon="copy" />
           </IconButton>
         </div>
       )}

@@ -103,16 +103,81 @@ if (!SEED_PASSWORD) {
 }
 
 const passwordHash = await hashPassword(SEED_PASSWORD);
+const now = new Date();
 const users = [
-    { name: "demo user 1", username: "demo1", email: "demo1@example.com", passwordHash, avatarURL: null },
-    { name: "demo user 2", username: "demo2", email: "demo2@example.com", passwordHash, avatarURL: null },
+    {
+        name: "demo user 1",
+        username: "demo1",
+        email: "demo1@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
+    {
+        name: "demo user 2",
+        username: "demo2",
+        email: "demo2@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
     // anything past here is just to have more users to assign issues to
-    { name: "demo user 3", username: "demo3", email: "demo3@example.com", passwordHash, avatarURL: null },
-    { name: "demo user 4", username: "demo4", email: "demo4@example.com", passwordHash, avatarURL: null },
-    { name: "demo user 5", username: "demo5", email: "demo5@example.com", passwordHash, avatarURL: null },
-    { name: "demo user 6", username: "demo6", email: "demo6@example.com", passwordHash, avatarURL: null },
-    { name: "demo user 7", username: "demo7", email: "demo7@example.com", passwordHash, avatarURL: null },
-    { name: "demo user 8", username: "demo8", email: "demo8@example.com", passwordHash, avatarURL: null },
+    {
+        name: "demo user 3",
+        username: "demo3",
+        email: "demo3@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
+    {
+        name: "demo user 4",
+        username: "demo4",
+        email: "demo4@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
+    {
+        name: "demo user 5",
+        username: "demo5",
+        email: "demo5@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
+    {
+        name: "demo user 6",
+        username: "demo6",
+        email: "demo6@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
+    {
+        name: "demo user 7",
+        username: "demo7",
+        email: "demo7@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
+    {
+        name: "demo user 8",
+        username: "demo8",
+        email: "demo8@example.com",
+        passwordHash,
+        avatarURL: null,
+        emailVerified: true,
+        emailVerifiedAt: now,
+    },
 ];
 
 async function seed() {
