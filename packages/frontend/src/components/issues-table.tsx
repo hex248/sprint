@@ -170,108 +170,126 @@ export function IssuesTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {issues.map((issueData) => (
-          <TableRow
-            key={issueData.Issue.id}
-            className={cn("cursor-pointer max-w-full")}
-            onClick={() => {
-              if (issueData.Issue.id === selectedIssueId) {
-                selectIssue(null);
-                return;
-              }
-              selectIssue(issueData);
-            }}
-          >
-            {showId && (
-              <TableCell
-                className={cn(
-                  "font-medium border-r text-right p-0",
-                  issueData.Issue.id === selectedIssueId && "shadow-[inset_2px_0_0_0_var(--personality)]",
-                )}
-              >
-                <a
-                  href={getIssueUrl(issueData.Issue.number)}
-                  onClick={handleLinkClick}
-                  className="block w-full h-full px-2 py-1 text-inherit hover:underline decoration-transparent"
+        {issues.map((issueData) => {
+          const isSelected = issueData.Issue.id === selectedIssueId;
+          return (
+            <TableRow
+              key={issueData.Issue.id}
+              className={cn("cursor-pointer max-w-full")}
+              onClick={() => {
+                if (isSelected) {
+                  selectIssue(null);
+                  return;
+                }
+                selectIssue(issueData);
+              }}
+            >
+              {showId && (
+                <TableCell
+                  className={cn(
+                    "font-medium border-r text-right p-0",
+                    isSelected &&
+                      "shadow-[inset_2px_2px_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                  )}
                 >
-                  {issueData.Issue.number.toString().padStart(3, "0")}
-                </a>
-              </TableCell>
-            )}
-            {showTitle && (
-              <TableCell
-                className={cn(
-                  "min-w-0 p-0",
-                  !showId &&
-                    issueData.Issue.id === selectedIssueId &&
-                    "shadow-[inset_2px_0_0_0_var(--personality)]",
-                )}
-              >
-                <a
-                  href={getIssueUrl(issueData.Issue.number)}
-                  onClick={handleLinkClick}
-                  className="flex items-center gap-2 min-w-0 w-full h-full px-2 py-1 text-inherit hover:underline decoration-transparent"
+                  <a
+                    href={getIssueUrl(issueData.Issue.number)}
+                    onClick={handleLinkClick}
+                    className="block w-full h-full px-2 py-1 text-inherit hover:underline decoration-transparent"
+                  >
+                    {issueData.Issue.number.toString().padStart(3, "0")}
+                  </a>
+                </TableCell>
+              )}
+              {showTitle && (
+                <TableCell
+                  className={cn(
+                    "min-w-0 p-0",
+                    isSelected &&
+                      "shadow-[inset_0_2px_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                  )}
                 >
-                  {selectedOrganisation?.Organisation.features.issueTypes &&
-                    issueTypes[issueData.Issue.type] && (
-                      <Icon
-                        icon={issueTypes[issueData.Issue.type].icon as IconName}
-                        size={16}
-                        color={issueTypes[issueData.Issue.type].color}
-                      />
-                    )}
-                  {selectedOrganisation?.Organisation.features.issueStatus &&
-                    (columns.status == null || columns.status === true) && (
-                      <StatusTag status={issueData.Issue.status} colour={statuses[issueData.Issue.status]} />
-                    )}
-                  <span className="truncate">{issueData.Issue.title}</span>
-                </a>
-              </TableCell>
-            )}
-            {showDescription && (
-              <TableCell className="overflow-hidden p-0">
-                <a
-                  href={getIssueUrl(issueData.Issue.number)}
-                  onClick={handleLinkClick}
-                  className="block w-full h-full px-2 py-1 text-inherit hover:underline decoration-transparent"
+                  <a
+                    href={getIssueUrl(issueData.Issue.number)}
+                    onClick={handleLinkClick}
+                    className="flex items-center gap-2 min-w-0 w-full h-full px-2 py-1 text-inherit hover:underline decoration-transparent"
+                  >
+                    {selectedOrganisation?.Organisation.features.issueTypes &&
+                      issueTypes[issueData.Issue.type] && (
+                        <Icon
+                          icon={issueTypes[issueData.Issue.type].icon as IconName}
+                          size={16}
+                          color={issueTypes[issueData.Issue.type].color}
+                        />
+                      )}
+                    {selectedOrganisation?.Organisation.features.issueStatus &&
+                      (columns.status == null || columns.status === true) && (
+                        <StatusTag
+                          status={issueData.Issue.status}
+                          colour={statuses[issueData.Issue.status]}
+                        />
+                      )}
+                    <span className="truncate">{issueData.Issue.title}</span>
+                  </a>
+                </TableCell>
+              )}
+              {showDescription && (
+                <TableCell
+                  className={cn(
+                    "overflow-hidden p-0",
+                    isSelected &&
+                      "shadow-[inset_0_2px_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                  )}
                 >
-                  {issueData.Issue.description}
-                </a>
-              </TableCell>
-            )}
-            {showAssignee && (
-              <TableCell className="h-[32px] p-0">
-                <a
-                  href={getIssueUrl(issueData.Issue.number)}
-                  onClick={handleLinkClick}
-                  className="flex items-center justify-end w-full h-full px-2"
+                  <a
+                    href={getIssueUrl(issueData.Issue.number)}
+                    onClick={handleLinkClick}
+                    className="block w-full h-full px-2 py-1 text-inherit hover:underline decoration-transparent"
+                  >
+                    {issueData.Issue.description}
+                  </a>
+                </TableCell>
+              )}
+              {showAssignee && (
+                <TableCell
+                  className={cn(
+                    "h-[32px] p-0",
+                    isSelected &&
+                      "shadow-[inset_0_2px_0_0_var(--personality),inset_-2px_0_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                  )}
                 >
-                  {selectedOrganisation?.Organisation.features.issueAssigneesShownInTable &&
-                    issueData.Assignees &&
-                    issueData.Assignees.length > 0 && (
-                      <div className="flex items-center -space-x-2 pr-1.5">
-                        {issueData.Assignees.slice(0, 3).map((assignee) => (
-                          <Avatar
-                            key={assignee.id}
-                            name={assignee.name}
-                            username={assignee.username}
-                            avatarURL={assignee.avatarURL}
-                            textClass="text-xs"
-                            className="ring-1 ring-background"
-                          />
-                        ))}
-                        {issueData.Assignees.length > 3 && (
-                          <span className="flex items-center justify-center w-6 h-6 text-[10px] font-medium bg-muted text-muted-foreground rounded-full ring-1 ring-background">
-                            +{issueData.Assignees.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                </a>
-              </TableCell>
-            )}
-          </TableRow>
-        ))}
+                  <a
+                    href={getIssueUrl(issueData.Issue.number)}
+                    onClick={handleLinkClick}
+                    className="flex items-center justify-end w-full h-full px-2"
+                  >
+                    {selectedOrganisation?.Organisation.features.issueAssigneesShownInTable &&
+                      issueData.Assignees &&
+                      issueData.Assignees.length > 0 && (
+                        <div className="flex items-center -space-x-2 pr-1.5">
+                          {issueData.Assignees.slice(0, 3).map((assignee) => (
+                            <Avatar
+                              key={assignee.id}
+                              name={assignee.name}
+                              username={assignee.username}
+                              avatarURL={assignee.avatarURL}
+                              textClass="text-xs"
+                              className="ring-1 ring-background"
+                            />
+                          ))}
+                          {issueData.Assignees.length > 3 && (
+                            <span className="flex items-center justify-center w-6 h-6 text-[10px] font-medium bg-muted text-muted-foreground rounded-full ring-1 ring-background">
+                              +{issueData.Assignees.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                  </a>
+                </TableCell>
+              )}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
