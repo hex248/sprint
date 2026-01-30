@@ -189,7 +189,7 @@ export function IssuesTable({
                   className={cn(
                     "font-medium border-r text-right p-0",
                     isSelected &&
-                      "shadow-[inset_2px_2px_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                      "shadow-[inset_1px_1px_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >
                   <a
@@ -206,7 +206,7 @@ export function IssuesTable({
                   className={cn(
                     "min-w-0 p-0",
                     isSelected &&
-                      "shadow-[inset_0_2px_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                      "shadow-[inset_0_1px_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >
                   <a
@@ -238,7 +238,7 @@ export function IssuesTable({
                   className={cn(
                     "overflow-hidden p-0",
                     isSelected &&
-                      "shadow-[inset_0_2px_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                      "shadow-[inset_0_1px_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >
                   <a
@@ -255,7 +255,7 @@ export function IssuesTable({
                   className={cn(
                     "h-[32px] p-0",
                     isSelected &&
-                      "shadow-[inset_0_2px_0_0_var(--personality),inset_-2px_0_0_0_var(--personality),inset_0_-2px_0_0_var(--personality)]",
+                      "shadow-[inset_0_1px_0_0_var(--personality),inset_-1px_0_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >
                   <a
