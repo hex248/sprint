@@ -555,6 +555,64 @@ export default function Issues() {
           >
             <Icon icon="undo" />
           </IconButton>
+          <IconButton
+            variant="outline"
+            className="w-9 h-9"
+            aria-label="Copy filters URL"
+            title="Copy filters URL"
+            disabled={
+              !issueFilters.query &&
+              issueFilters.statuses.length === 0 &&
+              issueFilters.types.length === 0 &&
+              issueFilters.assignees.length === 0 &&
+              issueFilters.sprintId === defaultIssuesTableFilters.sprintId &&
+              issueFilters.sort === defaultIssuesTableFilters.sort
+            }
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+
+              if (issueFilters.query) {
+                params.set("q", issueFilters.query);
+              } else {
+                params.delete("q");
+              }
+
+              if (issueFilters.statuses.length > 0) {
+                params.set("status", issueFilters.statuses.join(","));
+              } else {
+                params.delete("status");
+              }
+
+              if (issueFilters.types.length > 0) {
+                params.set("type", issueFilters.types.join(","));
+              } else {
+                params.delete("type");
+              }
+
+              if (issueFilters.assignees.length > 0) {
+                params.set("assignee", issueFilters.assignees.join(","));
+              } else {
+                params.delete("assignee");
+              }
+
+              if (issueFilters.sprintId !== defaultIssuesTableFilters.sprintId) {
+                params.set("sprint", String(issueFilters.sprintId));
+              } else {
+                params.delete("sprint");
+              }
+
+              if (issueFilters.sort !== defaultIssuesTableFilters.sort) {
+                params.set("sort", issueFilters.sort);
+              } else {
+                params.delete("sort");
+              }
+
+              const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+              navigator.clipboard.writeText(url);
+            }}
+          >
+            <Icon icon="copy" />
+          </IconButton>
         </div>
       )}
 
