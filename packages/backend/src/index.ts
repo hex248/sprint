@@ -65,6 +65,7 @@ const main = async () => {
 
             "/organisation/create": withGlobalAuthed(withAuth(withCSRF(routes.organisationCreate))),
             "/organisation/by-id": withGlobalAuthed(withAuth(routes.organisationById)),
+            "/organisation/export": withGlobalAuthed(withAuth(routes.organisationExport)),
             "/organisation/update": withGlobalAuthed(withAuth(withCSRF(routes.organisationUpdate))),
             "/organisation/delete": withGlobalAuthed(withAuth(withCSRF(routes.organisationDelete))),
             "/organisation/upload-icon": withGlobalAuthed(withAuth(withCSRF(routes.organisationUploadIcon))),

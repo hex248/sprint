@@ -255,6 +255,37 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
     toast.success(`Downloaded time tracking data as ${format.toUpperCase()}`);
   };
 
+  const downloadOrganisationExport = async () => {
+    if (!selectedOrganisation) return;
+
+    try {
+      const { data, error } = await apiClient.organisationExport({
+        query: { id: selectedOrganisation.Organisation.id },
+      });
+      if (error || !data) {
+        throw new Error(error ?? "failed to export organisation");
+      }
+
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedOrganisation.Organisation.slug}-export.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Downloaded ${selectedOrganisation.Organisation.name} export`);
+    } catch (err) {
+      console.error(err);
+      toast.error(`Error exporting ${selectedOrganisation.Organisation.name}: ${String(err)}`, {
+        dismissible: false,
+      });
+    }
+  };
+
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
 
@@ -885,6 +916,9 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
 
                   {isAdmin && (
                     <div className="flex gap-2 mt-3">
+                      <Button variant="outline" size="sm" onClick={() => void downloadOrganisationExport()}>
+                        Export JSON
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => setEditOrgOpen(true)}>
                         <Icon icon="edit" className="size-4" />
                         Edit

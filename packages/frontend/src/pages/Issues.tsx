@@ -76,6 +76,69 @@ const parseIssueFilters = (search: string): IssuesTableFilters => {
   };
 };
 
+const getFilterStorageKey = (organisationId: number | null, projectId: number | null) => {
+  if (!organisationId || !projectId) return null;
+  return `sprint.issue-filters.${organisationId}.${projectId}`;
+};
+const FILTER_PARAM_KEYS = ["q", "status", "type", "assignee", "sprint", "sort"] as const;
+
+const hasFilterParams = (search: string) => {
+  const params = new URLSearchParams(search);
+  return FILTER_PARAM_KEYS.some((key) => params.has(key));
+};
+
+const readStoredFilters = (storageKey: string): IssuesTableFilters | null => {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<IssuesTableFilters> | null;
+    if (!parsed || typeof parsed !== "object") return null;
+
+    const statuses = Array.isArray(parsed.statuses) ? parsed.statuses.filter(Boolean) : [];
+    const types = Array.isArray(parsed.types) ? parsed.types.filter(Boolean) : [];
+    const assignees = Array.isArray(parsed.assignees) ? parsed.assignees.filter(Boolean) : [];
+    const query = typeof parsed.query === "string" ? parsed.query : "";
+
+    let sprintId: IssuesTableFilters["sprintId"] = "all";
+    if (parsed.sprintId === "none" || parsed.sprintId === "all") {
+      sprintId = parsed.sprintId;
+    } else if (typeof parsed.sprintId === "number" && !Number.isNaN(parsed.sprintId)) {
+      sprintId = parsed.sprintId;
+    }
+
+    const sortValues: IssuesTableFilters["sort"][] = [
+      "newest",
+      "oldest",
+      "title-asc",
+      "title-desc",
+      "status",
+    ];
+    const sort = sortValues.includes(parsed.sort as IssuesTableFilters["sort"])
+      ? (parsed.sort as IssuesTableFilters["sort"])
+      : defaultIssuesTableFilters.sort;
+
+    return {
+      ...defaultIssuesTableFilters,
+      query,
+      statuses,
+      types,
+      assignees,
+      sprintId,
+      sort,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredFilters = (storageKey: string, filters: IssuesTableFilters) => {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(filters));
+  } catch {
+    return;
+  }
+};
+
 const filtersEqual = (left: IssuesTableFilters, right: IssuesTableFilters) => {
   if (left.query !== right.query) return false;
   if (left.sprintId !== right.sprintId) return false;
@@ -125,8 +188,21 @@ export default function Issues() {
   const selectedOrganisation = useSelectedOrganisation();
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
   const { data: sprintsData = [] } = useSprints(selectedProjectId);
-  const parsedFilters = useMemo(() => parseIssueFilters(location.search), [location.search]);
-  const [issueFilters, setIssueFilters] = useState<IssuesTableFilters>(() => parsedFilters);
+  const filterStorageKey = useMemo(
+    () => getFilterStorageKey(selectedOrganisationId, selectedProjectId),
+    [selectedOrganisationId, selectedProjectId],
+  );
+  const filterParamsPresent = useMemo(() => hasFilterParams(location.search), [location.search]);
+  const storedFilters = useMemo(() => {
+    if (filterParamsPresent || !filterStorageKey) return null;
+    return readStoredFilters(filterStorageKey);
+  }, [filterParamsPresent, filterStorageKey]);
+  const nextFilters = useMemo(() => {
+    if (filterParamsPresent) return parseIssueFilters(location.search);
+    if (storedFilters) return storedFilters;
+    return defaultIssuesTableFilters;
+  }, [filterParamsPresent, location.search, storedFilters]);
+  const [issueFilters, setIssueFilters] = useState<IssuesTableFilters>(() => nextFilters);
 
   const organisations = useMemo(
     () => [...organisationsData].sort((a, b) => a.Organisation.name.localeCompare(b.Organisation.name)),
@@ -138,38 +214,13 @@ export default function Issues() {
   );
 
   useEffect(() => {
-    setIssueFilters((current) => (filtersEqual(current, parsedFilters) ? current : parsedFilters));
-  }, [parsedFilters]);
+    setIssueFilters((current) => (filtersEqual(current, nextFilters) ? current : nextFilters));
+  }, [nextFilters]);
 
   useEffect(() => {
-    const currentParams = new URLSearchParams(location.search);
-    const nextParams = new URLSearchParams(location.search);
-
-    if (issueFilters.query) nextParams.set("q", issueFilters.query);
-    else nextParams.delete("q");
-
-    if (issueFilters.statuses.length > 0) nextParams.set("status", issueFilters.statuses.join(","));
-    else nextParams.delete("status");
-
-    if (issueFilters.types.length > 0) nextParams.set("type", issueFilters.types.join(","));
-    else nextParams.delete("type");
-
-    if (issueFilters.assignees.length > 0) nextParams.set("assignee", issueFilters.assignees.join(","));
-    else nextParams.delete("assignee");
-
-    if (issueFilters.sprintId === "none") nextParams.set("sprint", "none");
-    else if (issueFilters.sprintId !== "all") nextParams.set("sprint", String(issueFilters.sprintId));
-    else nextParams.delete("sprint");
-
-    if (issueFilters.sort !== defaultIssuesTableFilters.sort) nextParams.set("sort", issueFilters.sort);
-    else nextParams.delete("sort");
-
-    if (currentParams.toString() === nextParams.toString()) return;
-
-    const search = nextParams.toString();
-    const nextUrl = `${location.pathname}${search ? `?${search}` : ""}`;
-    window.history.replaceState(null, "", nextUrl);
-  }, [issueFilters, location.pathname, location.search]);
+    if (!filterStorageKey) return;
+    writeStoredFilters(filterStorageKey, issueFilters);
+  }, [filterStorageKey, issueFilters]);
 
   const findById = <T,>(items: T[], id: number | null | undefined, getId: (item: T) => number) =>
     id == null ? null : (items.find((item) => getId(item) === id) ?? null);
