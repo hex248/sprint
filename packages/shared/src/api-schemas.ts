@@ -671,6 +671,7 @@ export const ChatRequestSchema = z.object({
     orgId: z.coerce.number().int().positive("orgId must be a positive integer"),
     projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
     message: z.string().min(1, "Message is required"),
+    model: z.string().min(1, "Model is required"),
 });
 
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;

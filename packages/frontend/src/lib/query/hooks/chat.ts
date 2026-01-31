@@ -2,7 +2,7 @@ import type { ChatRequest, ChatResponse, ModelsResponse } from "@sprint/shared";
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/server";
 
-export function useChatMutation() {
+export function useChat() {
   return useMutation<ChatResponse, Error, ChatRequest>({
     mutationKey: ["ai", "chat"],
     mutationFn: async (input) => {

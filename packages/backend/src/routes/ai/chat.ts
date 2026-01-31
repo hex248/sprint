@@ -10,7 +10,7 @@ export default async function aiChat(req: AuthedRequest) {
     const parsed = parseQueryParams(url, ChatRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { orgId, projectId, message } = parsed.data;
+    const { orgId, projectId, message, model } = parsed.data;
 
     const user = await getUserById(req.userId);
     if (!user) {
@@ -20,7 +20,7 @@ export default async function aiChat(req: AuthedRequest) {
     const context = await buildContext(orgId, projectId, user);
 
     const fullPrompt = `${SYSTEM_PROMPT}\n\n${context}\n\n<user_query>${message}</user_query>`;
-    const response = await callAI(fullPrompt);
+    const response = await callAI(fullPrompt, model);
 
     return Response.json(response);
 }
