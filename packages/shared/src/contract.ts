@@ -4,6 +4,8 @@ import {
     ApiErrorSchema,
     AuthResponseSchema,
     CancelSubscriptionResponseSchema,
+    ChatRequestSchema,
+    ChatResponseSchema,
     CreateCheckoutSessionRequestSchema,
     CreateCheckoutSessionResponseSchema,
     CreatePortalSessionResponseSchema,
@@ -682,6 +684,17 @@ export const apiContract = c.router({
             401: ApiErrorSchema,
         },
         headers: csrfHeaderSchema,
+    },
+
+    aiChat: {
+        method: "GET",
+        path: "/ai/chat",
+        query: ChatRequestSchema,
+        responses: {
+            200: ChatResponseSchema,
+            400: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
     },
 });
 

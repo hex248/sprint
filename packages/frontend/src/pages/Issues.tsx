@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Avatar from "@/components/avatar";
+import { Chat } from "@/components/chat";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
 import { defaultIssuesTableFilters, IssuesTable, type IssuesTableFilters } from "@/components/issues-table";
@@ -694,6 +695,8 @@ export default function Issues() {
           }}
         />
       )}
+
+      <Chat />
     </main>
   );
 }

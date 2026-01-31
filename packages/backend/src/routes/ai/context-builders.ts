@@ -50,6 +50,11 @@ ${projects.map((p) => `    <project key="${p.Project.key}" name="${p.Project.nam
 ${sprints.map((s) => `    <sprint id="${s.id}" name="${s.name}" start="${s.startDate.toUTCString()?.split("T")[0]}" end="${s.endDate?.toUTCString().split("T")[0]}" />`).join("\n")}
   </sprints>
 
+  <all_issues count="${issues.length}">
+${issues.map((i) => `    <issue id="${i.Issue.id}" number="${i.Issue.number}" type="${i.Issue.type}" status="${i.Issue.status}" title="${i.Issue.title.replace(/"/g, "&quot;")}" sprint="${sprints.find((s) => s.id === i.Issue.sprintId)?.name || "Unassigned"}" />`).join("\n")}
+  </all_issues>
+
+
   <my_issues count="${assignedIssues.length}">
 ${assignedIssues.map((i) => `    <issue id="${i.Issue.id}" number="${i.Issue.number}" type="${i.Issue.type}" status="${i.Issue.status}" title="${i.Issue.title.replace(/"/g, "&quot;")}" sprint="${sprints.find((s) => s.id === i.Issue.sprintId)?.name || "Unassigned"}" />`).join("\n")}
   </my_issues>

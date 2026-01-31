@@ -672,3 +672,14 @@ export const ChatRequestSchema = z.object({
     projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
     message: z.string().min(1, "Message is required"),
 });
+
+export type ChatRequest = z.infer<typeof ChatRequestSchema>;
+
+export const ChatResponseSchema = z.object({
+    text: z.string(),
+    highlighted_issues: z.array(z.number()),
+    suggested_actions: z.array(z.string()).nullable(),
+    raw: z.string(),
+});
+
+export type ChatResponse = z.infer<typeof ChatResponseSchema>;

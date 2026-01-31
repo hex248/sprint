@@ -1,3 +1,4 @@
+export * from "@/lib/query/hooks/chat";
 export * from "@/lib/query/hooks/derived";
 export * from "@/lib/query/hooks/issue-comments";
 export * from "@/lib/query/hooks/issues";

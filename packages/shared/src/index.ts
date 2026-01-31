@@ -2,6 +2,8 @@ export type {
     ApiError,
     AuthResponse,
     CancelSubscriptionResponse,
+    ChatRequest,
+    ChatResponse,
     CreateCheckoutSessionRequest,
     CreateCheckoutSessionResponse,
     CreatePortalSessionResponse,
@@ -70,6 +72,8 @@ export {
     ApiErrorSchema,
     AuthResponseSchema,
     CancelSubscriptionResponseSchema,
+    ChatRequestSchema,
+    ChatResponseSchema,
     CreateCheckoutSessionRequestSchema,
     CreateCheckoutSessionResponseSchema,
     CreatePortalSessionResponseSchema,
@@ -135,7 +139,6 @@ export {
     UserResponseSchema,
     UserUpdateRequestSchema,
     VerifyEmailRequestSchema,
-    ChatRequestSchema,
 } from "./api-schemas";
 export {
     ISSUE_COMMENT_MAX_LENGTH,

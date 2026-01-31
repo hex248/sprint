@@ -6,7 +6,15 @@ export type AIResponse = {
 };
 
 export const callAI = async (prompt: string): Promise<AIResponse> => {
-    const result = Bun.spawn(["opencode", "run", prompt, "--model", "opencode/kimi-k2.5-free"], {
+    const models = [
+        "opencode/glm-4.7-free",
+        "opencode/kimi-k2.5-free",
+        "opencode/minimax-m2.1-free",
+        "opencode/trinity-large-preview-free",
+    ];
+    const model = models[3]!;
+
+    const result = Bun.spawn(["opencode", "run", prompt, "--model", model], {
         stdout: "pipe",
         stderr: "pipe",
     });
