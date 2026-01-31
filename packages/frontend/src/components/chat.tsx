@@ -93,31 +93,34 @@ export function Chat({ setHighlighted }: { setHighlighted: (ids: number[]) => vo
                   <p className="whitespace-pre-wrap">{lastUserMessage}</p>
                 </div>
               )}
-              {response && (
+              {(chat.isPending || response) && (
                 <div className="p-2 border flex items-center gap-2 text-sm">
-                  <p className="whitespace-pre-wrap">
-                    {response.split("\n").map((line, index) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: <>
-                      <Fragment key={index}>
-                        {line}
-                        <br />
-                      </Fragment>
-                    ))}
-                  </p>
+                  <img src={"/favicon.svg"} className="w-9" alt={"sprint icon"} />
+
+                  {!response && (
+                    <div className="flex justify-center">
+                      <Icon
+                        icon="loader"
+                        size={24}
+                        className="animate-[spin_3s_linear_infinite]"
+                        color={"var(--personality"}
+                      />
+                    </div>
+                  )}
+
+                  {response && (
+                    <p className="whitespace-pre-wrap flex-1">
+                      {response.split("\n").map((line, index) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: <>
+                        <Fragment key={index}>
+                          {line}
+                          <br />
+                        </Fragment>
+                      ))}
+                    </p>
+                  )}
                 </div>
               )}
-
-              {chat.isPending && (
-                <div className="flex justify-center py-4">
-                  <Icon
-                    icon="loader"
-                    size={24}
-                    className="animate-[spin_3s_linear_infinite]"
-                    color={"var(--personality"}
-                  />
-                </div>
-              )}
-
               <div className="flex items-center gap-2">
                 {models.data && models.data.length > 0 && (
                   <Select value={selectedModel} onValueChange={setSelectedModel}>
