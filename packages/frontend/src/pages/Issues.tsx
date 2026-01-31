@@ -167,6 +167,8 @@ export default function Issues() {
   } = useSelection();
   const location = useLocation();
 
+  const [highlighted, setHighlighted] = useState<number[]>([]);
+
   const deepLinkParams = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const orgSlug = params.get("o")?.trim().toLowerCase() ?? "";
@@ -667,7 +669,12 @@ export default function Issues() {
         <ResizablePanelGroup className={`flex-1`}>
           <ResizablePanel id={"left"} minSize={400}>
             <div className="border w-full flex-shrink">
-              <IssuesTable columns={{ description: false }} className="w-full" filters={issueFilters} />
+              <IssuesTable
+                columns={{ description: false }}
+                className="w-full"
+                filters={issueFilters}
+                highlighted={highlighted}
+              />
             </div>
           </ResizablePanel>
 
@@ -696,7 +703,7 @@ export default function Issues() {
         />
       )}
 
-      <Chat />
+      <Chat setHighlighted={setHighlighted} />
     </main>
   );
 }
