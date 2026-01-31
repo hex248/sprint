@@ -154,7 +154,7 @@ export function IssuesTable({
   const showAssignee = columns.assignee == null || columns.assignee === true;
 
   return (
-    <div className={cn("h-full overflow-auto border-t", className)}>
+    <div className={cn("h-full overflow-auto overflow-x-hidden border-t", className)}>
       <table className="w-full table-fixed border-collapse text-sm border-l border-r ">
         <thead className="sticky top-0 z-10 bg-secondary">
           <tr className="border-b h-[25px]">
