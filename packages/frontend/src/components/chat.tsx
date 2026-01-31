@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { Fragment, type SubmitEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
-import { useChatMutation, useSelectedOrganisation, useSelectedProject } from "@/lib/query/hooks";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useChat, useModels, useSelectedOrganisation, useSelectedProject } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
+import Avatar from "./avatar";
+import { useAuthenticatedSession } from "./session-provider";
 import { IconButton } from "./ui/icon-button";
 import { Input } from "./ui/input";
 
-export function Chat() {
+export function Chat({ setHighlighted }: { setHighlighted: (ids: number[]) => void }) {
+  const { user } = useAuthenticatedSession();
   const selectedOrganisation = useSelectedOrganisation();
   const selectedProject = useSelectedProject();
-  const chatMutation = useChatMutation();
+  const chat = useChat();
+  const models = useModels();
 
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState<string>("");
+  const [lastUserMessage, setLastUserMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isOpen && !models.data) {
+      models.mutate();
+    }
+  }, [isOpen, models]);
+
+  useEffect(() => {
+    if (models.data && models.data.length > 0 && !selectedModel) {
+      setSelectedModel(models.data[0].id);
+    }
+  }, [models.data, selectedModel]);
+
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
 
     if (!message.trim()) return;
@@ -27,14 +46,18 @@ export function Chat() {
 
     setError(null);
     setResponse("");
+    setHighlighted([]);
+    setLastUserMessage(message.trim());
 
     try {
-      const data = await chatMutation.mutateAsync({
+      const data = await chat.mutateAsync({
         orgId: selectedOrganisation.Organisation.id,
         projectId: selectedProject.Project.id,
         message: message.trim(),
+        model: selectedModel || "trinity-large-preview-free",
       });
       setResponse(data.text);
+      setHighlighted(data.highlighted_issues);
       setMessage("");
     } catch (err) {
       const errorMessage = parseError(err as Error);
@@ -54,43 +77,93 @@ export function Chat() {
       </IconButton>
 
       {isOpen && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 w-full max-w-2xl mx-4 bg-background border shadow-xl">
-          <div className="flex flex-col p-2">
+        <div className="fixed bottom-18 left-1/2 -translate-x-1/2 z-40 w-full max-w-2xl mx-4 bg-background border shadow-xl">
+          <div className="flex flex-col p-2 gap-2">
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+              {lastUserMessage && (
+                <div className="p-2 border flex items-center gap-2 text-sm">
+                  <Avatar
+                    name={user.name}
+                    username={user.username}
+                    avatarURL={user.avatarURL}
+                    size={6}
+                    textClass={"text-md"}
+                    strong
+                  />
+                  <p className="whitespace-pre-wrap">{lastUserMessage}</p>
+                </div>
+              )}
               {response && (
-                <div className="p-4 border max-h-60 overflow-y-auto">
-                  <p className="text-sm whitespace-pre-wrap">{response}</p>
+                <div className="p-2 border flex items-center gap-2 text-sm">
+                  <p className="whitespace-pre-wrap">
+                    {response.split("\n").map((line, index) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: <>
+                      <Fragment key={index}>
+                        {line}
+                        <br />
+                      </Fragment>
+                    ))}
+                  </p>
                 </div>
               )}
 
-              {chatMutation.isPending && (
+              {chat.isPending && (
                 <div className="flex justify-center py-4">
-                  <Icon icon="loader" size={32} className="animate-spin" />
+                  <Icon
+                    icon="loader"
+                    size={24}
+                    className="animate-[spin_3s_linear_infinite]"
+                    color={"var(--personality"}
+                  />
                 </div>
               )}
 
               <div className="flex items-center gap-2">
+                {models.data && models.data.length > 0 && (
+                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger className="w-fit text-[12px]" chevronClassName="hidden">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent
+                      side="top"
+                      position="popper"
+                      align="start"
+                      className="data-[side=top]:translate-x-0"
+                    >
+                      {models.data.map((model) => (
+                        <SelectItem key={model.id} value={model.id} className="text-[12px]">
+                          {model.name.replace(" Free", "").replace(" Preview", "")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <Input
                   value={message}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
                   placeholder={`Ask me anything about the ${selectedProject?.Project.name || "..."} project...`}
-                  disabled={chatMutation.isPending}
+                  disabled={chat.isPending}
                   showCounter={false}
                 />
 
                 <Button
                   type="submit"
                   disabled={
-                    chatMutation.isPending || !message.trim() || !selectedOrganisation || !selectedProject
+                    chat.isPending ||
+                    !message.trim() ||
+                    !selectedOrganisation ||
+                    !selectedProject ||
+                    selectedModel.length < 1
                   }
                 >
-                  {chatMutation.isPending ? "Sending..." : "Send"}
+                  {chat.isPending ? "Sending..." : "Send"}
                 </Button>
               </div>
             </form>
 
+            {}
             {error && (
-              <div className="p-4 bg-destructive/10 border border-destructive">
+              <div className="">
                 <p className="text-destructive text-sm">{error}</p>
               </div>
             )}
