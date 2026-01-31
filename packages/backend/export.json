@@ -1,0 +1,452 @@
+{
+  "organisation": {
+    "id": 5,
+    "name": "OB",
+    "description": "For personal use",
+    "slug": "ob",
+    "iconURL": "https://images.sprintpm.org/org-icons/cda1e49c-486a-4a40-ace6-d63eaba79cd9.png",
+    "statuses": {
+      "TO DO": "#fafafa",
+      "IN PROGRESS": "#f97316",
+      "REVIEW": "#8952bc",
+      "DONE": "#22c55e",
+      "REJECTED": "#ef4444",
+      "ARCHIVED": "#a1a1a1",
+      "MERGED": "#a1a1a1"
+    },
+    "issueTypes": {
+      "Task": {
+        "icon": "checkBox",
+        "color": "#e4bd47"
+      },
+      "Bug": {
+        "icon": "bug",
+        "color": "#ef4444"
+      },
+      "Ideation": {
+        "icon": "edit",
+        "color": "#c955c5"
+      },
+      "Quality of Life": {
+        "icon": "moon",
+        "color": "#656ad3"
+      },
+      "Performance": {
+        "icon": "loader",
+        "color": "#5ed36c"
+      }
+    },
+    "features": {
+      "userAvatars": true,
+      "issueTypes": true,
+      "issueStatus": true,
+      "issueDescriptions": true,
+      "issueTimeTracking": true,
+      "issueAssignees": true,
+      "issueAssigneesShownInTable": true,
+      "issueCreator": true,
+      "issueComments": true,
+      "sprints": true
+    },
+    "createdAt": "2026-01-29T19:24:07.015Z",
+    "updatedAt": "2026-01-29T19:24:07.015Z"
+  },
+  "members": [
+    {
+      "id": 9,
+      "organisationId": 5,
+      "userId": 9,
+      "role": "owner",
+      "createdAt": "2026-01-29T19:24:07.015Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": 9,
+      "key": "SPNT",
+      "name": "SPRINT",
+      "organisationId": 5,
+      "creatorId": 9
+    }
+  ],
+  "sprints": [
+    {
+      "id": 17,
+      "projectId": 9,
+      "name": "Development 1",
+      "color": "#63d379",
+      "startDate": "2026-01-29T00:00:00.000Z",
+      "endDate": "2026-02-12T23:59:00.000Z",
+      "createdAt": "2026-01-29T20:43:29.814Z"
+    }
+  ],
+  "issues": [
+    {
+      "id": 80,
+      "projectId": 9,
+      "number": 12,
+      "type": "Task",
+      "status": "IN PROGRESS",
+      "title": "Assignee notes",
+      "description": "Users should be able to add assignee notes to represent an assignee's role in an issue.",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 74,
+      "projectId": 9,
+      "number": 6,
+      "type": "Ideation",
+      "status": "TO DO",
+      "title": "Subscriptions should be organisation based",
+      "description": "They shouldn't be user based. A subscription should be for an organisation. Any user should be able to have unlimited organisations, but they are all limited, and charged for separately.",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 73,
+      "projectId": 9,
+      "number": 5,
+      "type": "Ideation",
+      "status": "TO DO",
+      "title": "Rethink \"seats\" payment idea",
+      "description": "Maybe user pays for different tiers? \nSpaces:\n- Free tier: 3\n- Small Team: 10\n- Moderate Team: 50\n- Big Team: Contact us for a price",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 70,
+      "projectId": 9,
+      "number": 2,
+      "type": "Quality of Life",
+      "status": "TO DO",
+      "title": "Streamline issue/create route",
+      "description": "Currently each field is parsed individually (adding a new field requires much more work than it should)",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 71,
+      "projectId": 9,
+      "number": 3,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Automatically create org + project for new users",
+      "description": "\"ob's organisation\" and \"ob's project\" should be created upon account creation.",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 86,
+      "projectId": 9,
+      "number": 18,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Share filters button",
+      "description": "Copies a url with organisation, project and all issue filters for reuse or use with team members.",
+      "creatorId": 9,
+      "sprintId": null
+    },
+    {
+      "id": 79,
+      "projectId": 9,
+      "number": 11,
+      "type": "Bug",
+      "status": "DONE",
+      "title": "Filters should persist across refresh",
+      "description": "Use localStorage for this - even switching to the timeline tab and back resets filters, very annoying.",
+      "creatorId": 9,
+      "sprintId": null
+    },
+    {
+      "id": 76,
+      "projectId": 9,
+      "number": 8,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Issue attachments",
+      "description": "Users should be able to attach files and images to descriptions and comments. (restrict to images at first - resize with sharp)",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 75,
+      "projectId": 9,
+      "number": 7,
+      "type": "Task",
+      "status": "DONE",
+      "title": "Export organisation contents as JSON",
+      "description": "Organisation owner/admins should be able to export all of the data in an organisation as a JSON file. This can then be used to \"Create [an org] from JSON\"",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 78,
+      "projectId": 9,
+      "number": 10,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Standalone time tracking",
+      "description": "User should be able to create time tracking entries that are not related to an issue. For example: ideation, sprint planning, meetings.",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 72,
+      "projectId": 9,
+      "number": 4,
+      "type": "Bug",
+      "status": "MERGED",
+      "title": "Org avatar scaling weirdly",
+      "description": "In organisations.tsx info tab, the org avatar is shrunk horizontally to fit the text. height is correct though.\n\nThis only occurs when there is no organisation icon.",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 69,
+      "projectId": 9,
+      "number": 1,
+      "type": "Bug",
+      "status": "MERGED",
+      "title": "Unable to create an issue with type",
+      "description": "It chooses the first type available instead of the one chosen by the user",
+      "creatorId": 9,
+      "sprintId": 17
+    },
+    {
+      "id": 81,
+      "projectId": 9,
+      "number": 13,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "User defined colour scheme",
+      "description": "On the backburner for now",
+      "creatorId": 9,
+      "sprintId": null
+    },
+    {
+      "id": 83,
+      "projectId": 9,
+      "number": 15,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Post-sub email",
+      "description": "Thank you for subscribing",
+      "creatorId": 9,
+      "sprintId": null
+    },
+    {
+      "id": 84,
+      "projectId": 9,
+      "number": 16,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Trial end warning email",
+      "description": "Your trial is coming to an end. Manage your subscription to renew",
+      "creatorId": 9,
+      "sprintId": null
+    },
+    {
+      "id": 82,
+      "projectId": 9,
+      "number": 14,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Welcome email",
+      "description": "Welcome to sprint, this is what you can do: ...",
+      "creatorId": 9,
+      "sprintId": null
+    },
+    {
+      "id": 85,
+      "projectId": 9,
+      "number": 17,
+      "type": "Task",
+      "status": "TO DO",
+      "title": "Trial system",
+      "description": "14 day trial of Team plan, any elevated features must be locked away again after trial ends.\n\nIf the organisation has more members than free plan allows, the members who were added after will be barred from accessing the organisation. Additional projects, issues and sprints will be locked away.",
+      "creatorId": 9,
+      "sprintId": null
+    },
+    {
+      "id": 77,
+      "projectId": 9,
+      "number": 9,
+      "type": "Task",
+      "status": "DONE",
+      "title": "Add \"assign to me by default\"",
+      "description": "",
+      "creatorId": 9,
+      "sprintId": 17
+    }
+  ],
+  "issueAssignees": [
+    {
+      "id": 73,
+      "issueId": 69,
+      "userId": 9,
+      "assignedAt": "2026-01-29T20:33:42.827Z"
+    },
+    {
+      "id": 74,
+      "issueId": 70,
+      "userId": 9,
+      "assignedAt": "2026-01-29T20:44:51.258Z"
+    },
+    {
+      "id": 75,
+      "issueId": 71,
+      "userId": 9,
+      "assignedAt": "2026-01-29T20:46:34.959Z"
+    },
+    {
+      "id": 76,
+      "issueId": 72,
+      "userId": 9,
+      "assignedAt": "2026-01-29T20:49:12.879Z"
+    },
+    {
+      "id": 77,
+      "issueId": 73,
+      "userId": 9,
+      "assignedAt": "2026-01-29T21:21:14.628Z"
+    },
+    {
+      "id": 78,
+      "issueId": 77,
+      "userId": 9,
+      "assignedAt": "2026-01-29T21:39:58.232Z"
+    },
+    {
+      "id": 79,
+      "issueId": 75,
+      "userId": 9,
+      "assignedAt": "2026-01-29T23:09:09.537Z"
+    },
+    {
+      "id": 80,
+      "issueId": 79,
+      "userId": 9,
+      "assignedAt": "2026-01-29T23:09:12.591Z"
+    },
+    {
+      "id": 81,
+      "issueId": 80,
+      "userId": 9,
+      "assignedAt": "2026-01-29T23:09:15.541Z"
+    },
+    {
+      "id": 82,
+      "issueId": 86,
+      "userId": 9,
+      "assignedAt": "2026-01-29T23:19:57.419Z"
+    }
+  ],
+  "issueComments": [
+    {
+      "id": 70,
+      "issueId": 69,
+      "userId": 9,
+      "body": "The backend wasn't reading the type field. We need to streamline that route.",
+      "createdAt": "2026-01-29T20:44:16.540Z",
+      "updatedAt": "2026-01-29T20:44:16.540Z"
+    },
+    {
+      "id": 71,
+      "issueId": 69,
+      "userId": 9,
+      "body": "Created https://sprintpm.org/issues?o=org&p=spnt&i=2&modal=true for the previously mentioned issue",
+      "createdAt": "2026-01-29T20:45:23.285Z",
+      "updatedAt": "2026-01-29T20:45:23.285Z"
+    },
+    {
+      "id": 72,
+      "issueId": 69,
+      "userId": 9,
+      "body": "SPNT-002",
+      "createdAt": "2026-01-29T20:45:38.161Z",
+      "updatedAt": "2026-01-29T20:45:38.161Z"
+    },
+    {
+      "id": 73,
+      "issueId": 80,
+      "userId": 9,
+      "body": "ugh",
+      "createdAt": "2026-01-30T00:34:45.745Z",
+      "updatedAt": "2026-01-30T00:34:45.745Z"
+    }
+  ],
+  "timedSessions": [
+    {
+      "id": 1,
+      "userId": 9,
+      "issueId": 69,
+      "timestamps": [
+        "2026-01-29T20:37:38.485Z",
+        "2026-01-29T20:42:58.198Z"
+      ],
+      "endedAt": "2026-01-29T20:42:59.566Z",
+      "createdAt": "2026-01-29T20:37:38.486Z"
+    },
+    {
+      "id": 2,
+      "userId": 9,
+      "issueId": 72,
+      "timestamps": [
+        "2026-01-29T20:49:45.879Z",
+        "2026-01-29T21:16:34.178Z"
+      ],
+      "endedAt": "2026-01-29T21:16:34.178Z",
+      "createdAt": "2026-01-29T20:49:45.879Z"
+    },
+    {
+      "id": 3,
+      "userId": 9,
+      "issueId": 77,
+      "timestamps": [
+        "2026-01-29T21:40:01.096Z",
+        "2026-01-29T23:09:19.693Z"
+      ],
+      "endedAt": "2026-01-29T23:09:19.693Z",
+      "createdAt": "2026-01-29T21:40:01.096Z"
+    },
+    {
+      "id": 6,
+      "userId": 9,
+      "issueId": 80,
+      "timestamps": [
+        "2026-01-29T23:09:16.096Z",
+        "2026-01-30T00:34:30.575Z"
+      ],
+      "endedAt": "2026-01-30T00:34:30.575Z",
+      "createdAt": "2026-01-29T23:09:16.096Z"
+    },
+    {
+      "id": 5,
+      "userId": 9,
+      "issueId": 79,
+      "timestamps": [
+        "2026-01-29T23:09:13.291Z",
+        "2026-01-30T00:34:30.923Z"
+      ],
+      "endedAt": "2026-01-30T00:34:30.923Z",
+      "createdAt": "2026-01-29T23:09:13.291Z"
+    },
+    {
+      "id": 4,
+      "userId": 9,
+      "issueId": 75,
+      "timestamps": [
+        "2026-01-29T23:09:10.375Z",
+        "2026-01-30T00:34:31.391Z"
+      ],
+      "endedAt": "2026-01-30T00:34:31.391Z",
+      "createdAt": "2026-01-29T23:09:10.376Z"
+    }
+  ],
+  "_metadata": {
+    "exportedAt": "2026-01-30T00:42:40.425Z",
+    "exportedBy": 9,
+    "version": "1.0"
+  }
+}

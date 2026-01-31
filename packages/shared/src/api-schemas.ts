@@ -666,3 +666,29 @@ export const CancelSubscriptionResponseSchema = z.object({
 });
 
 export type CancelSubscriptionResponse = z.infer<typeof CancelSubscriptionResponseSchema>;
+
+export const ChatRequestSchema = z.object({
+    orgId: z.coerce.number().int().positive("orgId must be a positive integer"),
+    projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
+    message: z.string().min(1, "Message is required"),
+    model: z.string().min(1, "Model is required"),
+});
+
+export type ChatRequest = z.infer<typeof ChatRequestSchema>;
+
+export const ChatResponseSchema = z.object({
+    text: z.string(),
+    highlighted_issues: z.array(z.number()),
+    suggested_actions: z.array(z.string()).nullable(),
+    raw: z.string(),
+});
+
+export type ChatResponse = z.infer<typeof ChatResponseSchema>;
+
+export const ModelsResponseSchema = z.array(
+    z.object({
+        name: z.string(),
+        id: z.string(),
+    }),
+);
+export type ModelsResponse = z.infer<typeof ModelsResponseSchema>;

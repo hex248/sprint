@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Avatar from "@/components/avatar";
+import { Chat } from "@/components/chat";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
 import { defaultIssuesTableFilters, IssuesTable, type IssuesTableFilters } from "@/components/issues-table";
@@ -165,6 +166,8 @@ export default function Issues() {
     selectIssue,
   } = useSelection();
   const location = useLocation();
+
+  const [highlighted, setHighlighted] = useState<number[]>([]);
 
   const deepLinkParams = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -666,7 +669,12 @@ export default function Issues() {
         <ResizablePanelGroup className={`flex-1`}>
           <ResizablePanel id={"left"} minSize={400}>
             <div className="border w-full flex-shrink">
-              <IssuesTable columns={{ description: false }} className="w-full" filters={issueFilters} />
+              <IssuesTable
+                columns={{ description: false }}
+                className="w-full"
+                filters={issueFilters}
+                highlighted={highlighted}
+              />
             </div>
           </ResizablePanel>
 
@@ -694,6 +702,8 @@ export default function Issues() {
           }}
         />
       )}
+
+      <Chat setHighlighted={setHighlighted} />
     </main>
   );
 }

@@ -29,10 +29,12 @@ export function IssuesTable({
   columns = {},
   className,
   filters,
+  highlighted,
 }: {
   columns?: { id?: boolean; title?: boolean; description?: boolean; status?: boolean; assignee?: boolean };
   className: string;
   filters?: IssuesTableFilters;
+  highlighted?: number[];
 }) {
   const { selectedProjectId, selectedIssueId, selectIssue } = useSelection();
   const { data: issuesData = [] } = useIssues(selectedProjectId);
@@ -188,7 +190,7 @@ export function IssuesTable({
                 <TableCell
                   className={cn(
                     "font-medium border-r text-right p-0",
-                    isSelected &&
+                    (isSelected || highlighted?.includes(issueData.Issue.id)) &&
                       "shadow-[inset_1px_1px_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >
@@ -205,7 +207,7 @@ export function IssuesTable({
                 <TableCell
                   className={cn(
                     "min-w-0 p-0",
-                    isSelected &&
+                    (isSelected || highlighted?.includes(issueData.Issue.id)) &&
                       "shadow-[inset_0_1px_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >
@@ -237,7 +239,7 @@ export function IssuesTable({
                 <TableCell
                   className={cn(
                     "overflow-hidden p-0",
-                    isSelected &&
+                    (isSelected || highlighted?.includes(issueData.Issue.id)) &&
                       "shadow-[inset_0_1px_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >
@@ -254,7 +256,7 @@ export function IssuesTable({
                 <TableCell
                   className={cn(
                     "h-[32px] p-0",
-                    isSelected &&
+                    (isSelected || highlighted?.includes(issueData.Issue.id)) &&
                       "shadow-[inset_0_1px_0_0_var(--personality),inset_-1px_0_0_0_var(--personality),inset_0_-1px_0_0_var(--personality)]",
                   )}
                 >

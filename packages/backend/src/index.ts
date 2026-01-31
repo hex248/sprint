@@ -4,6 +4,7 @@ import { testDB } from "./db/client";
 import { cleanupExpiredSessions } from "./db/queries";
 import { withAuthedLogging, withLogging } from "./logger";
 import { routes } from "./routes";
+import { initializeFreeModelsCache } from "./routes/ai/opencode";
 
 const DEV = process.argv.find((arg) => ["--dev", "--developer", "-d"].includes(arg.toLowerCase())) != null;
 const PORT = process.argv.find((arg) => arg.toLowerCase().startsWith("--port="))?.split("=")[1] || 0;
@@ -32,9 +33,13 @@ const withGlobalAuthed = <T extends BunRequest>(handler: RouteHandler<T>) =>
 const main = async () => {
     const server = Bun.serve({
         port: Number(PORT),
+        idleTimeout: 60, // 1 minute for AI chat responses
         routes: {
             "/": withGlobal(() => new Response(`title: tnirps\ndev-mode: ${DEV}\nport: ${PORT}`)),
             "/health": withGlobal(() => new Response("OK")),
+
+            "/ai/chat": withGlobalAuthed(withAuth(routes.aiChat)),
+            "/ai/models": withGlobalAuthed(withAuth(routes.aiModels)),
 
             // routes that modify state require withCSRF middleware
             "/auth/register": withGlobal(routes.authRegister),
@@ -119,6 +124,7 @@ const main = async () => {
 
     console.log(`tnirps (sprint server) listening on ${server.url}`);
     await testDB();
+    await initializeFreeModelsCache();
     startSessionCleanup();
 };
 
