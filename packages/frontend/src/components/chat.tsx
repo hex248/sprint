@@ -16,7 +16,6 @@ export function Chat({ setHighlighted }: { setHighlighted: (ids: number[]) => vo
   const selectedOrganisation = useSelectedOrganisation();
   const selectedProject = useSelectedProject();
   const chat = useChat();
-  const models = useModels();
 
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -25,11 +24,7 @@ export function Chat({ setHighlighted }: { setHighlighted: (ids: number[]) => vo
   const [error, setError] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>("");
 
-  useEffect(() => {
-    if (isOpen && !models.data) {
-      models.mutate();
-    }
-  }, [isOpen, models]);
+  const models = useModels(isOpen);
 
   useEffect(() => {
     if (models.data && models.data.length > 0 && !selectedModel) {

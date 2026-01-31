@@ -1,5 +1,5 @@
 import type { ChatRequest, ChatResponse, ModelsResponse } from "@sprint/shared";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/server";
 
 export function useChat() {
@@ -14,14 +14,17 @@ export function useChat() {
   });
 }
 
-export function useModels() {
-  return useMutation<ModelsResponse, Error>({
-    mutationKey: ["ai", "models"],
-    mutationFn: async () => {
+export function useModels(enabled: boolean) {
+  return useQuery<ModelsResponse, Error>({
+    queryKey: ["ai", "models"],
+    queryFn: async () => {
       const { data, error } = await apiClient.aiModels();
       if (error) throw new Error(error);
       if (!data) throw new Error("failed to get models");
       return data as ModelsResponse;
     },
+    enabled,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
   });
 }
