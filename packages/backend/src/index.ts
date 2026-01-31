@@ -4,6 +4,7 @@ import { testDB } from "./db/client";
 import { cleanupExpiredSessions } from "./db/queries";
 import { withAuthedLogging, withLogging } from "./logger";
 import { routes } from "./routes";
+import { initializeFreeModelsCache } from "./routes/ai/opencode";
 
 const DEV = process.argv.find((arg) => ["--dev", "--developer", "-d"].includes(arg.toLowerCase())) != null;
 const PORT = process.argv.find((arg) => arg.toLowerCase().startsWith("--port="))?.split("=")[1] || 0;
@@ -121,6 +122,7 @@ const main = async () => {
 
     console.log(`tnirps (sprint server) listening on ${server.url}`);
     await testDB();
+    await initializeFreeModelsCache();
     startSessionCleanup();
 };
 
