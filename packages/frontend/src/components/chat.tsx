@@ -2,6 +2,8 @@ import { Fragment, type SubmitEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BREATHING_ROOM } from "@/lib/layout";
+
 import { useChat, useModels, useSelectedOrganisation, useSelectedProject } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
 import Avatar from "./avatar";
@@ -78,10 +80,10 @@ export function Chat({ setHighlighted }: { setHighlighted: (ids: number[]) => vo
 
       {isOpen && (
         <div className="fixed bottom-18 left-1/2 -translate-x-1/2 z-40 w-full max-w-2xl mx-4 bg-background border shadow-xl">
-          <div className="flex flex-col p-2 gap-2">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          <div className={`flex flex-col p-${BREATHING_ROOM} gap-${BREATHING_ROOM}`}>
+            <form onSubmit={handleSubmit} className={`flex flex-col gap-${BREATHING_ROOM}`}>
               {lastUserMessage && (
-                <div className="p-2 border flex items-center gap-2 text-sm">
+                <div className={`p-2 border flex items-center gap-2 text-sm`}>
                   <Avatar
                     name={user.name}
                     username={user.username}
@@ -94,7 +96,7 @@ export function Chat({ setHighlighted }: { setHighlighted: (ids: number[]) => vo
                 </div>
               )}
               {(chat.isPending || response) && (
-                <div className="p-2 border flex items-center gap-2 text-sm">
+                <div className={`p-2 border flex items-center gap-2 text-sm`}>
                   <img src={"/favicon.svg"} className="w-9" alt={"sprint icon"} />
 
                   {!response && (
@@ -121,7 +123,7 @@ export function Chat({ setHighlighted }: { setHighlighted: (ids: number[]) => vo
                   )}
                 </div>
               )}
-              <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-${BREATHING_ROOM}`}>
                 {models.data && models.data.length > 0 && (
                   <Select value={selectedModel} onValueChange={setSelectedModel}>
                     <SelectTrigger className="w-fit text-[12px]" chevronClassName="hidden">
