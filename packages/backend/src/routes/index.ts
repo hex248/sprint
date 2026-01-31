@@ -1,4 +1,5 @@
 import aiChat from "./ai/chat";
+import aiModels from "./ai/models";
 import authLogin from "./auth/login";
 import authLogout from "./auth/logout";
 import authMe from "./auth/me";
@@ -58,6 +59,7 @@ import userUploadAvatar from "./user/upload-avatar";
 
 export const routes = {
     aiChat,
+    aiModels,
 
     authRegister,
     authLogin,

@@ -683,3 +683,11 @@ export const ChatResponseSchema = z.object({
 });
 
 export type ChatResponse = z.infer<typeof ChatResponseSchema>;
+
+export const ModelsResponseSchema = z.array(
+    z.object({
+        name: z.string(),
+        id: z.string(),
+    }),
+);
+export type ModelsResponse = z.infer<typeof ModelsResponseSchema>;

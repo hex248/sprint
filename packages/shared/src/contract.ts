@@ -27,6 +27,7 @@ import {
     IssuesTypeCountQuerySchema,
     IssueUpdateRequestSchema,
     LoginRequestSchema,
+    ModelsResponseSchema,
     OrgAddMemberRequestSchema,
     OrganisationMemberRecordSchema,
     OrganisationMemberResponseSchema,
@@ -692,6 +693,15 @@ export const apiContract = c.router({
         query: ChatRequestSchema,
         responses: {
             200: ChatResponseSchema,
+            400: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+    },
+    aiModels: {
+        method: "GET",
+        path: "/ai/models",
+        responses: {
+            200: ModelsResponseSchema,
             400: ApiErrorSchema,
             404: ApiErrorSchema,
         },

@@ -33,11 +33,13 @@ const withGlobalAuthed = <T extends BunRequest>(handler: RouteHandler<T>) =>
 const main = async () => {
     const server = Bun.serve({
         port: Number(PORT),
+        idleTimeout: 60, // 1 minute for AI chat responses
         routes: {
             "/": withGlobal(() => new Response(`title: tnirps\ndev-mode: ${DEV}\nport: ${PORT}`)),
             "/health": withGlobal(() => new Response("OK")),
 
             "/ai/chat": withGlobalAuthed(withAuth(routes.aiChat)),
+            "/ai/models": withGlobalAuthed(withAuth(routes.aiModels)),
 
             // routes that modify state require withCSRF middleware
             "/auth/register": withGlobal(routes.authRegister),
