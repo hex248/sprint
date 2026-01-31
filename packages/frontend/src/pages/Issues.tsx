@@ -667,15 +667,13 @@ export default function Issues() {
 
       {selectedOrganisationId && selectedProjectId && issuesData.length > 0 && (
         <ResizablePanelGroup className={`flex-1`}>
-          <ResizablePanel id={"left"} minSize={400}>
-            <div className="border w-full flex-shrink">
-              <IssuesTable
-                columns={{ description: false }}
-                className="w-full"
-                filters={issueFilters}
-                highlighted={highlighted}
-              />
-            </div>
+          <ResizablePanel id={"left"} minSize={400} className="h-full overflow-hidden">
+            <IssuesTable
+              columns={{ description: false }}
+              className="w-full"
+              filters={issueFilters}
+              highlighted={highlighted}
+            />
           </ResizablePanel>
 
           {selectedIssue && !showIssueModal && (
