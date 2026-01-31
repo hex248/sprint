@@ -135,6 +135,7 @@ export {
     UserResponseSchema,
     UserUpdateRequestSchema,
     VerifyEmailRequestSchema,
+    ChatRequestSchema,
 } from "./api-schemas";
 export {
     ISSUE_COMMENT_MAX_LENGTH,

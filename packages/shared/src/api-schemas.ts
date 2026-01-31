@@ -666,3 +666,9 @@ export const CancelSubscriptionResponseSchema = z.object({
 });
 
 export type CancelSubscriptionResponse = z.infer<typeof CancelSubscriptionResponseSchema>;
+
+export const ChatRequestSchema = z.object({
+    orgId: z.coerce.number().int().positive("orgId must be a positive integer"),
+    projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
+    message: z.string().min(1, "Message is required"),
+});

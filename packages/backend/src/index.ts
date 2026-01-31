@@ -36,6 +36,8 @@ const main = async () => {
             "/": withGlobal(() => new Response(`title: tnirps\ndev-mode: ${DEV}\nport: ${PORT}`)),
             "/health": withGlobal(() => new Response("OK")),
 
+            "/ai/chat": withGlobalAuthed(withAuth(routes.aiChat)),
+
             // routes that modify state require withCSRF middleware
             "/auth/register": withGlobal(routes.authRegister),
             "/auth/login": withGlobal(routes.authLogin),
