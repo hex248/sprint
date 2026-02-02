@@ -63,17 +63,18 @@ export interface FreeModel {
 
 const ignore = ["gpt-5-nano"];
 
-function parseOpencodeModelsOutput(output: string): OpencodeModel[] {
+function parseOpencodeModelsOutput(output: string, provider: string): OpencodeModel[] {
     let models: OpencodeModel[] = [];
     const lines = output.split("\n");
     let currentModelId: string | null = null;
     let jsonBuffer: string[] = [];
+    const providerPrefix = `${provider}/`;
 
     for (const line of lines) {
         const trimmed = line.trim();
 
-        // Check if line starts with "opencode/" (model ID header)
-        if (trimmed.startsWith("opencode/")) {
+        // Check if line starts with provider prefix (model ID header)
+        if (trimmed.startsWith(providerPrefix)) {
             // Save previous model if exists
             if (currentModelId && jsonBuffer.length > 0) {
                 try {
@@ -150,10 +151,9 @@ export function getCachedFreeModels(): FreeModel[] {
     return cachedFreeModels ?? FALLBACK_MODELS;
 }
 
-// internal function to actually fetch from CLI
-async function fetchFreeOpencodeModels(): Promise<FreeModel[]> {
+async function fetchFreeModelsForProvider(provider: string): Promise<FreeModel[]> {
     const proc = Bun.spawn({
-        cmd: ["opencode", "models", "opencode", "--verbose"],
+        cmd: ["opencode", "models", provider, "--verbose"],
         stdout: "pipe",
         stderr: "pipe",
     });
@@ -163,20 +163,44 @@ async function fetchFreeOpencodeModels(): Promise<FreeModel[]> {
 
     if (exitCode !== 0) {
         const error = await new Response(proc.stderr).text();
-        console.error("opencode models command failed:", error);
-        throw new Error("Failed to fetch opencode models");
+        console.error(`opencode models command failed for ${provider}:`, error);
+        throw new Error(`Failed to fetch ${provider} models`);
     }
 
-    const allModels = parseOpencodeModelsOutput(output);
+    const allModels = parseOpencodeModelsOutput(output, provider);
 
     // filter to free models only (cost.input === 0 && cost.output === 0)
     const freeModels = allModels.filter((model) => model.cost.input === 0 && model.cost.output === 0);
 
+    const banList = ["qwen3-embedding-4b"];
     // map to the expected format { name, id }
-    return freeModels.map((model) => ({
-        name: model.name,
-        id: model.id,
-    }));
+    return freeModels
+        .filter((m) => !banList.includes(m.id))
+        .map((model) => ({
+            name: model.name,
+            id: `${provider}/${model.id}`,
+        }));
+}
+
+// internal function to actually fetch from CLI
+async function fetchFreeOpencodeModels(): Promise<FreeModel[]> {
+    const results = await Promise.allSettled([
+        fetchFreeModelsForProvider("opencode"),
+        fetchFreeModelsForProvider("privatemode-ai"),
+    ]);
+
+    const models: FreeModel[] = [];
+    for (const result of results) {
+        if (result.status === "fulfilled") {
+            models.push(...result.value);
+        }
+    }
+
+    if (models.length === 0) {
+        throw new Error("Failed to fetch models from all providers");
+    }
+
+    return models;
 }
 
 export const callAI = async (prompt: string, model: string): Promise<AIResponse> => {
