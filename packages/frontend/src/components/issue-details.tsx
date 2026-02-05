@@ -389,7 +389,7 @@ export function IssueDetails({
         </div>
       )}
 
-      <div className="flex flex-col w-full p-2 py-2 gap-2 max-h-[75vh] overflow-y-scroll">
+      <div className="flex flex-col w-full p-2 py-2 gap-2 max-h-[75vh] overflow-y-auto">
         <div className="flex gap-2">
           {organisation?.Organisation.features.issueTypes && Object.keys(issueTypes).length > 0 && (
             <TypeSelect
