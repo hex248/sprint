@@ -42,11 +42,30 @@ const addDays = (date: Date, days: number) => {
   return next;
 };
 
-const getDefaultDates = () => {
-  const today = new Date();
+const getDefaultDates = (sprints: SprintRecord[]) => {
+  if (sprints.length === 0) {
+    const today = new Date();
+    return {
+      start: getStartOfDay(today),
+      end: getEndOfDay(addDays(today, 6)),
+    };
+  }
+
+  const latest = sprints.reduce((current, sprint) => {
+    const currentEnd = new Date(current.endDate).getTime();
+    const sprintEnd = new Date(sprint.endDate).getTime();
+    if (sprintEnd !== currentEnd) {
+      return sprintEnd > currentEnd ? sprint : current;
+    }
+    const currentStart = new Date(current.startDate).getTime();
+    const sprintStart = new Date(sprint.startDate).getTime();
+    return sprintStart > currentStart ? sprint : current;
+  }, sprints[0]);
+
+  const start = getStartOfDay(addDays(new Date(latest.endDate), 1));
   return {
-    start: getStartOfDay(today),
-    end: getEndOfDay(addDays(today, 14)),
+    start,
+    end: getEndOfDay(addDays(start, 6)),
   };
 };
 
@@ -78,11 +97,11 @@ export function SprintForm({
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? (controlledOnOpenChange ?? (() => {})) : setInternalOpen;
 
-  const { start, end } = getDefaultDates();
+  const defaultDates = useMemo(() => getDefaultDates(sprints), [sprints]);
   const [name, setName] = useState("");
   const [colour, setColour] = useState(DEFAULT_SPRINT_COLOUR);
-  const [startDate, setStartDate] = useState(start);
-  const [endDate, setEndDate] = useState(end);
+  const [startDate, setStartDate] = useState(defaultDates.start);
+  const [endDate, setEndDate] = useState(defaultDates.end);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +126,7 @@ export function SprintForm({
   }, [endDate, startDate, submitAttempted]);
 
   const reset = () => {
-    const defaults = getDefaultDates();
+    const defaults = getDefaultDates(sprints);
     setName("");
     setColour(DEFAULT_SPRINT_COLOUR);
     setStartDate(defaults.start);
