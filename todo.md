@@ -3,7 +3,14 @@
 - trial system (IN HOUSE)
 
 - BUGS:
+- existing sprints are a little unclear in calendar - make it "bright coloured bars"
 - FEATURES:
+- ALLOW PARALLEL SPRINTS (ENABLE/DISABLE IN ORG SETTINGS)?
+- org should be able to disable ai chat
+- users should be able to disable ai chat
+- closing sprints
+	- sprint is closed by owner/admin
+	- all issues in sprint are moved to new sprint
 
 # LOW PRIORITY
 

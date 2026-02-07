@@ -29,7 +29,7 @@ async function resetDatabase() {
 
         // run migrations to recreate tables
         console.log("running migrations...");
-        execSync("npx drizzle-kit migrate", {
+        execSync("bunx drizzle-kit migrate", {
             stdio: "inherit",
             cwd: `${import.meta.dir}/..`,
         });

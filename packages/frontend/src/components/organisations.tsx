@@ -1013,7 +1013,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                     )}
                   </div>
                   <div className="flex flex-col gap-2 w-full">
-                    <div className="flex flex-col gap-2 max-h-56 overflow-y-scroll">
+                    <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
                       {membersWithTimeTracking.map((member) => (
                         <div
                           key={member.OrganisationMember.id}
@@ -1167,7 +1167,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                       </div>
                       <div className="flex flex-col gap-2 min-w-0 flex-1">
                         {selectedProject ? (
-                          <div className="flex flex-col gap-2 max-h-56 overflow-y-scroll">
+                          <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
                             {sprints.map((sprintItem) => {
                               const dateRange = getSprintDateRange(sprintItem);
                               const isCurrent = isCurrentSprint(sprintItem);

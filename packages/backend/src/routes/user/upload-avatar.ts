@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
+import type { BunRequest } from "bun";
 import sharp from "sharp";
-import type { AuthedRequest } from "../../auth/middleware";
 // import { getSubscriptionByUserId } from "../../db/queries";
 import { s3Client, s3Endpoint, s3PublicUrl } from "../../s3";
 
@@ -17,7 +17,7 @@ async function isAnimatedGIF(buffer: Buffer): Promise<boolean> {
     }
 }
 
-export default async function uploadAvatar(req: AuthedRequest) {
+export default async function uploadAvatar(req: BunRequest) {
     if (req.method !== "POST") {
         return new Response("method not allowed", { status: 405 });
     }

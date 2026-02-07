@@ -10,8 +10,8 @@
         "start": "bun src/index.ts --PORT=3000",
         "db:start": "docker compose up -d",
         "db:stop": "docker compose down",
-        "db:migrate": "npx drizzle-kit generate && npx drizzle-kit migrate",
-        "db:push": "npx drizzle-kit push",
+        "db:migrate": "bunx drizzle-kit generate && npx drizzle-kit migrate",
+        "db:push": "bunx drizzle-kit push",
         "db:reset": "bun scripts/db-reset.ts",
         "db:seed": "bun scripts/db-seed.ts"
     },
