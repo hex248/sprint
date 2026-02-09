@@ -28,17 +28,17 @@ export default async function organisationUpdate(req: AuthedRequest) {
     }
 
     // block free users from updating features
-    if (features !== undefined) {
-        const subscription = await getSubscriptionByUserId(req.userId);
-        const isPro = subscription?.status === "active";
-        if (!isPro) {
-            return errorResponse(
-                "Feature toggling is only available on Pro. Upgrade to customize features.",
-                "FEATURE_TOGGLE_PRO_ONLY",
-                403,
-            );
-        }
-    }
+    // if (features !== undefined) {
+    //     const subscription = await getSubscriptionByUserId(req.userId);
+    //     const isPro = subscription?.status === "active";
+    //     if (!isPro) {
+    //         return errorResponse(
+    //             "Feature toggling is only available on Pro. Upgrade to customize features.",
+    //             "FEATURE_TOGGLE_PRO_ONLY",
+    //             403,
+    //         );
+    //     }
+    // }
 
     if (!name && !description && !slug && !statuses && !features && !issueTypes && iconURL === undefined) {
         return errorResponse(
