@@ -1,6 +1,7 @@
 import { type ChangeEvent, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export function Field({
   label,
@@ -16,10 +17,11 @@ export function Field({
   maxLength,
   showCounter = true,
   disabled = false,
+  textarea = false,
 }: {
   label: string;
   value?: string;
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   validate?: (value: string) => string | undefined;
   hidden?: boolean;
   submitAttempted?: boolean;
@@ -30,6 +32,7 @@ export function Field({
   maxLength?: number;
   showCounter?: boolean;
   disabled?: boolean;
+  textarea?: boolean;
 }) {
   const [internalTouched, setInternalTouched] = useState(false);
   const isTouched = submitAttempted || internalTouched;
@@ -48,24 +51,43 @@ export function Field({
           {label}
         </Label>
       </div>
-      <Input
-        id={label}
-        placeholder={placeholder ?? label}
-        value={value}
-        onChange={(e) => {
-          onChange(e);
-          setInternalTouched(true);
-        }}
-        onBlur={() => setInternalTouched(true)}
-        name={label}
-        aria-invalid={error !== undefined || invalidMessage !== ""}
-        type={hidden ? "password" : "text"}
-        tabIndex={tabIndex}
-        spellCheck={spellcheck}
-        maxLength={maxLength}
-        showCounter={showCounter}
-        disabled={disabled}
-      />
+      {textarea ? (
+        <Textarea
+          id={label}
+          placeholder={placeholder ?? label}
+          value={value}
+          onChange={(e) => {
+            onChange(e);
+            setInternalTouched(true);
+          }}
+          onBlur={() => setInternalTouched(true)}
+          name={label}
+          aria-invalid={error !== undefined || invalidMessage !== ""}
+          tabIndex={tabIndex}
+          spellCheck={spellcheck}
+          maxLength={maxLength}
+          disabled={disabled}
+        />
+      ) : (
+        <Input
+          id={label}
+          placeholder={placeholder ?? label}
+          value={value}
+          onChange={(e) => {
+            onChange(e);
+            setInternalTouched(true);
+          }}
+          onBlur={() => setInternalTouched(true)}
+          name={label}
+          aria-invalid={error !== undefined || invalidMessage !== ""}
+          type={hidden ? "password" : "text"}
+          tabIndex={tabIndex}
+          spellCheck={spellcheck}
+          maxLength={maxLength}
+          showCounter={showCounter}
+          disabled={disabled}
+        />
+      )}
       <div className="flex items-end justify-end w-full text-xs mb-0 -mt-1">
         {error || invalidMessage !== "" ? (
           <Label className="text-destructive text-sm">{error ?? invalidMessage}</Label>

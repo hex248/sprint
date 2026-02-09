@@ -269,6 +269,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
               submitAttempted={submitAttempted}
               placeholder="Optional details"
               maxLength={ISSUE_DESCRIPTION_MAX_LENGTH}
+              textarea
             />
 
             {sprints.length > 0 && (
