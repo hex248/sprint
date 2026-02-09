@@ -8,6 +8,7 @@ import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
 import { defaultIssuesTableFilters, IssuesTable, type IssuesTableFilters } from "@/components/issues-table";
 import { useSelection } from "@/components/selection-provider";
+import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallSprintDisplay from "@/components/small-sprint-display";
 import SmallUserDisplay from "@/components/small-user-display";
 import StatusTag from "@/components/status-tag";
@@ -157,6 +158,7 @@ const filtersEqual = (left: IssuesTableFilters, right: IssuesTableFilters) => {
 };
 
 export default function Issues() {
+  const { user } = useAuthenticatedSession();
   const {
     selectedOrganisationId,
     selectedProjectId,
@@ -701,7 +703,10 @@ export default function Issues() {
         />
       )}
 
-      <Chat setHighlighted={setHighlighted} />
+      {(user.preferences?.aiFeatures ?? true) &&
+        (selectedOrganisation?.Organisation.features?.aiFeatures ?? true) && (
+          <Chat setHighlighted={setHighlighted} />
+        )}
     </main>
   );
 }

@@ -48,10 +48,13 @@ export const DEFAULT_FEATURES: Record<string, boolean> = {
     issueComments: true,
 
     sprints: true,
+
+    aiFeatures: true,
 };
 
 export const DEFAULT_USER_PREFERENCES: Record<string, boolean> = {
     assignByDefault: false,
+    aiFeatures: true,
 };
 
 export const iconStyles = ["pixel", "lucide", "phosphor"] as const;
