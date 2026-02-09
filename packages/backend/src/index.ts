@@ -104,9 +104,13 @@ const main = async () => {
             "/sprints/by-project": withGlobalAuthed(withAuth(routes.sprintsByProject)),
 
             "/timer/toggle": withGlobalAuthed(withAuth(withCSRF(routes.timerToggle))),
+            "/timer/toggle-global": withGlobalAuthed(withAuth(withCSRF(routes.timerToggleGlobal))),
             "/timer/end": withGlobalAuthed(withAuth(withCSRF(routes.timerEnd))),
+            "/timer/end-global": withGlobalAuthed(withAuth(withCSRF(routes.timerEndGlobal))),
             "/timer/get": withGlobalAuthed(withAuth(withCSRF(routes.timerGet))),
+            "/timer/get-global": withGlobalAuthed(withAuth(routes.timerGetGlobal)),
             "/timer/get-inactive": withGlobalAuthed(withAuth(withCSRF(routes.timerGetInactive))),
+            "/timer/get-inactive-global": withGlobalAuthed(withAuth(routes.timerGetInactiveGlobal)),
             "/timers": withGlobalAuthed(withAuth(withCSRF(routes.timers))),
 
             // subscription routes - webhook has no auth

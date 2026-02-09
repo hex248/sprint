@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { GlobalTimerControls } from "@/components/global-timer-controls";
 import { IssueModal } from "@/components/issue-modal";
 import { useSessionSafe } from "@/components/session-provider";
 import { TimerControls } from "@/components/timer-controls";
@@ -19,6 +20,13 @@ export function ActiveTimersOverlay() {
 
   const hasRunning = useMemo(() => activeTimers.some((timer) => timer.isRunning), [activeTimers]);
 
+  // separate global timer from issue timers
+  const globalTimer = useMemo(() => activeTimers.find((t) => t.issueId === null), [activeTimers]);
+  const issueTimers = useMemo(
+    () => activeTimers.filter((t) => t.issueId !== null) as IssueTimerData[],
+    [activeTimers],
+  );
+
   useEffect(() => {
     if (!hasRunning) return;
     const interval = window.setInterval(() => {
@@ -29,29 +37,32 @@ export function ActiveTimersOverlay() {
 
   void tick;
 
-  if (!session?.user || activeTimers.length === 0) return null;
+  if (!session?.user) return null;
 
   return (
     <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-[calc(1rem+env(safe-area-inset-left))] z-50 flex flex-col gap-2">
-      {activeTimers.map((timer) => (
+      {issueTimers.map((timer) => (
         <ActiveTimerItem key={timer.id} timer={timer} />
       ))}
+      <GlobalTimerControls
+        timestamps={globalTimer?.timestamps ?? null}
+        isRunning={globalTimer?.isRunning ?? false}
+        className="border bg-background/95 pl-2 pr-1 py-1"
+      />
     </div>
   );
 }
 
-function ActiveTimerItem({
-  timer,
-}: {
-  timer: {
-    id: number;
-    issueId: number;
-    issueNumber: number;
-    projectKey: string;
-    timestamps: string[];
-    isRunning: boolean;
-  };
-}) {
+type IssueTimerData = {
+  id: number;
+  issueId: number;
+  issueNumber: number;
+  projectKey: string;
+  timestamps: string[];
+  isRunning: boolean;
+};
+
+function ActiveTimerItem({ timer }: { timer: IssueTimerData }) {
   const { data: issueData } = useIssueById(timer.issueId);
   const { data: inactiveTimers = [] } = useInactiveTimers(timer.issueId, { refetchInterval: 10000 });
   const [open, setOpen] = useState(false);

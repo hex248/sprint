@@ -399,6 +399,16 @@ export const TimerGetQuerySchema = z.object({
 
 export type TimerGetQuery = z.infer<typeof TimerGetQuerySchema>;
 
+// global timer schemas (userId comes from auth session, not request body)
+
+export const GlobalTimerToggleRequestSchema = z.object({});
+
+export type GlobalTimerToggleRequest = z.infer<typeof GlobalTimerToggleRequestSchema>;
+
+export const GlobalTimerEndRequestSchema = z.object({});
+
+export type GlobalTimerEndRequest = z.infer<typeof GlobalTimerEndRequestSchema>;
+
 // user schemas
 
 export const UserUpdateRequestSchema = z.object({
@@ -565,9 +575,9 @@ export type TimerStateType = z.infer<typeof TimerStateSchema>;
 
 export const TimerListItemSchema = z.object({
     id: z.number(),
-    issueId: z.number(),
-    issueNumber: z.number(),
-    projectKey: z.string(),
+    issueId: z.number().nullable(),
+    issueNumber: z.number().nullable(),
+    projectKey: z.string().nullable(),
     workTimeMs: z.number(),
     breakTimeMs: z.number(),
     isRunning: z.boolean(),

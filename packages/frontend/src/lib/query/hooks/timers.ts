@@ -30,6 +30,17 @@ export function useTimerState(issueId?: number | null, options?: { refetchInterv
   });
 }
 
+export function useGlobalTimerState(options?: { refetchInterval?: number; enabled?: boolean }) {
+  return useQuery<TimerListItem[], Error, TimerState>({
+    queryKey: queryKeys.timers.list(),
+    queryFn: activeTimersQueryFn,
+    enabled: options?.enabled ?? true,
+    refetchInterval: options?.refetchInterval,
+    refetchIntervalInBackground: false,
+    select: (timers) => timers.find((timer) => timer.issueId === null) ?? null,
+  });
+}
+
 export function useInactiveTimers(issueId?: number | null, options?: { refetchInterval?: number }) {
   return useQuery<TimerState[]>({
     queryKey: queryKeys.timers.inactive(issueId ?? 0),
@@ -41,6 +52,20 @@ export function useInactiveTimers(issueId?: number | null, options?: { refetchIn
       return (data ?? []) as TimerState[];
     },
     enabled: Boolean(issueId),
+    refetchInterval: options?.refetchInterval,
+    refetchIntervalInBackground: false,
+  });
+}
+
+export function useInactiveGlobalTimers(options?: { refetchInterval?: number; enabled?: boolean }) {
+  return useQuery<TimerState[]>({
+    queryKey: queryKeys.timers.inactiveGlobal(),
+    queryFn: async () => {
+      const { data, error } = await apiClient.timerGetInactiveGlobal({});
+      if (error) throw new Error(error);
+      return (data ?? []) as TimerState[];
+    },
+    enabled: options?.enabled ?? true,
     refetchInterval: options?.refetchInterval,
     refetchIntervalInBackground: false,
   });
@@ -64,6 +89,23 @@ export function useToggleTimer() {
   });
 }
 
+export function useToggleGlobalTimer() {
+  const queryClient = useQueryClient();
+
+  return useMutation<TimerState, Error, void>({
+    mutationKey: ["timers", "toggle-global"],
+    mutationFn: async () => {
+      const { data, error } = await apiClient.timerToggleGlobal({ body: {} });
+      if (error) throw new Error(error);
+      if (!data) throw new Error("failed to toggle global timer");
+      return data as TimerState;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.timers.list() });
+    },
+  });
+}
+
 export function useEndTimer() {
   const queryClient = useQueryClient();
 
@@ -77,6 +119,23 @@ export function useEndTimer() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.timers.inactive(variables.issueId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.timers.list() });
+    },
+  });
+}
+
+export function useEndGlobalTimer() {
+  const queryClient = useQueryClient();
+
+  return useMutation<TimerState, Error, void>({
+    mutationKey: ["timers", "end-global"],
+    mutationFn: async () => {
+      const { data, error } = await apiClient.timerEndGlobal({ body: {} });
+      if (error) throw new Error(error);
+      if (!data) throw new Error("failed to end global timer");
+      return data as TimerState;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.timers.list() });
     },
   });

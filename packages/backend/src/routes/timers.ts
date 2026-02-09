@@ -1,6 +1,6 @@
 import { calculateBreakTimeMs, calculateWorkTimeMs, isTimerRunning } from "@sprint/shared";
 import type { AuthedRequest } from "../auth/middleware";
-import { getActiveTimedSessionsWithIssue, getUserTimedSessions } from "../db/queries";
+import { getActiveTimedSessionsWithIssueIncludingGlobal, getUserTimedSessions } from "../db/queries";
 
 // GET /timers?limit=50&offset=0
 export default async function timers(req: AuthedRequest) {
@@ -14,7 +14,7 @@ export default async function timers(req: AuthedRequest) {
     const activeOnly = activeOnlyParam === "true" || activeOnlyParam === "1";
 
     if (activeOnly) {
-        const sessions = await getActiveTimedSessionsWithIssue(req.userId);
+        const sessions = await getActiveTimedSessionsWithIssueIncludingGlobal(req.userId);
         const enriched = sessions.map((session) => ({
             id: session.id,
             issueId: session.issueId,

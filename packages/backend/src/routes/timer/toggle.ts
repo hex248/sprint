@@ -8,6 +8,7 @@ import type { AuthedRequest } from "../../auth/middleware";
 import {
     appendTimestamp,
     createTimedSession,
+    endActiveGlobalTimer,
     getActiveTimedSession,
     getIssueAssigneeCount,
     getIssueByID,
@@ -63,6 +64,9 @@ export default async function timerToggle(req: AuthedRequest) {
     const activeSession = await getActiveTimedSession(req.userId, issueId);
 
     if (!activeSession) {
+        // end any active global timer before starting issue timer
+        await endActiveGlobalTimer(req.userId);
+
         const newSession = await createTimedSession(req.userId, issueId);
         return Response.json({
             ...newSession,

@@ -49,9 +49,13 @@ import subscriptionCreatePortalSession from "./subscription/create-portal-sessio
 import subscriptionGet from "./subscription/get";
 import subscriptionWebhook from "./subscription/webhook";
 import timerEnd from "./timer/end";
+import timerEndGlobal from "./timer/end-global";
 import timerGet from "./timer/get";
+import timerGetGlobal from "./timer/get-global";
 import timerGetInactive from "./timer/get-inactive";
+import timerGetInactiveGlobal from "./timer/get-inactive-global";
 import timerToggle from "./timer/toggle";
+import timerToggleGlobal from "./timer/toggle-global";
 import timers from "./timers";
 import userByUsername from "./user/by-username";
 import userUpdate from "./user/update";
@@ -118,9 +122,13 @@ export const routes = {
     sprintsByProject,
 
     timerToggle,
+    timerToggleGlobal,
     timerGet,
+    timerGetGlobal,
     timerGetInactive,
+    timerGetInactiveGlobal,
     timerEnd,
+    timerEndGlobal,
     timers,
 
     subscriptionCreateCheckoutSession,

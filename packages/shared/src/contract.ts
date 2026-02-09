@@ -10,6 +10,8 @@ import {
     CreateCheckoutSessionResponseSchema,
     CreatePortalSessionResponseSchema,
     GetSubscriptionResponseSchema,
+    GlobalTimerEndRequestSchema,
+    GlobalTimerToggleRequestSchema,
     IssueByIdQuerySchema,
     IssueCommentCreateRequestSchema,
     IssueCommentDeleteRequestSchema,
@@ -617,6 +619,41 @@ export const apiContract = c.router({
         query: timersQuerySchema,
         responses: {
             200: z.array(timerListItemResponseSchema),
+        },
+    },
+    timerToggleGlobal: {
+        method: "POST",
+        path: "/timer/toggle-global",
+        body: GlobalTimerToggleRequestSchema,
+        responses: {
+            200: TimerStateSchema,
+            400: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    timerEndGlobal: {
+        method: "POST",
+        path: "/timer/end-global",
+        body: GlobalTimerEndRequestSchema,
+        responses: {
+            200: TimerStateSchema,
+            400: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    timerGetGlobal: {
+        method: "GET",
+        path: "/timer/get-global",
+        responses: {
+            200: TimerStateSchema,
+        },
+    },
+    timerGetInactiveGlobal: {
+        method: "GET",
+        path: "/timer/get-inactive-global",
+        responses: {
+            200: timerInactiveResponseSchema,
         },
     },
 
