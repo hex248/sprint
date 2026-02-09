@@ -99,6 +99,7 @@ const main = async () => {
             "/projects/with-creators": withGlobalAuthed(withAuth(routes.projectsWithCreators)),
 
             "/sprint/create": withGlobalAuthed(withAuth(withCSRF(routes.sprintCreate))),
+            "/sprint/close": withGlobalAuthed(withAuth(withCSRF(routes.sprintClose))),
             "/sprint/update": withGlobalAuthed(withAuth(withCSRF(routes.sprintUpdate))),
             "/sprint/delete": withGlobalAuthed(withAuth(withCSRF(routes.sprintDelete))),
             "/sprints/by-project": withGlobalAuthed(withAuth(routes.sprintsByProject)),

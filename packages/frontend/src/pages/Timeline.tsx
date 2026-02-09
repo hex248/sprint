@@ -93,13 +93,15 @@ export default function Timeline() {
 
   const sprints = useMemo(
     () =>
-      [...sprintsData].sort((a, b) => {
-        const aStart = a.startDate ? new Date(a.startDate).getTime() : null;
-        const bStart = b.startDate ? new Date(b.startDate).getTime() : null;
-        if (aStart != null && bStart != null) return aStart - bStart;
-        if (aStart == null && bStart == null) return a.name.localeCompare(b.name);
-        return aStart == null ? 1 : -1;
-      }),
+      [...sprintsData]
+        .filter((sprint) => sprint.open)
+        .sort((a, b) => {
+          const aStart = a.startDate ? new Date(a.startDate).getTime() : null;
+          const bStart = b.startDate ? new Date(b.startDate).getTime() : null;
+          if (aStart != null && bStart != null) return aStart - bStart;
+          if (aStart == null && bStart == null) return a.name.localeCompare(b.name);
+          return aStart == null ? 1 : -1;
+        }),
     [sprintsData],
   );
 

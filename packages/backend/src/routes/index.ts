@@ -39,6 +39,7 @@ import projectDelete from "./project/delete";
 import projectUpdate from "./project/update";
 import projectWithCreator from "./project/with-creator";
 import projectsWithCreators from "./project/with-creators";
+import sprintClose from "./sprint/close";
 import sprintCreate from "./sprint/create";
 import sprintDelete from "./sprint/delete";
 import sprintUpdate from "./sprint/update";
@@ -117,6 +118,7 @@ export const routes = {
     projectsWithCreators,
 
     sprintCreate,
+    sprintClose,
     sprintUpdate,
     sprintDelete,
     sprintsByProject,

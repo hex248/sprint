@@ -128,6 +128,8 @@ export const Sprint = pgTable("Sprint", {
     color: varchar({ length: 7 }).notNull().default(DEFAULT_SPRINT_COLOUR),
     startDate: timestamp({ withTimezone: false }).notNull(),
     endDate: timestamp({ withTimezone: false }).notNull(),
+    open: boolean().notNull().default(true),
+    handOffs: integer().array().notNull().default([]),
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
 });
 

@@ -1,4 +1,11 @@
-import type { SprintCreateRequest, SprintRecord, SprintUpdateRequest, SuccessResponse } from "@sprint/shared";
+import type {
+  SprintCloseRequest,
+  SprintCloseResponse,
+  SprintCreateRequest,
+  SprintRecord,
+  SprintUpdateRequest,
+  SuccessResponse,
+} from "@sprint/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query/keys";
 import { apiClient } from "@/lib/server";
@@ -64,6 +71,24 @@ export function useDeleteSprint() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all });
+    },
+  });
+}
+
+export function useCloseSprint() {
+  const queryClient = useQueryClient();
+
+  return useMutation<SprintCloseResponse, Error, SprintCloseRequest & { projectId: number }>({
+    mutationKey: ["sprints", "close"],
+    mutationFn: async ({ projectId: _projectId, ...input }) => {
+      const { data, error } = await apiClient.sprintClose({ body: input });
+      if (error) throw new Error(error);
+      if (!data) throw new Error("failed to close sprint");
+      return data as SprintCloseResponse;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sprints.byProject(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.byProject(variables.projectId) });
     },
   });
 }

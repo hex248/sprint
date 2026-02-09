@@ -373,6 +373,19 @@ export const SprintDeleteRequestSchema = z.object({
 
 export type SprintDeleteRequest = z.infer<typeof SprintDeleteRequestSchema>;
 
+export const SprintCloseRequestSchema = z.object({
+    sprintId: z.number().int().positive("sprintId must be a positive integer"),
+    statusesToHandOff: z.array(z.string().min(1).max(ISSUE_STATUS_MAX_LENGTH)),
+    handOffSprintId: z
+        .number()
+        .int()
+        .positive("handOffSprintId must be a positive integer")
+        .nullable()
+        .optional(),
+});
+
+export type SprintCloseRequest = z.infer<typeof SprintCloseRequestSchema>;
+
 export const SprintsByProjectQuerySchema = z.object({
     projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
 });
@@ -555,10 +568,21 @@ export const SprintRecordSchema = z.object({
     color: z.string(),
     startDate: z.string(),
     endDate: z.string(),
+    open: z.boolean(),
+    handOffs: z.array(z.number()),
     createdAt: z.string().nullable().optional(),
 });
 
 export type SprintResponse = z.infer<typeof SprintRecordSchema>;
+
+export const SprintCloseResponseSchema = z.object({
+    sprint: SprintRecordSchema,
+    movedIssueCount: z.number(),
+    matchedIssueCount: z.number(),
+    handOffSprintId: z.number().nullable(),
+});
+
+export type SprintCloseResponse = z.infer<typeof SprintCloseResponseSchema>;
 
 export const TimerStateSchema = z
     .object({

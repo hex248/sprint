@@ -30,8 +30,11 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Icon, { type IconName, iconNames } from "@/components/ui/icon";
@@ -41,10 +44,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  useCloseSprint,
   useDeleteOrganisation,
   useDeleteProject,
   useDeleteSprint,
-  // useIssues,
+  useIssues,
   useOrganisationMembers,
   useOrganisationMemberTimeTracking,
   useOrganisations,
@@ -75,14 +79,15 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   const { data: organisationsData = [] } = useOrganisations();
   const { data: projectsData = [] } = useProjects(selectedOrganisationId);
   const { data: sprints = [] } = useSprints(selectedProjectId);
+  const { data: issues = [] } = useIssues(selectedProjectId);
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
-  // const { data: issues = [] } = useIssues(selectedProjectId);
   const updateOrganisation = useUpdateOrganisation();
   const updateMemberRole = useUpdateOrganisationMemberRole();
   const removeMember = useRemoveOrganisationMember();
   const deleteOrganisation = useDeleteOrganisation();
   const deleteProject = useDeleteProject();
   const deleteSprint = useDeleteSprint();
+  const closeSprint = useCloseSprint();
   const replaceIssueStatus = useReplaceIssueStatus();
   const replaceIssueType = useReplaceIssueType();
 
@@ -317,6 +322,10 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [editSprintOpen, setEditSprintOpen] = useState(false);
   const [editingSprint, setEditingSprint] = useState<SprintRecord | null>(null);
+  const [closeSprintOpen, setCloseSprintOpen] = useState(false);
+  const [closingSprint, setClosingSprint] = useState<SprintRecord | null>(null);
+  const [handOffStatuses, setHandOffStatuses] = useState<string[]>([]);
+  const [handOffSprintId, setHandOffSprintId] = useState<string>("");
 
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -356,6 +365,77 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
     const start = new Date(sprint.startDate);
     const end = new Date(sprint.endDate);
     return start <= today && today <= end;
+  };
+
+  const defaultHandOffStatusSet = useMemo(
+    () => new Set(["TODO", "TO DO", "IN PROGRESS", "DOING", "BLOCKED"]),
+    [],
+  );
+
+  const statusOptions = useMemo(
+    () => Object.entries(selectedOrganisation?.Organisation.statuses ?? {}),
+    [selectedOrganisation],
+  );
+
+  const openHandOffSprints = useMemo(
+    () => sprints.filter((sprint) => sprint.open && sprint.id !== closingSprint?.id),
+    [sprints, closingSprint],
+  );
+
+  const matchingHandOffIssueCount = useMemo(() => {
+    if (!closingSprint || handOffStatuses.length === 0) return 0;
+    return issues.filter(
+      (issue) => issue.Issue.sprintId === closingSprint.id && handOffStatuses.includes(issue.Issue.status),
+    ).length;
+  }, [issues, closingSprint, handOffStatuses]);
+
+  const canCloseWithoutHandOff = matchingHandOffIssueCount === 0;
+
+  const openCloseSprintDialog = (sprint: SprintRecord) => {
+    const defaults = Object.keys(selectedOrganisation?.Organisation.statuses ?? {}).filter((status) =>
+      defaultHandOffStatusSet.has(status.trim().toUpperCase()),
+    );
+    setClosingSprint(sprint);
+    setHandOffStatuses(defaults);
+    setHandOffSprintId("");
+    setCloseSprintOpen(true);
+  };
+
+  const closeCloseSprintDialog = () => {
+    setCloseSprintOpen(false);
+    setClosingSprint(null);
+    setHandOffStatuses([]);
+    setHandOffSprintId("");
+  };
+
+  const handleCloseSprintSubmit = async () => {
+    if (!selectedProject || !closingSprint) return;
+
+    const parsedHandOffSprintId = handOffSprintId ? Number(handOffSprintId) : null;
+    if (!canCloseWithoutHandOff && !parsedHandOffSprintId) {
+      toast.error("Select an open sprint to hand over matching issues.");
+      return;
+    }
+
+    try {
+      const result = await closeSprint.mutateAsync({
+        projectId: selectedProject.Project.id,
+        sprintId: closingSprint.id,
+        statusesToHandOff: handOffStatuses,
+        handOffSprintId: parsedHandOffSprintId,
+      });
+
+      closeCloseSprintDialog();
+      toast.success(
+        result.movedIssueCount > 0
+          ? `Closed "${closingSprint.name}" and moved ${result.movedIssueCount} issue${result.movedIssueCount === 1 ? "" : "s"}.`
+          : `Closed "${closingSprint.name}".`,
+      );
+      await invalidateSprints();
+    } catch (error) {
+      console.error(error);
+      toast.error(`Failed to close sprint: ${String(error)}`);
+    }
   };
 
   const handleRoleChange = (memberUserId: number, memberName: string, currentRole: string) => {
@@ -1209,6 +1289,15 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                                             <Icon icon="edit" className="size-4 text-muted-foreground" />
                                             Edit
                                           </DropdownMenuItem>
+                                          {sprintItem.open && (
+                                            <DropdownMenuItem
+                                              onSelect={() => openCloseSprintDialog(sprintItem)}
+                                              className="hover:bg-primary-foreground"
+                                            >
+                                              <Icon icon="check" className="size-4 text-muted-foreground" />
+                                              Close
+                                            </DropdownMenuItem>
+                                          )}
                                           <DropdownMenuItem
                                             variant="destructive"
                                             onSelect={() => {
@@ -1287,6 +1376,108 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                         await invalidateSprints();
                       }}
                     />
+                    <Dialog
+                      open={closeSprintOpen}
+                      onOpenChange={(nextOpen) => {
+                        if (!nextOpen) {
+                          closeCloseSprintDialog();
+                          return;
+                        }
+                        setCloseSprintOpen(nextOpen);
+                      }}
+                    >
+                      <DialogContent className="w-md max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Close sprint</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="flex flex-col gap-3">
+                          <p className="text-sm text-muted-foreground">
+                            Close <span className="text-foreground">{closingSprint?.name}</span> and hand over
+                            any matching issues.
+                          </p>
+
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-sm">Statuses to hand over</span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="w-full justify-between" size="default">
+                                {handOffStatuses.length > 0
+                                  ? `${handOffStatuses.length} selected`
+                                  : "Select statuses"}
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-56">
+                                <DropdownMenuLabel>Statuses</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {statusOptions.length === 0 && (
+                                  <DropdownMenuItem disabled>No statuses</DropdownMenuItem>
+                                )}
+                                {statusOptions.map(([status, colour]) => (
+                                  <DropdownMenuCheckboxItem
+                                    key={status}
+                                    checked={handOffStatuses.includes(status)}
+                                    onCheckedChange={(checked) => {
+                                      setHandOffStatuses((current) =>
+                                        checked
+                                          ? Array.from(new Set([...current, status]))
+                                          : current.filter((item) => item !== status),
+                                      );
+                                    }}
+                                  >
+                                    <StatusTag status={status} colour={colour} />
+                                  </DropdownMenuCheckboxItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-sm">Handover sprint</span>
+                            <Select value={handOffSprintId} onValueChange={setHandOffSprintId}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select open sprint" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {openHandOffSprints.length === 0 ? (
+                                  <SelectItem value="none" disabled>
+                                    No open sprints available
+                                  </SelectItem>
+                                ) : (
+                                  openHandOffSprints.map((sprint) => (
+                                    <SelectItem key={sprint.id} value={String(sprint.id)}>
+                                      {sprint.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <p className="text-xs text-muted-foreground">
+                            {matchingHandOffIssueCount > 0
+                              ? `${matchingHandOffIssueCount} issue${matchingHandOffIssueCount === 1 ? "" : "s"} match the selected statuses. Select an open sprint to hand over.`
+                              : "No issues match the selected statuses. You can close without selecting a handover sprint."}
+                          </p>
+
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={closeCloseSprintDialog}
+                              disabled={closeSprint.isPending}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={() => void handleCloseSprintSubmit()}
+                              disabled={
+                                closeSprint.isPending || (!canCloseWithoutHandOff && !handOffSprintId)
+                              }
+                            >
+                              {closeSprint.isPending ? "Closing..." : "Close sprint"}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </>
                 )}
               </TabsContent>
