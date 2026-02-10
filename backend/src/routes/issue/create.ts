@@ -15,16 +15,7 @@ export default async function issueCreate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, IssueCreateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const {
-        projectId,
-        title,
-        description = "",
-        status,
-        assigneeIds,
-        sprintId,
-        type,
-        attachmentIds = [],
-    } = parsed.data;
+    const { projectId, attachmentIds = [] } = parsed.data;
 
     const project = await getProjectByID(projectId);
     if (!project) {
@@ -68,17 +59,14 @@ export default async function issueCreate(req: AuthedRequest) {
         }
     }
 
-    const issue = await createIssue(
-        project.id,
-        title,
-        description,
-        req.userId,
-        status,
-        type,
-        sprintId ?? undefined,
-        assigneeIds,
-        dedupedAttachmentIds,
-    );
+    const issue = await createIssue({
+        ...parsed.data,
+        projectId: project.id,
+        creatorId: req.userId,
+        description: parsed.data.description ?? "",
+        sprintId: parsed.data.sprintId ?? undefined,
+        attachmentIds: dedupedAttachmentIds,
+    });
 
     return Response.json(issue);
 }

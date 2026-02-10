@@ -2,6 +2,7 @@ import {
     Attachment,
     Issue,
     IssueAssignee,
+    type IssueCreateRequest,
     type IssueResponse,
     User,
     type UserResponse,
@@ -10,17 +11,21 @@ import { aliasedTable, and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../client";
 import { toPublicUser } from "./users";
 
-export async function createIssue(
-    projectId: number,
-    title: string,
-    description: string,
-    creatorId: number,
-    status: string,
-    type: string,
-    sprintId?: number,
-    assigneeIds?: number[],
-    attachmentIds?: number[],
-) {
+type CreateIssueInput = IssueCreateRequest & {
+    creatorId: number;
+};
+
+export async function createIssue({
+    projectId,
+    title,
+    description,
+    creatorId,
+    status,
+    type,
+    sprintId,
+    assigneeIds,
+    attachmentIds,
+}: CreateIssueInput) {
     // prevents two issues with the same unique number
     return await db.transaction(async (tx) => {
         // raw sql for speed
