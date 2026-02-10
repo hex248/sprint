@@ -1,5 +1,6 @@
 import {
   Alert as PixelAlert,
+  ArrowBarDown as PixelArrowBarDown,
   ArrowBarUp as PixelArrowBarUp,
   Check as PixelCheck,
   Checkbox as PixelCheckbox,
@@ -61,6 +62,7 @@ import {
   CubeIcon as PhosphorCube,
   DotsSixVerticalIcon as PhosphorDotsSixVertical,
   DotsThreeVerticalIcon as PhosphorDotsThreeVertical,
+  DownloadSimpleIcon as PhosphorDownloadSimple,
   PencilSimpleIcon as PhosphorEdit,
   EyeClosedIcon as PhosphorEyeClosed,
   PersonArmsSpreadIcon as PhosphorHandsUp,
@@ -110,6 +112,7 @@ import {
   CircleQuestionMark,
   Copy,
   CreditCard,
+  Download,
   Edit,
   EllipsisVertical,
   EyeClosed,
@@ -173,6 +176,7 @@ const icons = {
   copy: { lucide: Copy, pixel: PixelCopy, phosphor: PhosphorCopy },
   creditCard: { lucide: CreditCard, pixel: PixelCreditCard, phosphor: PhosphorCreditCard },
   creditCardDelete: { lucide: CreditCard, pixel: PixelCreditCardDelete, phosphor: PhosphorCreditCard },
+  download: { lucide: Download, pixel: PixelArrowBarDown, phosphor: PhosphorDownloadSimple },
   edit: { lucide: Edit, pixel: PixelEdit, phosphor: PhosphorEdit },
   ellipsisVertical: {
     lucide: EllipsisVertical,
