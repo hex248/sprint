@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Avatar from "@/components/avatar";
 import { Chat } from "@/components/chat";
+import { DataLoadingError } from "@/components/data-loading-error";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
 import { defaultIssuesTableFilters, IssuesTable, type IssuesTableFilters } from "@/components/issues-table";
@@ -188,13 +189,18 @@ export default function Issues() {
   const showIssueModal =
     new URLSearchParams(window.location.search).get("modal")?.trim().toLowerCase() === "true";
 
-  const { data: organisationsData = [] } = useOrganisations();
-  const { data: projectsData = [] } = useProjects(selectedOrganisationId);
-  const { data: issuesData = [], isFetched: issuesFetched } = useIssues(selectedProjectId);
+  const organisationsQuery = useOrganisations();
+  const projectsQuery = useProjects(selectedOrganisationId);
+  const issuesQuery = useIssues(selectedProjectId);
+  const organisationsData = organisationsQuery.data ?? [];
+  const projectsData = projectsQuery.data ?? [];
+  const issuesData = issuesQuery.data ?? [];
+  const issuesFetched = issuesQuery.isFetched;
   const selectedIssue = useSelectedIssue();
   const selectedOrganisation = useSelectedOrganisation();
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
   const { data: sprintsData = [] } = useSprints(selectedProjectId);
+  const hasDataLoadingError = organisationsQuery.isError || projectsQuery.isError || issuesQuery.isError;
   const filterStorageKey = useMemo(
     () => getFilterStorageKey(selectedOrganisationId, selectedProjectId),
     [selectedOrganisationId, selectedProjectId],
@@ -360,6 +366,10 @@ export default function Issues() {
     "title-desc": "Title Z-A",
     status: "Status",
   };
+
+  if (hasDataLoadingError) {
+    return <DataLoadingError />;
+  }
 
   return (
     <main className={`w-full h-screen flex flex-col gap-${BREATHING_ROOM} p-${BREATHING_ROOM}`}>

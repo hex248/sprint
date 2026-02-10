@@ -1,6 +1,7 @@
 import type { UserResponse } from "@sprint/shared";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
+import { DataLoadingError } from "@/components/data-loading-error";
 import Loading from "@/components/loading";
 import { LoginModal } from "@/components/login-modal";
 import { VerificationModal } from "@/components/verification-modal";
@@ -10,6 +11,7 @@ interface SessionContextValue {
   user: UserResponse | null;
   setUser: (user: UserResponse) => void;
   isLoading: boolean;
+  userDataError: boolean;
   emailVerified: boolean;
   setEmailVerified: (verified: boolean) => void;
   refreshUser: () => Promise<void>;
@@ -43,6 +45,7 @@ export function useAuthenticatedSession(): { user: UserResponse; setUser: (user:
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userDataError, setUserDataError] = useState(false);
   const [emailVerified, setEmailVerified] = useState(true);
   const fetched = useRef(false);
 
@@ -56,12 +59,20 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       credentials: "include",
     });
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        setUserDataError(false);
+        setUserState(null);
+        clearAuth();
+        return;
+      }
+      setUserDataError(true);
       throw new Error(`auth check failed: ${res.status}`);
     }
     const data = (await res.json()) as { user: UserResponse; csrfToken: string; emailVerified: boolean };
     setUser(data.user);
     setCsrfToken(data.csrfToken);
     setEmailVerified(data.emailVerified);
+    setUserDataError(false);
   }, [setUser]);
 
   useEffect(() => {
@@ -73,14 +84,23 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     })
       .then(async (res) => {
         if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            setUserDataError(false);
+            setUserState(null);
+            clearAuth();
+            return;
+          }
+          setUserDataError(true);
           throw new Error(`auth check failed: ${res.status}`);
         }
         const data = (await res.json()) as { user: UserResponse; csrfToken: string; emailVerified: boolean };
         setUser(data.user);
         setCsrfToken(data.csrfToken);
         setEmailVerified(data.emailVerified);
+        setUserDataError(false);
       })
       .catch(() => {
+        setUserDataError(true);
         setUserState(null);
         clearAuth();
       })
@@ -91,7 +111,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionContext.Provider
-      value={{ user, setUser, isLoading, emailVerified, setEmailVerified, refreshUser }}
+      value={{ user, setUser, isLoading, userDataError, emailVerified, setEmailVerified, refreshUser }}
     >
       {children}
     </SessionContext.Provider>
@@ -99,7 +119,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, isLoading, emailVerified } = useSession();
+  const { user, isLoading, userDataError, emailVerified } = useSession();
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   useEffect(() => {
@@ -112,6 +132,10 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return <Loading message={"Checking authentication"} />;
+  }
+
+  if (userDataError) {
+    return <DataLoadingError />;
   }
 
   if (!user) {
