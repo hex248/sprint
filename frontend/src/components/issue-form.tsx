@@ -7,7 +7,16 @@ import {
   ISSUE_TITLE_MAX_LENGTH,
 } from "@sprint/shared";
 
-import { type ChangeEvent, type ClipboardEvent, type FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  type ClipboardEvent,
+  type FormEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 // import { FreeTierLimit } from "@/components/free-tier-limit";
 import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
@@ -93,6 +102,8 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const [uploadingAttachments, setUploadingAttachments] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const attachmentInputId = useId();
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setTitle("");
@@ -392,13 +403,32 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
             <div className="flex flex-col gap-2 mt-1">
               <Label className="text-sm">Attachments (images only)</Label>
               <input
+                id={attachmentInputId}
+                ref={attachmentInputRef}
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/gif"
                 multiple
                 onChange={handleAttachmentSelect}
                 disabled={uploadingAttachments || attachments.length >= ATTACHMENT_MAX_COUNT}
-                className="text-sm"
+                className="sr-only"
               />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-fit"
+                disabled={uploadingAttachments || attachments.length >= ATTACHMENT_MAX_COUNT}
+                onClick={() => attachmentInputRef.current?.click()}
+              >
+                <Icon icon="upload" size={16} />
+                {uploadingAttachments
+                  ? "Uploading..."
+                  : attachments.length >= ATTACHMENT_MAX_COUNT
+                    ? `Max ${ATTACHMENT_MAX_COUNT} images`
+                    : "Upload images"}
+              </Button>
+              <Label htmlFor={attachmentInputId} className="text-xs text-muted-foreground">
+                {`${attachments.length}/${ATTACHMENT_MAX_COUNT} attached`}
+              </Label>
               {attachments.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
                   {attachments.map((attachment) => (
@@ -423,7 +453,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
             </div>
 
             {sprints.length > 0 && (
-              <div className="flex items-center gap-2 mt-0">
+              <div className="flex items-center gap-2 mt-2">
                 <Label className="text-sm">Sprint</Label>
                 <SprintSelect sprints={sprints} value={sprintId} onChange={setSprintId} />
               </div>
