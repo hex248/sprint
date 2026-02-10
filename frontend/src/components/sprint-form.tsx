@@ -51,7 +51,10 @@ const getDefaultDates = (sprints: SprintRecord[]) => {
     };
   }
 
-  const latest = sprints.reduce((current, sprint) => {
+  const baseSprints = sprints.filter((sprint) => !sprint.open);
+  const candidateSprints = baseSprints.length > 0 ? baseSprints : sprints;
+
+  const latest = candidateSprints.reduce((current, sprint) => {
     const currentEnd = new Date(current.endDate).getTime();
     const sprintEnd = new Date(sprint.endDate).getTime();
     if (sprintEnd !== currentEnd) {
@@ -60,7 +63,7 @@ const getDefaultDates = (sprints: SprintRecord[]) => {
     const currentStart = new Date(current.startDate).getTime();
     const sprintStart = new Date(sprint.startDate).getTime();
     return sprintStart > currentStart ? sprint : current;
-  }, sprints[0]);
+  }, candidateSprints[0]);
 
   const start = getStartOfDay(addDays(new Date(latest.endDate), 1));
   return {
