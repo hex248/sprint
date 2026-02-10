@@ -2,6 +2,7 @@ import { boolean, integer, json, pgTable, text, timestamp, uniqueIndex, varchar 
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 import {
+    type ATTACHMENT_ALLOWED_IMAGE_TYPES,
     ISSUE_COMMENT_MAX_LENGTH,
     ISSUE_DESCRIPTION_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
@@ -224,6 +225,25 @@ export const IssueComment = pgTable("IssueComment", {
     updatedAt: timestamp({ withTimezone: false }).defaultNow(),
 });
 
+export const Attachment = pgTable("Attachment", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    organisationId: integer()
+        .notNull()
+        .references(() => Organisation.id, { onDelete: "cascade" }),
+    uploaderId: integer()
+        .notNull()
+        .references(() => User.id, { onDelete: "cascade" }),
+    issueId: integer().references(() => Issue.id, { onDelete: "cascade" }),
+    issueCommentId: integer().references(() => IssueComment.id, { onDelete: "cascade" }),
+    s3Key: varchar({ length: 512 }).notNull().unique(),
+    url: varchar({ length: 512 }).notNull(),
+    mimeType: varchar({ length: 32 }).notNull().$type<(typeof ATTACHMENT_ALLOWED_IMAGE_TYPES)[number]>(),
+    sizeBytes: integer().notNull(),
+    width: integer(),
+    height: integer(),
+    createdAt: timestamp({ withTimezone: false }).defaultNow(),
+});
+
 export const UserSelectSchema = createSelectSchema(User);
 export const UserInsertSchema = createInsertSchema(User);
 
@@ -247,6 +267,9 @@ export const IssueAssigneeInsertSchema = createInsertSchema(IssueAssignee);
 
 export const IssueCommentSelectSchema = createSelectSchema(IssueComment);
 export const IssueCommentInsertSchema = createInsertSchema(IssueComment);
+
+export const AttachmentSelectSchema = createSelectSchema(Attachment);
+export const AttachmentInsertSchema = createInsertSchema(Attachment);
 
 export const SessionSelectSchema = createSelectSchema(Session);
 export const SessionInsertSchema = createInsertSchema(Session);
@@ -286,6 +309,9 @@ export type IssueAssigneeInsert = z.infer<typeof IssueAssigneeInsertSchema>;
 export type IssueCommentRecord = z.infer<typeof IssueCommentSelectSchema>;
 export type IssueCommentInsert = z.infer<typeof IssueCommentInsertSchema>;
 
+export type AttachmentRecord = z.infer<typeof AttachmentSelectSchema>;
+export type AttachmentInsert = z.infer<typeof AttachmentInsertSchema>;
+
 export type SessionRecord = z.infer<typeof SessionSelectSchema>;
 export type SessionInsert = z.infer<typeof SessionInsertSchema>;
 
@@ -299,11 +325,13 @@ export type IssueResponse = {
     Issue: IssueRecord;
     Creator: UserRecord;
     Assignees: UserRecord[];
+    Attachments: AttachmentRecord[];
 };
 
 export type IssueCommentResponse = {
     Comment: IssueCommentRecord;
     User: UserRecord;
+    Attachments: AttachmentRecord[];
 };
 
 export type ProjectResponse = {

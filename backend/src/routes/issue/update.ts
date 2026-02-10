@@ -1,19 +1,24 @@
 import { type IssueRecord, IssueUpdateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
+    deleteAttachmentsByIds,
+    getAttachableAttachments,
+    getAttachmentsByIssueId,
     getIssueByID,
     getOrganisationMemberRole,
     getProjectByID,
+    linkAttachmentsToIssue,
     setIssueAssignees,
     updateIssue,
 } from "../../db/queries";
+import { deleteFromS3 } from "../../s3";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function issueUpdate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, IssueUpdateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { id, title, description, type, status, assigneeIds, sprintId } = parsed.data;
+    const { id, title, description, type, status, assigneeIds, sprintId, attachmentIds } = parsed.data;
 
     // check that at least one field is being updated
     if (
@@ -22,7 +27,8 @@ export default async function issueUpdate(req: AuthedRequest) {
         type === undefined &&
         status === undefined &&
         assigneeIds === undefined &&
-        sprintId === undefined
+        sprintId === undefined &&
+        attachmentIds === undefined
     ) {
         return errorResponse("no updates provided", "NO_UPDATES", 400);
     }
@@ -62,6 +68,35 @@ export default async function issueUpdate(req: AuthedRequest) {
 
     if (assigneeIds !== undefined) {
         await setIssueAssignees(id, assigneeIds ?? []);
+    }
+
+    if (attachmentIds !== undefined) {
+        const dedupedAttachmentIds = [...new Set(attachmentIds)];
+        const currentAttachments = await getAttachmentsByIssueId(id);
+        const currentIds = new Set(currentAttachments.map((attachment) => attachment.id));
+        const nextIds = new Set(dedupedAttachmentIds);
+
+        const toLink = dedupedAttachmentIds.filter((attachmentId) => !currentIds.has(attachmentId));
+        if (toLink.length > 0) {
+            const attachable = await getAttachableAttachments(toLink, project.organisationId, req.userId);
+            if (attachable.length !== toLink.length) {
+                return errorResponse("one or more attachments are invalid", "INVALID_ATTACHMENTS", 400);
+            }
+
+            await linkAttachmentsToIssue(id, toLink);
+        }
+
+        const toRemove = currentAttachments.filter((attachment) => !nextIds.has(attachment.id));
+        if (toRemove.length > 0) {
+            try {
+                await Promise.all(toRemove.map((attachment) => deleteFromS3(attachment.s3Key)));
+            } catch (error) {
+                console.error("failed to delete issue attachments from s3:", error);
+                return errorResponse("failed to delete attachments", "ATTACHMENT_DELETE_FAILED", 500);
+            }
+
+            await deleteAttachmentsByIds(toRemove.map((attachment) => attachment.id));
+        }
     }
 
     return Response.json(issue);

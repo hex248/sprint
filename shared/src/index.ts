@@ -1,5 +1,6 @@
 export type {
     ApiError,
+    AttachmentUploadResponse,
     AuthResponse,
     CancelSubscriptionResponse,
     ChatRequest,
@@ -78,6 +79,8 @@ export type {
 // API schemas
 export {
     ApiErrorSchema,
+    AttachmentRecordSchema,
+    AttachmentUploadResponseSchema,
     AuthResponseSchema,
     CancelSubscriptionResponseSchema,
     ChatRequestSchema,
@@ -157,6 +160,9 @@ export {
     VerifyEmailRequestSchema,
 } from "./api-schemas";
 export {
+    ATTACHMENT_ALLOWED_IMAGE_TYPES,
+    ATTACHMENT_MAX_COUNT,
+    ATTACHMENT_MAX_FILE_SIZE,
     ISSUE_COMMENT_MAX_LENGTH,
     ISSUE_DESCRIPTION_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
@@ -175,6 +181,8 @@ export {
 export type { ApiContract } from "./contract";
 export { apiContract } from "./contract";
 export type {
+    AttachmentInsert,
+    AttachmentRecord,
     CliLoginCodeInsert,
     CliLoginCodeRecord,
     EmailJobInsert,
@@ -214,6 +222,9 @@ export type {
     UserRecord,
 } from "./schema";
 export {
+    Attachment,
+    AttachmentInsertSchema,
+    AttachmentSelectSchema,
     CliLoginCode,
     CliLoginCodeInsertSchema,
     CliLoginCodeSelectSchema,

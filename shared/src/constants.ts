@@ -15,3 +15,7 @@ export const ISSUE_DESCRIPTION_MAX_LENGTH = 2048;
 export const ISSUE_TYPE_MAX_LENGTH = 16;
 export const ISSUE_STATUS_MAX_LENGTH = 24;
 export const ISSUE_COMMENT_MAX_LENGTH = 2048;
+
+export const ATTACHMENT_MAX_COUNT = 5;
+export const ATTACHMENT_MAX_FILE_SIZE = 5 * 1024 * 1024;
+export const ATTACHMENT_ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"] as const;

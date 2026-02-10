@@ -1,5 +1,6 @@
 import aiChat from "./ai/chat";
 import aiModels from "./ai/models";
+import attachmentUpload from "./attachment/upload";
 import authLogin from "./auth/login";
 import authLogout from "./auth/logout";
 import authMe from "./auth/me";
@@ -83,6 +84,7 @@ export const routes = {
     userByUsername,
     userUpdate,
     userUploadAvatar,
+    attachmentUpload,
 
     issueCreate,
     issueById,

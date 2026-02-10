@@ -1,5 +1,12 @@
-import { Issue, IssueComment, type IssueCommentResponseRecord, Project, User } from "@sprint/shared";
-import { asc, eq } from "drizzle-orm";
+import {
+    Attachment,
+    Issue,
+    IssueComment,
+    type IssueCommentResponseRecord,
+    Project,
+    User,
+} from "@sprint/shared";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createIssueComment(issueId: number, userId: number, body: string) {
@@ -34,7 +41,33 @@ export async function getIssueCommentsByIssueId(issueId: number): Promise<IssueC
         .innerJoin(User, eq(IssueComment.userId, User.id))
         .orderBy(asc(IssueComment.createdAt));
 
-    return comments;
+    const commentIds = comments.map((comment) => comment.Comment.id);
+    const attachments =
+        commentIds.length > 0
+            ? await db
+                  .select({
+                      issueCommentId: Attachment.issueCommentId,
+                      Attachment,
+                  })
+                  .from(Attachment)
+                  .where(and(inArray(Attachment.issueCommentId, commentIds), isNull(Attachment.issueId)))
+            : [];
+
+    const attachmentsByCommentId = new Map<number, (typeof attachments)[number]["Attachment"][]>();
+    for (const attachmentRow of attachments) {
+        const issueCommentId = attachmentRow.issueCommentId;
+        if (issueCommentId == null) {
+            continue;
+        }
+        const existing = attachmentsByCommentId.get(issueCommentId) ?? [];
+        existing.push(attachmentRow.Attachment);
+        attachmentsByCommentId.set(issueCommentId, existing);
+    }
+
+    return comments.map((comment) => ({
+        ...comment,
+        Attachments: attachmentsByCommentId.get(comment.Comment.id) ?? [],
+    }));
 }
 
 export async function getIssueOrganisationId(issueId: number) {
