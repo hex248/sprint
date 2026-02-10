@@ -41,6 +41,7 @@ export function OrganisationSelect({
   trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [createOrgOpen, setCreateOrgOpen] = useState(false);
   const [pendingOrganisationId, setPendingOrganisationId] = useState<number | null>(null);
   const { data: organisationsData = [] } = useOrganisations();
   const { selectedOrganisationId, selectOrganisation } = useSelection();
@@ -127,26 +128,36 @@ export function OrganisationSelect({
           </div>
         )} */}
 
-        <OrganisationForm
-          trigger={
-            <Button variant="ghost" className={"w-full"} size={"sm"} disabled={false}>
-              Create Organisation
-            </Button>
-          }
-          completeAction={async (org) => {
-            try {
-              setPendingOrganisationId(org.id);
-            } catch (err) {
-              console.error(err);
-            }
+        <Button
+          variant="ghost"
+          className={"w-full"}
+          size={"sm"}
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            setCreateOrgOpen(true);
           }}
-          errorAction={async (errorMessage) => {
-            toast.error(`Error creating organisation: ${errorMessage}`, {
-              dismissible: false,
-            });
-          }}
-        />
+        >
+          Create Organisation
+        </Button>
       </SelectContent>
+
+      <OrganisationForm
+        open={createOrgOpen}
+        onOpenChange={setCreateOrgOpen}
+        completeAction={async (org) => {
+          try {
+            setPendingOrganisationId(org.id);
+          } catch (err) {
+            console.error(err);
+          }
+        }}
+        errorAction={async (errorMessage) => {
+          toast.error(`Error creating organisation: ${errorMessage}`, {
+            dismissible: false,
+          });
+        }}
+      />
     </Select>
   );
 }

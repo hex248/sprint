@@ -25,6 +25,7 @@ import organisationsByUser from "./organisation/by-user";
 import organisationCreate from "./organisation/create";
 import organisationDelete from "./organisation/delete";
 import organisationExport from "./organisation/export";
+import organisationImport from "./organisation/import";
 import organisationMemberTimeTracking from "./organisation/member-time-tracking";
 import organisationMembers from "./organisation/members";
 import organisationRemoveMember from "./organisation/remove-member";
@@ -96,6 +97,7 @@ export const routes = {
     organisationCreate,
     organisationById,
     organisationExport,
+    organisationImport,
     organisationUpdate,
     organisationDelete,
     organisationAddMember,

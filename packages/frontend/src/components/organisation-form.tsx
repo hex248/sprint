@@ -4,7 +4,7 @@ import {
   ORG_SLUG_MAX_LENGTH,
   type OrganisationRecordType,
 } from "@sprint/shared";
-import { type FormEvent, useEffect, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
+import Icon from "@/components/ui/icon";
 import { Label } from "@/components/ui/label";
 import { UploadOrgIcon } from "@/components/upload-org-icon";
-import { useCreateOrganisation, useUpdateOrganisation } from "@/lib/query/hooks";
+import { useCreateOrganisation, useImportOrganisation, useUpdateOrganisation } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,7 @@ export function OrganisationForm({
 }) {
   const { user } = useAuthenticatedSession();
   const createOrganisation = useCreateOrganisation();
+  const importOrganisation = useImportOrganisation();
   const updateOrganisation = useUpdateOrganisation();
 
   const isControlled = controlledOpen !== undefined;
@@ -64,7 +66,24 @@ export function OrganisationForm({
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
+  const filePickerActiveRef = useRef(false);
+
+  useEffect(() => {
+    const onWindowFocus = () => {
+      if (!filePickerActiveRef.current) return;
+      window.setTimeout(() => {
+        filePickerActiveRef.current = false;
+      }, 500);
+    };
+
+    window.addEventListener("focus", onWindowFocus);
+    return () => {
+      window.removeEventListener("focus", onWindowFocus);
+    };
+  }, []);
 
   const isEdit = mode === "edit";
 
@@ -86,13 +105,60 @@ export function OrganisationForm({
     setSlugManuallyEdited(false);
     setSubmitAttempted(false);
     setSubmitting(false);
+    setImporting(false);
     setError(null);
   };
 
   const onOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && filePickerActiveRef.current) {
+      return;
+    }
+
     setOpen(nextOpen);
     if (!nextOpen) {
       reset();
+    }
+  };
+
+  const handleImportFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setError(null);
+    if (!user.id) {
+      setError("you must be logged in to import an organisation");
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const raw = await file.text();
+      const payload = JSON.parse(raw);
+      const data = await importOrganisation.mutateAsync(payload);
+
+      setOpen(false);
+      reset();
+      toast.success(`Imported Organisation ${data.name}`, {
+        dismissible: false,
+      });
+
+      try {
+        await completeAction?.(data);
+      } catch (actionErr) {
+        console.error(actionErr);
+      }
+    } catch (err) {
+      const message = parseError(err as Error);
+      console.error(err);
+      setError(message || "failed to import organisation");
+      try {
+        await errorAction?.(message || "failed to import organisation");
+      } catch (actionErr) {
+        console.error(actionErr);
+      }
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -158,7 +224,19 @@ export function OrganisationForm({
   };
 
   const dialogContent = (
-    <DialogContent className={cn("w-md", error ? "border-destructive" : "")}>
+    <DialogContent
+      className={cn("w-md", error ? "border-destructive" : "")}
+      onInteractOutside={(event) => {
+        if (filePickerActiveRef.current) {
+          event.preventDefault();
+        }
+      }}
+      onPointerDownOutside={(event) => {
+        if (filePickerActiveRef.current) {
+          event.preventDefault();
+        }
+      }}
+    >
       <DialogHeader>
         <DialogTitle>{isEdit ? "Edit Organisation" : "Create Organisation"}</DialogTitle>
       </DialogHeader>
@@ -237,6 +315,32 @@ export function OrganisationForm({
             )}
           </div>
 
+          {!isEdit && (
+            <>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={handleImportFile}
+              />
+              <div className="flex justify-start mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={submitting || importing}
+                  onClick={() => {
+                    filePickerActiveRef.current = true;
+                    importInputRef.current?.click();
+                  }}
+                >
+                  <Icon icon="upload" className="size-4" />
+                  {importing ? "Importing..." : "Import JSON"}
+                </Button>
+              </div>
+            </>
+          )}
+
           <div className="flex gap-2 w-full justify-end mt-2">
             <DialogClose asChild>
               <Button variant="outline" type="button">
@@ -247,6 +351,7 @@ export function OrganisationForm({
               type="submit"
               disabled={
                 submitting ||
+                importing ||
                 name.trim() === "" ||
                 name.trim().length > ORG_NAME_MAX_LENGTH ||
                 slug.trim() === "" ||

@@ -104,6 +104,23 @@ export function useUpdateOrganisation() {
   });
 }
 
+export function useImportOrganisation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<OrganisationRecordType, Error, unknown>({
+    mutationKey: ["organisations", "import"],
+    mutationFn: async (input) => {
+      const { data, error } = await apiClient.organisationImport({ body: input });
+      if (error) throw new Error(error);
+      if (!data) throw new Error("failed to import organisation");
+      return data as OrganisationRecordType;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organisations.byUser() });
+    },
+  });
+}
+
 export function useDeleteOrganisation() {
   const queryClient = useQueryClient();
 

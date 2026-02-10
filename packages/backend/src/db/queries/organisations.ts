@@ -1,5 +1,15 @@
-import { Organisation, OrganisationMember, User } from "@sprint/shared";
-import { and, eq, sql } from "drizzle-orm";
+import {
+    Issue,
+    IssueAssignee,
+    IssueComment,
+    Organisation,
+    OrganisationMember,
+    Project,
+    Sprint,
+    TimedSession,
+    User,
+} from "@sprint/shared";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createOrganisation(name: string, slug: string, description?: string) {
@@ -100,10 +110,34 @@ export async function updateOrganisation(
 }
 
 export async function deleteOrganisation(organisationId: number) {
-    // Delete all organisation members first
-    await db.delete(OrganisationMember).where(eq(OrganisationMember.organisationId, organisationId));
-    // Delete the organisation
-    await db.delete(Organisation).where(eq(Organisation.id, organisationId));
+    await db.transaction(async (tx) => {
+        const projects = await tx
+            .select({ id: Project.id })
+            .from(Project)
+            .where(eq(Project.organisationId, organisationId));
+        const projectIds = projects.map((project) => project.id);
+
+        const issues =
+            projectIds.length > 0
+                ? await tx.select({ id: Issue.id }).from(Issue).where(inArray(Issue.projectId, projectIds))
+                : [];
+        const issueIds = issues.map((issue) => issue.id);
+
+        if (issueIds.length > 0) {
+            await tx.delete(IssueAssignee).where(inArray(IssueAssignee.issueId, issueIds));
+            await tx.delete(IssueComment).where(inArray(IssueComment.issueId, issueIds));
+            await tx.delete(TimedSession).where(inArray(TimedSession.issueId, issueIds));
+            await tx.delete(Issue).where(inArray(Issue.id, issueIds));
+        }
+
+        if (projectIds.length > 0) {
+            await tx.delete(Sprint).where(inArray(Sprint.projectId, projectIds));
+            await tx.delete(Project).where(inArray(Project.id, projectIds));
+        }
+
+        await tx.delete(OrganisationMember).where(eq(OrganisationMember.organisationId, organisationId));
+        await tx.delete(Organisation).where(eq(Organisation.id, organisationId));
+    });
 }
 
 export async function getOrganisationMembers(organisationId: number) {
@@ -117,13 +151,17 @@ export async function getOrganisationMembers(organisationId: number) {
 }
 
 export async function getOrganisationMemberRole(organisationId: number, userId: number) {
-    const [member] = await db
+    const members = await db
         .select()
         .from(OrganisationMember)
         .where(
             and(eq(OrganisationMember.organisationId, organisationId), eq(OrganisationMember.userId, userId)),
         );
-    return member;
+
+    if (members.length === 0) return undefined;
+
+    const ownerMember = members.find((member) => member.role === "owner");
+    return ownerMember ?? members[0];
 }
 
 export async function removeOrganisationMember(organisationId: number, userId: number) {
