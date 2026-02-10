@@ -42,6 +42,22 @@
         "typescript": "^5",
       },
     },
+    "cli": {
+      "name": "@sprint/cli",
+      "version": "0.1.0",
+      "bin": {
+        "sprint": "./src/index.ts",
+      },
+      "dependencies": {
+        "@sprint/shared": "workspace:*",
+        "dotenv": "^17.2.3",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "@types/node": "^25.1.0",
+        "typescript": "~5.8.3",
+      },
+    },
     "frontend": {
       "name": "@sprint/frontend",
       "version": "0.1.0",
@@ -455,6 +471,8 @@
     "@selderee/plugin-htmlparser2": ["@selderee/plugin-htmlparser2@0.11.0", "", { "dependencies": { "domhandler": "^5.0.3", "selderee": "^0.11.0" } }, "sha512-P33hHGdldxGabLFjPPpaTxVolMrzrcegejx+0GxjrIb9Zv48D8yAIA/QTDR2dFl7Uz7urX8aX6+5bCZslr+gWQ=="],
 
     "@sprint/backend": ["@sprint/backend@workspace:backend"],
+
+    "@sprint/cli": ["@sprint/cli@workspace:cli"],
 
     "@sprint/frontend": ["@sprint/frontend@workspace:frontend"],
 

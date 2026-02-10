@@ -143,6 +143,20 @@ export const Session = pgTable("Session", {
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
 });
 
+export const CliLoginCode = pgTable("CliLoginCode", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    deviceCodeHash: varchar({ length: 128 }).notNull().unique(),
+    userCodeHash: varchar({ length: 128 }).notNull().unique(),
+    status: varchar({ length: 16 }).notNull().default("pending"),
+    pollIntervalSeconds: integer().notNull().default(5),
+    expiresAt: timestamp({ withTimezone: false }).notNull(),
+    lastPolledAt: timestamp({ withTimezone: false }),
+    approvedByUserId: integer().references(() => User.id, { onDelete: "set null" }),
+    sessionId: integer().references(() => Session.id, { onDelete: "set null" }),
+    approvedAt: timestamp({ withTimezone: false }),
+    createdAt: timestamp({ withTimezone: false }).defaultNow(),
+});
+
 export const TimedSession = pgTable("TimedSession", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userId: integer()
@@ -237,6 +251,9 @@ export const IssueCommentInsertSchema = createInsertSchema(IssueComment);
 export const SessionSelectSchema = createSelectSchema(Session);
 export const SessionInsertSchema = createInsertSchema(Session);
 
+export const CliLoginCodeSelectSchema = createSelectSchema(CliLoginCode);
+export const CliLoginCodeInsertSchema = createInsertSchema(CliLoginCode);
+
 export const TimedSessionSelectSchema = createSelectSchema(TimedSession);
 export const TimedSessionInsertSchema = createInsertSchema(TimedSession);
 
@@ -271,6 +288,9 @@ export type IssueCommentInsert = z.infer<typeof IssueCommentInsertSchema>;
 
 export type SessionRecord = z.infer<typeof SessionSelectSchema>;
 export type SessionInsert = z.infer<typeof SessionInsertSchema>;
+
+export type CliLoginCodeRecord = z.infer<typeof CliLoginCodeSelectSchema>;
+export type CliLoginCodeInsert = z.infer<typeof CliLoginCodeInsertSchema>;
 
 export type TimedSessionRecord = z.infer<typeof TimedSessionSelectSchema>;
 export type TimedSessionInsert = z.infer<typeof TimedSessionInsertSchema>;

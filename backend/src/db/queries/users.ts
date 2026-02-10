@@ -1,4 +1,4 @@
-import { type IconStyle, User, type UserRecord } from "@sprint/shared";
+import { type IconStyle, User, type UserRecord, type UserResponse } from "@sprint/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../client";
 
@@ -49,4 +49,28 @@ export async function updateById(
 export async function updateUser(id: number, updates: { plan?: string }) {
     const [user] = await db.update(User).set(updates).where(eq(User.id, id)).returning();
     return user;
+}
+
+export function toPublicUser(user: {
+    id: number;
+    name: string;
+    username: string;
+    avatarURL: string | null;
+    iconPreference: "lucide" | "pixel" | "phosphor";
+    plan?: string | null;
+    preferences?: Record<string, boolean>;
+    createdAt?: Date | null;
+    updatedAt?: Date | null;
+}): UserResponse {
+    return {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        avatarURL: user.avatarURL,
+        iconPreference: user.iconPreference,
+        plan: user.plan,
+        preferences: user.preferences,
+        createdAt: user.createdAt ? user.createdAt.toISOString() : undefined,
+        updatedAt: user.updatedAt ? user.updatedAt.toISOString() : undefined,
+    };
 }

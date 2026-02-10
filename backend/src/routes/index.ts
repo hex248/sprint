@@ -6,6 +6,9 @@ import authMe from "./auth/me";
 import authRegister from "./auth/register";
 import authResendVerification from "./auth/resend-verification";
 import authVerifyEmail from "./auth/verify-email";
+import cliLoginApprove from "./cli/login-approve";
+import cliLoginPoll from "./cli/login-poll";
+import cliLoginStart from "./cli/login-start";
 import issueById from "./issue/by-id";
 import issueCreate from "./issue/create";
 import issueDelete from "./issue/delete";
@@ -73,6 +76,9 @@ export const routes = {
     authMe,
     authVerifyEmail,
     authResendVerification,
+    cliLoginStart,
+    cliLoginPoll,
+    cliLoginApprove,
 
     userByUsername,
     userUpdate,

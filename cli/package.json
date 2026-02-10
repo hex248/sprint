@@ -1,0 +1,21 @@
+{
+    "name": "@sprint/cli",
+    "version": "0.1.0",
+    "type": "module",
+    "bin": {
+        "sprint": "./src/index.ts"
+    },
+    "scripts": {
+        "dev": "bun src/index.ts",
+        "start": "bun src/index.ts"
+    },
+    "dependencies": {
+        "@sprint/shared": "workspace:*",
+        "dotenv": "^17.2.3"
+    },
+    "devDependencies": {
+        "@types/node": "^25.1.0",
+        "@types/bun": "latest",
+        "typescript": "~5.8.3"
+    }
+}

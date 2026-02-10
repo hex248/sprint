@@ -1,6 +1,7 @@
-import { Issue, IssueAssignee, type IssueResponseRecord, User, type UserRecord } from "@sprint/shared";
+import { Issue, IssueAssignee, type IssueResponse, User, type UserResponse } from "@sprint/shared";
 import { aliasedTable, and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../client";
+import { toPublicUser } from "./users";
 
 export async function createIssue(
     projectId: number,
@@ -99,13 +100,23 @@ export async function getIssueByID(id: number) {
     return issue;
 }
 
-export async function getIssueWithUsersById(issueId: number): Promise<IssueResponseRecord | null> {
+export async function getIssueWithUsersById(issueId: number): Promise<IssueResponse | null> {
     const Creator = aliasedTable(User, "Creator");
 
     const [issueWithCreator] = await db
         .select({
             Issue: Issue,
-            Creator: Creator,
+            Creator: {
+                id: Creator.id,
+                name: Creator.name,
+                username: Creator.username,
+                avatarURL: Creator.avatarURL,
+                iconPreference: Creator.iconPreference,
+                plan: Creator.plan,
+                preferences: Creator.preferences,
+                createdAt: Creator.createdAt,
+                updatedAt: Creator.updatedAt,
+            },
         })
         .from(Issue)
         .where(eq(Issue.id, issueId))
@@ -115,7 +126,17 @@ export async function getIssueWithUsersById(issueId: number): Promise<IssueRespo
 
     const assigneesData = await db
         .select({
-            User: User,
+            User: {
+                id: User.id,
+                name: User.name,
+                username: User.username,
+                avatarURL: User.avatarURL,
+                iconPreference: User.iconPreference,
+                plan: User.plan,
+                preferences: User.preferences,
+                createdAt: User.createdAt,
+                updatedAt: User.updatedAt,
+            },
         })
         .from(IssueAssignee)
         .innerJoin(User, eq(IssueAssignee.userId, User.id))
@@ -123,8 +144,8 @@ export async function getIssueWithUsersById(issueId: number): Promise<IssueRespo
 
     return {
         Issue: issueWithCreator.Issue,
-        Creator: issueWithCreator.Creator,
-        Assignees: assigneesData.map((row) => row.User),
+        Creator: toPublicUser(issueWithCreator.Creator),
+        Assignees: assigneesData.map((row) => toPublicUser(row.User)),
     };
 }
 
@@ -214,13 +235,23 @@ export async function replaceIssueType(organisationId: number, oldType: string, 
     return { updated: result.rowCount ?? 0 };
 }
 
-export async function getIssuesWithUsersByProject(projectId: number): Promise<IssueResponseRecord[]> {
+export async function getIssuesWithUsersByProject(projectId: number): Promise<IssueResponse[]> {
     const Creator = aliasedTable(User, "Creator");
 
     const issuesWithCreators = await db
         .select({
             Issue: Issue,
-            Creator: Creator,
+            Creator: {
+                id: Creator.id,
+                name: Creator.name,
+                username: Creator.username,
+                avatarURL: Creator.avatarURL,
+                iconPreference: Creator.iconPreference,
+                plan: Creator.plan,
+                preferences: Creator.preferences,
+                createdAt: Creator.createdAt,
+                updatedAt: Creator.updatedAt,
+            },
         })
         .from(Issue)
         .where(eq(Issue.projectId, projectId))
@@ -232,23 +263,33 @@ export async function getIssuesWithUsersByProject(projectId: number): Promise<Is
             ? await db
                   .select({
                       issueId: IssueAssignee.issueId,
-                      User: User,
+                      User: {
+                          id: User.id,
+                          name: User.name,
+                          username: User.username,
+                          avatarURL: User.avatarURL,
+                          iconPreference: User.iconPreference,
+                          plan: User.plan,
+                          preferences: User.preferences,
+                          createdAt: User.createdAt,
+                          updatedAt: User.updatedAt,
+                      },
                   })
                   .from(IssueAssignee)
                   .innerJoin(User, eq(IssueAssignee.userId, User.id))
                   .where(inArray(IssueAssignee.issueId, issueIds))
             : [];
 
-    const assigneesByIssue = new Map<number, UserRecord[]>();
+    const assigneesByIssue = new Map<number, UserResponse[]>();
     for (const a of assigneesData) {
         const existing = assigneesByIssue.get(a.issueId) || [];
-        existing.push(a.User);
+        existing.push(toPublicUser(a.User));
         assigneesByIssue.set(a.issueId, existing);
     }
 
     return issuesWithCreators.map((row) => ({
         Issue: row.Issue,
-        Creator: row.Creator,
+        Creator: toPublicUser(row.Creator),
         Assignees: assigneesByIssue.get(row.Issue.id) || [],
     }));
 }

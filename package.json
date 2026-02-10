@@ -17,6 +17,7 @@
     },
     "workspaces": [
         "backend",
+        "cli",
         "frontend",
         "shared"
     ]
