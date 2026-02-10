@@ -1,5 +1,5 @@
 const pad = (value: string, width: number) => {
-    if (value.length >= width) return `${value.slice(0, width - 1)}…`;
+    if (value.length > width) return `${value.slice(0, width - 1)}...`;
     return value.padEnd(width, " ");
 };
 

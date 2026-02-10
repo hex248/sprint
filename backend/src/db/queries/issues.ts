@@ -1,5 +1,12 @@
-import { Issue, IssueAssignee, type IssueResponse, User, type UserResponse } from "@sprint/shared";
-import { aliasedTable, and, eq, inArray, sql } from "drizzle-orm";
+import {
+    Attachment,
+    Issue,
+    IssueAssignee,
+    type IssueResponse,
+    User,
+    type UserResponse,
+} from "@sprint/shared";
+import { aliasedTable, and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../client";
 import { toPublicUser } from "./users";
 
@@ -12,6 +19,7 @@ export async function createIssue(
     type: string,
     sprintId?: number,
     assigneeIds?: number[],
+    attachmentIds?: number[],
 ) {
     // prevents two issues with the same unique number
     return await db.transaction(async (tx) => {
@@ -49,6 +57,19 @@ export async function createIssue(
                     userId,
                 })),
             );
+        }
+
+        if (attachmentIds && attachmentIds.length > 0) {
+            await tx
+                .update(Attachment)
+                .set({ issueId: newIssue.id, issueCommentId: null })
+                .where(
+                    and(
+                        inArray(Attachment.id, attachmentIds),
+                        isNull(Attachment.issueId),
+                        isNull(Attachment.issueCommentId),
+                    ),
+                );
         }
 
         return newIssue;
@@ -142,10 +163,16 @@ export async function getIssueWithUsersById(issueId: number): Promise<IssueRespo
         .innerJoin(User, eq(IssueAssignee.userId, User.id))
         .where(eq(IssueAssignee.issueId, issueId));
 
+    const attachments = await db
+        .select()
+        .from(Attachment)
+        .where(and(eq(Attachment.issueId, issueId), isNull(Attachment.issueCommentId)));
+
     return {
         Issue: issueWithCreator.Issue,
         Creator: toPublicUser(issueWithCreator.Creator),
         Assignees: assigneesData.map((row) => toPublicUser(row.User)),
+        Attachments: attachments,
     };
 }
 
@@ -287,10 +314,29 @@ export async function getIssuesWithUsersByProject(projectId: number): Promise<Is
         assigneesByIssue.set(a.issueId, existing);
     }
 
+    const attachmentRows =
+        issueIds.length > 0
+            ? await db
+                  .select({ issueId: Attachment.issueId, Attachment })
+                  .from(Attachment)
+                  .where(and(inArray(Attachment.issueId, issueIds), isNull(Attachment.issueCommentId)))
+            : [];
+
+    const attachmentsByIssue = new Map<number, (typeof attachmentRows)[number]["Attachment"][]>();
+    for (const row of attachmentRows) {
+        if (row.issueId == null) {
+            continue;
+        }
+        const existing = attachmentsByIssue.get(row.issueId) || [];
+        existing.push(row.Attachment);
+        attachmentsByIssue.set(row.issueId, existing);
+    }
+
     return issuesWithCreators.map((row) => ({
         Issue: row.Issue,
         Creator: toPublicUser(row.Creator),
         Assignees: assigneesByIssue.get(row.Issue.id) || [],
+        Attachments: attachmentsByIssue.get(row.Issue.id) || [],
     }));
 }
 

@@ -45,7 +45,18 @@ export default async function cliLoginStart(req: BunRequest) {
         return errorResponse("failed to create login code", "LOGIN_CODE_CREATE_FAILED", 500);
     }
 
-    const verificationUri = process.env.CLI_LOGIN_VERIFICATION_URI ?? `${new URL(req.url).origin}/cli/login`;
+    const verificationUri = (() => {
+        if (process.env.CLI_LOGIN_VERIFICATION_URI) {
+            return process.env.CLI_LOGIN_VERIFICATION_URI;
+        }
+
+        const baseUrl = process.env.FRONTEND_URL || "https://sprintpm.org";
+        const url = new URL(baseUrl);
+        url.pathname = "/cli/login";
+        url.search = "";
+        url.hash = "";
+        return url.toString();
+    })();
 
     return Response.json({
         deviceCode,

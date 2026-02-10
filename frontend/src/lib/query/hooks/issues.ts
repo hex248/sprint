@@ -1,4 +1,5 @@
 import type {
+  AttachmentRecord,
   IssueByIdQuery,
   IssueCreateRequest,
   IssueRecord,
@@ -153,6 +154,23 @@ export function useReplaceIssueType() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.all });
+    },
+  });
+}
+
+export function useUploadAttachment() {
+  return useMutation<AttachmentRecord, Error, { file: File; organisationId: number }>({
+    mutationKey: ["attachments", "upload"],
+    mutationFn: async ({ file, organisationId }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("organisationId", organisationId.toString());
+
+      const { data, error } = await apiClient.attachmentUpload({ body: formData });
+      const payload = data as { attachment?: AttachmentRecord } | null;
+      if (error) throw new Error(error);
+      if (!payload?.attachment) throw new Error("failed to upload attachment");
+      return payload.attachment;
     },
   });
 }

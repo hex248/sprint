@@ -2,6 +2,7 @@ import { initContract } from "@ts-rest/core";
 import { z } from "zod";
 import {
     ApiErrorSchema,
+    AttachmentUploadResponseSchema,
     AuthResponseSchema,
     CancelSubscriptionResponseSchema,
     ChatRequestSchema,
@@ -221,6 +222,19 @@ export const apiContract = c.router({
             200: z.object({ avatarURL: z.string() }),
             400: ApiErrorSchema,
             403: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    attachmentUpload: {
+        method: "POST",
+        path: "/attachment/upload",
+        contentType: "multipart/form-data",
+        body: z.instanceof(FormData),
+        responses: {
+            200: AttachmentUploadResponseSchema,
+            400: ApiErrorSchema,
+            403: ApiErrorSchema,
+            404: ApiErrorSchema,
         },
         headers: csrfHeaderSchema,
     },

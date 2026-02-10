@@ -55,6 +55,7 @@ const main = async () => {
             "/user/by-username": withGlobalAuthed(withAuth(routes.userByUsername)),
             "/user/update": withGlobalAuthed(withAuth(withCSRF(routes.userUpdate))),
             "/user/upload-avatar": withGlobal(routes.userUploadAvatar),
+            "/attachment/upload": withGlobalAuthed(withAuth(withCSRF(routes.attachmentUpload))),
 
             "/issue/create": withGlobalAuthed(withAuth(withCSRF(routes.issueCreate))),
             "/issue/by-id": withGlobalAuthed(withAuth(routes.issueById)),

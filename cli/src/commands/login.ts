@@ -4,14 +4,10 @@ import { getConfigPath, saveConfig } from "../lib/config";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const getVerificationUrl = (backendUrl: string) => {
-    const override = process.env.SPRINT_CLI_AUTH_URL?.trim();
-    if (!override) return backendUrl;
-
-    const parsed = new URL(override);
-    if (parsed.pathname === "/" || parsed.pathname === "") {
-        parsed.pathname = "/cli/login";
-    }
+const getVerificationUrl = (frontendUrl: string) => {
+    const parsed = new URL(frontendUrl);
+    parsed.protocol = "https:";
+    parsed.host = "sprintpm.org";
     return parsed.toString();
 };
 

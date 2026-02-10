@@ -2,14 +2,20 @@ import type { CliConfig } from "../lib/config";
 import { resolveIssueByRef } from "../lib/context";
 import { createBranch, getCurrentBranch } from "../lib/git";
 
-const slugify = (value: string) =>
+const slugifyLower = (value: string) =>
     value
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, "")
         .trim()
         .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .slice(0, 48);
+        .replace(/-+/g, "-");
+
+const slugifyPreserveCase = (value: string) =>
+    value
+        .replace(/[^a-zA-Z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
 
 export const runBranchCommand = async (config: CliConfig, issueRefInput?: string, baseBranchArg?: string) => {
     if (!issueRefInput) {
@@ -17,8 +23,11 @@ export const runBranchCommand = async (config: CliConfig, issueRefInput?: string
     }
 
     const { project, issue } = await resolveIssueByRef(config, issueRefInput);
-    const issueName = `${project.Project.key}-${issue.Issue.number}`;
-    const branchName = `${issueName.toLowerCase()}-${slugify(issue.Issue.title)}`;
+    const issueTag = `${project.Project.key}-${issue.Issue.number}`;
+    const type = slugifyLower(issue.Issue.type) || "task";
+    const assignee = issue.Assignees[0]?.username ?? "unassigned";
+    const title = slugifyPreserveCase(issue.Issue.title) || "untitled";
+    const branchName = `${type}/${assignee}/${issueTag}/${title}`;
     const baseBranch = baseBranchArg || getCurrentBranch();
 
     createBranch(branchName, baseBranch);
