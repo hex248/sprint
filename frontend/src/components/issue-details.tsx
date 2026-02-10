@@ -6,8 +6,9 @@ import {
   type SprintRecord,
   type UserResponse,
 } from "@sprint/shared";
-import { type ChangeEvent, type ClipboardEvent, useEffect, useRef, useState } from "react";
+import { type ClipboardEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { InlineContent } from "@/components/inline-content";
 import { IssueComments } from "@/components/issue-comments";
 import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useSession } from "@/components/session-provider";
@@ -44,6 +45,19 @@ function assigneesToStringArray(assignees: { id: number }[]): string[] {
 
 function stringArrayToAssigneeIds(assigneeIds: string[]): number[] {
   return assigneeIds.filter((id) => id !== "unassigned").map((id) => Number(id));
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function removeAttachmentUrlFromDescription(text: string, url: string) {
+  const regex = new RegExp(escapeRegex(url), "g");
+  const next = text.replace(regex, "");
+  return next
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/^[ \t]+|[ \t]+$/gm, "");
 }
 
 export function IssueDetails({
@@ -92,6 +106,7 @@ export function IssueDetails({
   const [isSavingDescription, setIsSavingDescription] = useState(false);
   const [attachments, setAttachments] = useState<IssueResponse["Attachments"]>([]);
   const [uploadingAttachments, setUploadingAttachments] = useState(false);
+  const previousIssueIdRef = useRef<number | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const issueTypes = (organisation?.Organisation.issueTypes ?? {}) as Record<
@@ -104,17 +119,29 @@ export function IssueDetails({
   const hasMultipleAssignees = actualAssigneeIds.length > 1;
 
   useEffect(() => {
+    const issueChanged = previousIssueIdRef.current !== issueData.Issue.id;
+    previousIssueIdRef.current = issueData.Issue.id;
+
     setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
     setAssigneeIds(assigneesToStringArray(issueData.Assignees));
     setStatus(issueData.Issue.status);
     setType(issueData.Issue.type);
     setTitle(issueData.Issue.title);
     setOriginalTitle(issueData.Issue.title);
-    setDescription(issueData.Issue.description);
-    setOriginalDescription(issueData.Issue.description);
     setAttachments(issueData.Attachments);
-    setIsEditingDescription(false);
-  }, [issueData]);
+
+    if (issueChanged) {
+      setDescription(issueData.Issue.description);
+      setOriginalDescription(issueData.Issue.description);
+      setIsEditingDescription(false);
+      return;
+    }
+
+    if (!isEditingDescription && !isSavingDescription && !uploadingAttachments) {
+      setDescription(issueData.Issue.description);
+      setOriginalDescription(issueData.Issue.description);
+    }
+  }, [issueData, isEditingDescription, isSavingDescription, uploadingAttachments]);
 
   useEffect(() => {
     if (!timerState?.isRunning) return;
@@ -334,9 +361,7 @@ export function IssueDetails({
   const handleDescriptionSave = async () => {
     const trimmedDescription = description.trim();
     if (trimmedDescription === originalDescription) {
-      if (trimmedDescription === "") {
-        setIsEditingDescription(false);
-      }
+      setIsEditingDescription(false);
       return;
     }
 
@@ -349,9 +374,7 @@ export function IssueDetails({
       setOriginalDescription(trimmedDescription);
       setDescription(trimmedDescription);
       toast.success(`${issueID(projectKey, issueData.Issue.number)} Description updated`);
-      if (trimmedDescription === "") {
-        setIsEditingDescription(false);
-      }
+      setIsEditingDescription(false);
     } catch (error) {
       console.error("error updating description:", error);
       setDescription(originalDescription);
@@ -369,18 +392,18 @@ export function IssueDetails({
 
   const uploadFiles = async (files: File[]) => {
     if (files.length === 0) {
-      return;
+      return [] as IssueResponse["Attachments"];
     }
 
     if (!organisation) {
       toast.error("Select an organisation first", { dismissible: false });
-      return;
+      return [] as IssueResponse["Attachments"];
     }
 
     const remainingSlots = ATTACHMENT_MAX_COUNT - attachments.length;
     if (remainingSlots <= 0) {
       toast.error(`You can attach up to ${ATTACHMENT_MAX_COUNT} images`, { dismissible: false });
-      return;
+      return [] as IssueResponse["Attachments"];
     }
 
     const filesToUpload = files.slice(0, remainingSlots);
@@ -413,22 +436,21 @@ export function IssueDetails({
         setAttachments(nextAttachments);
         await persistAttachmentIds(nextAttachments);
       }
+      return uploaded;
     } catch (error) {
       toast.error(`Error uploading attachment: ${parseError(error as Error)}`, {
         dismissible: false,
       });
+      return [] as IssueResponse["Attachments"];
     } finally {
       setUploadingAttachments(false);
     }
   };
 
-  const handleAttachmentSelect = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    event.target.value = "";
-    await uploadFiles(files);
-  };
-
   const handleDescriptionPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
     const imageFiles = Array.from(event.clipboardData.items)
       .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
       .map((item) => item.getAsFile())
@@ -439,18 +461,43 @@ export function IssueDetails({
     }
 
     event.preventDefault();
-    await uploadFiles(imageFiles);
+    const uploaded = await uploadFiles(imageFiles);
+    if (uploaded.length === 0) {
+      return;
+    }
+
+    const urlsText = uploaded.map((attachment) => attachment.url).join("\n");
+    setDescription((previous) => {
+      const prefix = previous.slice(0, selectionStart);
+      const suffix = previous.slice(selectionEnd);
+      const separator = prefix.length > 0 && !prefix.endsWith("\n") ? "\n" : "";
+      const trailingSeparator = suffix.length > 0 && !suffix.startsWith("\n") ? "\n" : "";
+      return `${prefix}${separator}${urlsText}${trailingSeparator}${suffix}`;
+    });
   };
 
   const handleRemoveAttachment = async (attachmentId: number) => {
     const previous = attachments;
     const next = previous.filter((attachment) => attachment.id !== attachmentId);
+    const removed = previous.find((attachment) => attachment.id === attachmentId);
+    const previousDescription = description;
+    const nextDescription = removed
+      ? removeAttachmentUrlFromDescription(previousDescription, removed.url)
+      : previousDescription;
+
     setAttachments(next);
+    setDescription(nextDescription);
 
     try {
-      await persistAttachmentIds(next);
+      await updateIssue.mutateAsync({
+        id: issueData.Issue.id,
+        attachmentIds: next.map((attachment) => attachment.id),
+        description: nextDescription,
+      });
+      setOriginalDescription(nextDescription);
     } catch (error) {
       setAttachments(previous);
+      setDescription(previousDescription);
       toast.error(`Error removing attachment: ${parseError(error as Error)}`, {
         dismissible: false,
       });
@@ -564,28 +611,41 @@ export function IssueDetails({
           </div>
         </div>
         {organisation?.Organisation.features.issueDescriptions &&
-          (description || isEditingDescription ? (
-            <Textarea
-              ref={descriptionRef}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              onBlur={handleDescriptionSave}
-              onPaste={(event) => {
-                void handleDescriptionPaste(event);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape" || (event.ctrlKey && event.key === "Enter")) {
-                  setDescription(originalDescription);
-                  if (originalDescription === "") {
+          (isEditingDescription ? (
+            <div className="flex flex-col gap-2">
+              <Textarea
+                ref={descriptionRef}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                onBlur={handleDescriptionSave}
+                onPaste={(event) => {
+                  void handleDescriptionPaste(event);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" || (event.ctrlKey && event.key === "Enter")) {
+                    setDescription(originalDescription);
                     setIsEditingDescription(false);
+                    event.currentTarget.blur();
                   }
-                  event.currentTarget.blur();
-                }
-              }}
-              placeholder="Add a description..."
-              disabled={isSavingDescription}
-              className="text-sm border-input/50 hover:border-input focus:border-input resize-none !bg-background min-h-fit"
-            />
+                }}
+                placeholder="Add a description..."
+                disabled={isSavingDescription}
+                className="text-sm border-input/50 hover:border-input focus:border-input resize-none !bg-background min-h-fit"
+              />
+            </div>
+          ) : description ? (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                className="border border-border/60 p-2 cursor-text text-left"
+                onClick={() => {
+                  setIsEditingDescription(true);
+                  setTimeout(() => descriptionRef.current?.focus(), 0);
+                }}
+              >
+                <InlineContent text={description} linkify={false} />
+              </button>
+            </div>
           ) : (
             <Button
               variant="ghost"
@@ -602,14 +662,6 @@ export function IssueDetails({
 
         <div className="flex flex-col gap-2">
           <span className="text-sm">Attachments</span>
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            multiple
-            onChange={handleAttachmentSelect}
-            disabled={uploadingAttachments || attachments.length >= ATTACHMENT_MAX_COUNT}
-            className="text-sm"
-          />
         </div>
 
         {attachments.length > 0 && (

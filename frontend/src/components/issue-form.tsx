@@ -110,18 +110,18 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
 
   const uploadFiles = async (files: File[]) => {
     if (files.length === 0) {
-      return;
+      return [] as AttachmentRecord[];
     }
 
     if (!selectedOrganisation) {
       setError("select an organisation first");
-      return;
+      return [] as AttachmentRecord[];
     }
 
     const remainingSlots = ATTACHMENT_MAX_COUNT - attachments.length;
     if (remainingSlots <= 0) {
       toast.error(`You can attach up to ${ATTACHMENT_MAX_COUNT} images`, { dismissible: false });
-      return;
+      return [] as AttachmentRecord[];
     }
 
     const filesToUpload = files.slice(0, remainingSlots);
@@ -153,9 +153,11 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
       if (uploaded.length > 0) {
         setAttachments((previous) => [...previous, ...uploaded]);
       }
+      return uploaded;
     } catch (err) {
       const message = parseError(err as Error);
       toast.error(`Error uploading attachment: ${message}`, { dismissible: false });
+      return [] as AttachmentRecord[];
     } finally {
       setUploadingAttachments(false);
     }
@@ -168,6 +170,9 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   };
 
   const handleDescriptionPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
     const imageFiles = Array.from(event.clipboardData.items)
       .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
       .map((item) => item.getAsFile())
@@ -178,7 +183,19 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
     }
 
     event.preventDefault();
-    await uploadFiles(imageFiles);
+    const uploaded = await uploadFiles(imageFiles);
+    if (uploaded.length === 0) {
+      return;
+    }
+
+    const urlsText = uploaded.map((attachment) => attachment.url).join("\n");
+    setDescription((previous) => {
+      const prefix = previous.slice(0, selectionStart);
+      const suffix = previous.slice(selectionEnd);
+      const separator = prefix.length > 0 && !prefix.endsWith("\n") ? "\n" : "";
+      const trailingSeparator = suffix.length > 0 && !suffix.startsWith("\n") ? "\n" : "";
+      return `${prefix}${separator}${urlsText}${trailingSeparator}${suffix}`;
+    });
   };
 
   const onOpenChange = (nextOpen: boolean) => {

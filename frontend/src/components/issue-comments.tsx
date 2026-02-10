@@ -7,6 +7,7 @@ import {
 } from "@sprint/shared";
 import { type ChangeEvent, type ClipboardEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { extractImageUrls, InlineContent } from "@/components/inline-content";
 import { useSession } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
 import Icon from "@/components/ui/icon";
@@ -50,18 +51,18 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
 
   const uploadFiles = async (files: File[]) => {
     if (files.length === 0) {
-      return;
+      return [] as AttachmentRecord[];
     }
 
     if (!selectedOrganisation) {
       toast.error("Select an organisation first");
-      return;
+      return [] as AttachmentRecord[];
     }
 
     const remainingSlots = ATTACHMENT_MAX_COUNT - attachments.length;
     if (remainingSlots <= 0) {
       toast.error(`You can attach up to ${ATTACHMENT_MAX_COUNT} images`);
-      return;
+      return [] as AttachmentRecord[];
     }
 
     setUploadingAttachments(true);
@@ -91,8 +92,10 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
       if (uploaded.length > 0) {
         setAttachments((previous) => [...previous, ...uploaded]);
       }
+      return uploaded;
     } catch (error) {
       toast.error(`Error uploading attachment: ${parseError(error as Error)}`);
+      return [] as AttachmentRecord[];
     } finally {
       setUploadingAttachments(false);
     }
@@ -105,6 +108,9 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
   };
 
   const handleCommentPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
     const imageFiles = Array.from(event.clipboardData.items)
       .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
       .map((item) => item.getAsFile())
@@ -115,7 +121,19 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
     }
 
     event.preventDefault();
-    await uploadFiles(imageFiles);
+    const uploaded = await uploadFiles(imageFiles);
+    if (uploaded.length === 0) {
+      return;
+    }
+
+    const urlsText = uploaded.map((attachment) => attachment.url).join("\n");
+    setBody((previous) => {
+      const prefix = previous.slice(0, selectionStart);
+      const suffix = previous.slice(selectionEnd);
+      const separator = prefix.length > 0 && !prefix.endsWith("\n") ? "\n" : "";
+      const trailingSeparator = suffix.length > 0 && !suffix.startsWith("\n") ? "\n" : "";
+      return `${prefix}${separator}${urlsText}${trailingSeparator}${suffix}`;
+    });
   };
 
   const sortedComments = useMemo(() => {
@@ -225,6 +243,10 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
           sortedComments.map((comment) => {
             const isAuthor = user?.id === comment.Comment.userId;
             const timestamp = formatTimestamp(comment.Comment.createdAt);
+            const inlineImageUrls = new Set(extractImageUrls(comment.Comment.body));
+            const orphanAttachments = comment.Attachments.filter(
+              (attachment) => !inlineImageUrls.has(attachment.url),
+            );
             return (
               <div key={comment.Comment.id} className="border border-border/60 bg-muted/20 p-3">
                 <div className="flex items-start justify-between gap-2">
@@ -244,10 +266,10 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
                     </IconButton>
                   ) : null}
                 </div>
-                <p className="text-sm whitespace-pre-wrap pt-2">{comment.Comment.body}</p>
-                {comment.Attachments.length > 0 && (
+                <InlineContent text={comment.Comment.body} className="pt-2" />
+                {orphanAttachments.length > 0 && (
                   <div className="grid grid-cols-3 gap-2 pt-2">
-                    {comment.Attachments.map((attachment) => (
+                    {orphanAttachments.map((attachment) => (
                       <a
                         key={attachment.id}
                         href={attachment.url}
