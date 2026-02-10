@@ -133,7 +133,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
           />
           <Label className="text-lg -mt-2">Preferences</Label>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mb-4">
             <div className="flex items-center gap-2">
               <Switch
                 checked={Boolean(preferences.assignByDefault)}
