@@ -187,7 +187,7 @@ export function CalendarDayButton({
         "data-[range-middle=true]:!bg-foreground data-[range-middle=true]:!text-background",
         "data-[range-end=true]:!bg-foreground data-[range-end=true]:!text-background",
 
-        sprint?.color && "border-t border-b !border-(--sprint-color) !bg-(--sprint-color)/5",
+        sprint?.color && "border-t border-b !border-(--sprint-color) !bg-(--sprint-color)/35",
 
         // part of new sprint
         currentSprint?.startDate &&
