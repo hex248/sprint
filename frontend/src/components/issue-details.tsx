@@ -660,12 +660,9 @@ export function IssueDetails({
             </Button>
           ))}
 
-        <div className="flex flex-col gap-2">
-          <span className="text-sm">Attachments</span>
-        </div>
-
         {attachments.length > 0 && (
           <div className="flex flex-col gap-2">
+            <span className="text-sm">Attachments</span>
             <div className="grid grid-cols-3 gap-2">
               {attachments.map((attachment) => (
                 <div key={attachment.id} className="border border-border/60 p-1 flex flex-col gap-1">
