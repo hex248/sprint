@@ -4,7 +4,7 @@ module.exports = {
     apps: [
         {
             name: "sprint-backend",
-            cwd: path.join(__dirname, "packages", "backend"),
+            cwd: path.join(__dirname, "backend"),
             script: "bun",
             args: "start",
             interpreter: "none",
@@ -19,7 +19,7 @@ module.exports = {
         },
         {
             name: "sprint-frontend",
-            cwd: path.join(__dirname, "packages", "frontend"),
+            cwd: path.join(__dirname, "frontend"),
             script: "bun",
             args: "preview --host --port 1420",
             interpreter: "none",

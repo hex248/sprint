@@ -16,6 +16,8 @@
         "reset-and-seed": "bun --filter @sprint/backend db:reset && bun --filter @sprint/backend db:seed"
     },
     "workspaces": [
-        "packages/*"
+        "backend",
+        "frontend",
+        "shared"
     ]
 }

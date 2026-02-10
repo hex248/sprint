@@ -1,4 +1,4 @@
-<img src="packages/frontend/public/favicon.svg" width="128" />
+<img src="frontend/public/favicon.svg" width="128" />
 
 # [Sprint](https://sprintpm.org)
 
@@ -13,8 +13,8 @@ Born out of frustration with Jira.
 1. Copy `.env.example` files into `.env`:
 
 ```bash
-cp packages/backend/.env.example packages/backend/.env
-cp packages/frontend/.env.example packages/frontend/.env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
 
 2. Backend `.env` required values:
@@ -40,4 +40,4 @@ Run the seed script to create demo data:
 bun reset-and-seed
 ```
 
-This seeds demo issues, users, projects, and organisations. Demo users are created and can be used without verification emails. `SEED_PASSWORD` must be set in `packages/backend/.env`.
+This seeds demo issues, users, projects, and organisations. Demo users are created and can be used without verification emails. `SEED_PASSWORD` must be set in `backend/.env`.

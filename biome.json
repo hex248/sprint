@@ -13,6 +13,6 @@
         }
     },
     "files": {
-        "includes": ["**", "!packages/shared/dist"]
+        "includes": ["**", "!shared/dist"]
     }
 }
