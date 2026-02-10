@@ -1,6 +1,6 @@
 {
     "name": "@sprintpm/cli",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Sprint command line interface",
     "license": "MIT",
     "type": "module",
