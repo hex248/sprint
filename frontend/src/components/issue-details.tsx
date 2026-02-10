@@ -1,5 +1,12 @@
-import type { IssueResponse, SprintRecord, UserResponse } from "@sprint/shared";
-import { useEffect, useRef, useState } from "react";
+import {
+  ATTACHMENT_ALLOWED_IMAGE_TYPES,
+  ATTACHMENT_MAX_COUNT,
+  ATTACHMENT_MAX_FILE_SIZE,
+  type IssueResponse,
+  type SprintRecord,
+  type UserResponse,
+} from "@sprint/shared";
+import { type ChangeEvent, type ClipboardEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { IssueComments } from "@/components/issue-comments";
 import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
@@ -25,6 +32,7 @@ import {
   useSelectedOrganisation,
   useTimerState,
   useUpdateIssue,
+  useUploadAttachment,
 } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
 import { cn, issueID } from "@/lib/utils";
@@ -61,6 +69,7 @@ export function IssueDetails({
   const organisation = useSelectedOrganisation();
   const updateIssue = useUpdateIssue();
   const deleteIssue = useDeleteIssue();
+  const uploadAttachment = useUploadAttachment();
   const { data: timerState } = useTimerState(issueData.Issue.id, { refetchInterval: 10000 });
   const { data: inactiveTimers = [] } = useInactiveTimers(issueData.Issue.id, { refetchInterval: 10000 });
   const [timerTick, setTimerTick] = useState(0);
@@ -81,6 +90,8 @@ export function IssueDetails({
   const [originalDescription, setOriginalDescription] = useState("");
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [isSavingDescription, setIsSavingDescription] = useState(false);
+  const [attachments, setAttachments] = useState<IssueResponse["Attachments"]>([]);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const issueTypes = (organisation?.Organisation.issueTypes ?? {}) as Record<
@@ -101,6 +112,7 @@ export function IssueDetails({
     setOriginalTitle(issueData.Issue.title);
     setDescription(issueData.Issue.description);
     setOriginalDescription(issueData.Issue.description);
+    setAttachments(issueData.Attachments);
     setIsEditingDescription(false);
   }, [issueData]);
 
@@ -348,6 +360,103 @@ export function IssueDetails({
     }
   };
 
+  const persistAttachmentIds = async (nextAttachments: IssueResponse["Attachments"]) => {
+    await updateIssue.mutateAsync({
+      id: issueData.Issue.id,
+      attachmentIds: nextAttachments.map((attachment) => attachment.id),
+    });
+  };
+
+  const uploadFiles = async (files: File[]) => {
+    if (files.length === 0) {
+      return;
+    }
+
+    if (!organisation) {
+      toast.error("Select an organisation first", { dismissible: false });
+      return;
+    }
+
+    const remainingSlots = ATTACHMENT_MAX_COUNT - attachments.length;
+    if (remainingSlots <= 0) {
+      toast.error(`You can attach up to ${ATTACHMENT_MAX_COUNT} images`, { dismissible: false });
+      return;
+    }
+
+    const filesToUpload = files.slice(0, remainingSlots);
+    setUploadingAttachments(true);
+    try {
+      const uploaded: IssueResponse["Attachments"] = [];
+      for (const file of filesToUpload) {
+        if (
+          !ATTACHMENT_ALLOWED_IMAGE_TYPES.includes(
+            file.type as (typeof ATTACHMENT_ALLOWED_IMAGE_TYPES)[number],
+          )
+        ) {
+          toast.error(`Unsupported file type: ${file.name}`, { dismissible: false });
+          continue;
+        }
+        if (file.size > ATTACHMENT_MAX_FILE_SIZE) {
+          toast.error(`File exceeds 5MB: ${file.name}`, { dismissible: false });
+          continue;
+        }
+
+        const attachment = await uploadAttachment.mutateAsync({
+          file,
+          organisationId: organisation.Organisation.id,
+        });
+        uploaded.push(attachment as IssueResponse["Attachments"][number]);
+      }
+
+      if (uploaded.length > 0) {
+        const nextAttachments = [...attachments, ...uploaded];
+        setAttachments(nextAttachments);
+        await persistAttachmentIds(nextAttachments);
+      }
+    } catch (error) {
+      toast.error(`Error uploading attachment: ${parseError(error as Error)}`, {
+        dismissible: false,
+      });
+    } finally {
+      setUploadingAttachments(false);
+    }
+  };
+
+  const handleAttachmentSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    await uploadFiles(files);
+  };
+
+  const handleDescriptionPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const imageFiles = Array.from(event.clipboardData.items)
+      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file != null);
+
+    if (imageFiles.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    await uploadFiles(imageFiles);
+  };
+
+  const handleRemoveAttachment = async (attachmentId: number) => {
+    const previous = attachments;
+    const next = previous.filter((attachment) => attachment.id !== attachmentId);
+    setAttachments(next);
+
+    try {
+      await persistAttachmentIds(next);
+    } catch (error) {
+      setAttachments(previous);
+      toast.error(`Error removing attachment: ${parseError(error as Error)}`, {
+        dismissible: false,
+      });
+    }
+  };
+
   const handleConfirmDelete = async () => {
     try {
       await deleteIssue.mutateAsync(issueData.Issue.id);
@@ -461,6 +570,9 @@ export function IssueDetails({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               onBlur={handleDescriptionSave}
+              onPaste={(event) => {
+                void handleDescriptionPaste(event);
+              }}
               onKeyDown={(event) => {
                 if (event.key === "Escape" || (event.ctrlKey && event.key === "Enter")) {
                   setDescription(originalDescription);
@@ -487,6 +599,43 @@ export function IssueDetails({
               Add description
             </Button>
           ))}
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm">Attachments</span>
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
+            onChange={handleAttachmentSelect}
+            disabled={uploadingAttachments || attachments.length >= ATTACHMENT_MAX_COUNT}
+            className="text-sm"
+          />
+        </div>
+
+        {attachments.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-3 gap-2">
+              {attachments.map((attachment) => (
+                <div key={attachment.id} className="border border-border/60 p-1 flex flex-col gap-1">
+                  <a href={attachment.url} target="_blank" rel="noreferrer" className="block">
+                    <img src={attachment.url} alt="issue attachment" className="h-24 w-full object-cover" />
+                  </a>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      void handleRemoveAttachment(attachment.id);
+                    }}
+                    disabled={uploadingAttachments || updateIssue.isPending}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {organisation?.Organisation.features.sprints && (
           <div className="flex items-center gap-2">

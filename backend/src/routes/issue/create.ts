@@ -2,6 +2,7 @@ import { IssueCreateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
 import {
     createIssue,
+    getAttachableAttachments,
     // FREE_TIER_LIMITS,
     // getOrganisationIssueCount,
     getOrganisationMemberRole,
@@ -14,7 +15,16 @@ export default async function issueCreate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, IssueCreateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { projectId, title, description = "", status, assigneeIds, sprintId, type } = parsed.data;
+    const {
+        projectId,
+        title,
+        description = "",
+        status,
+        assigneeIds,
+        sprintId,
+        type,
+        attachmentIds = [],
+    } = parsed.data;
 
     const project = await getProjectByID(projectId);
     if (!project) {
@@ -46,6 +56,18 @@ export default async function issueCreate(req: AuthedRequest) {
     //     }
     // }
 
+    const dedupedAttachmentIds = [...new Set(attachmentIds)];
+    if (dedupedAttachmentIds.length > 0) {
+        const attachable = await getAttachableAttachments(
+            dedupedAttachmentIds,
+            project.organisationId,
+            req.userId,
+        );
+        if (attachable.length !== dedupedAttachmentIds.length) {
+            return errorResponse("one or more attachments are invalid", "INVALID_ATTACHMENTS", 400);
+        }
+    }
+
     const issue = await createIssue(
         project.id,
         title,
@@ -55,6 +77,7 @@ export default async function issueCreate(req: AuthedRequest) {
         type,
         sprintId ?? undefined,
         assigneeIds,
+        dedupedAttachmentIds,
     );
 
     return Response.json(issue);

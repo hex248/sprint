@@ -19,3 +19,18 @@ export const s3Client = new S3Client({
 
 export const bucketName = s3BucketName;
 export { s3Endpoint, s3PublicUrl };
+
+export async function uploadToS3(key: string, data: Buffer, mimeType: string) {
+    const s3File = s3Client.file(key);
+    await s3File.write(data, { type: mimeType });
+}
+
+export async function deleteFromS3(key: string) {
+    const s3File = s3Client.file(key);
+    await s3File.delete();
+}
+
+export function getS3PublicUrl(key: string) {
+    const publicUrlBase = s3PublicUrl || s3Endpoint;
+    return `${publicUrlBase}/${key}`;
+}

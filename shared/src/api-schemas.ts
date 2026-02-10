@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+    ATTACHMENT_MAX_COUNT,
     ISSUE_COMMENT_MAX_LENGTH,
     ISSUE_DESCRIPTION_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
@@ -134,6 +135,7 @@ export const IssueCreateRequestSchema = z.object({
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).default(""),
     assigneeIds: z.array(z.number().int().positive()).optional(),
     sprintId: z.number().int().positive().nullable().optional(),
+    attachmentIds: z.array(z.number().int().positive()).max(ATTACHMENT_MAX_COUNT).optional(),
 });
 
 export type IssueCreateRequest = z.infer<typeof IssueCreateRequestSchema>;
@@ -146,6 +148,7 @@ export const IssueUpdateRequestSchema = z.object({
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).optional(),
     assigneeIds: z.array(z.number().int().positive()).nullable().optional(),
     sprintId: z.number().int().positive().nullable().optional(),
+    attachmentIds: z.array(z.number().int().positive()).max(ATTACHMENT_MAX_COUNT).optional(),
 });
 
 export type IssueUpdateRequest = z.infer<typeof IssueUpdateRequestSchema>;
@@ -201,6 +204,7 @@ export type IssuesReplaceTypeRequest = z.infer<typeof IssuesReplaceTypeRequestSc
 export const IssueCommentCreateRequestSchema = z.object({
     issueId: z.number().int().positive("issueId must be a positive integer"),
     body: z.string().min(1, "Comment is required").max(ISSUE_COMMENT_MAX_LENGTH),
+    attachmentIds: z.array(z.number().int().positive()).max(ATTACHMENT_MAX_COUNT).optional(),
 });
 
 export type IssueCommentCreateRequest = z.infer<typeof IssueCommentCreateRequestSchema>;
@@ -523,10 +527,34 @@ export const IssueRecordSchema = z.object({
     sprintId: z.number().nullable(),
 });
 
+export const AttachmentRecordSchema = z.object({
+    id: z.number(),
+    organisationId: z.number(),
+    uploaderId: z.number(),
+    issueId: z.number().nullable(),
+    issueCommentId: z.number().nullable(),
+    s3Key: z.string(),
+    url: z.string(),
+    mimeType: z.enum(["image/png", "image/jpeg", "image/webp", "image/gif"]),
+    sizeBytes: z.number(),
+    width: z.number().nullable(),
+    height: z.number().nullable(),
+    createdAt: z.union([z.string(), z.date()]).nullable().optional(),
+});
+
+export type AttachmentRecord = z.infer<typeof AttachmentRecordSchema>;
+
+export const AttachmentUploadResponseSchema = z.object({
+    attachment: AttachmentRecordSchema,
+});
+
+export type AttachmentUploadResponse = z.infer<typeof AttachmentUploadResponseSchema>;
+
 export const IssueResponseSchema = z.object({
     Issue: IssueRecordSchema,
     Creator: UserResponseSchema,
     Assignees: z.array(UserResponseSchema),
+    Attachments: z.array(AttachmentRecordSchema),
 });
 
 export type IssueResponse = z.infer<typeof IssueResponseSchema>;
@@ -543,6 +571,7 @@ export const IssueCommentRecordSchema = z.object({
 export const IssueCommentResponseSchema = z.object({
     Comment: IssueCommentRecordSchema,
     User: UserResponseSchema,
+    Attachments: z.array(AttachmentRecordSchema),
 });
 
 export type IssueCommentResponse = z.infer<typeof IssueCommentResponseSchema>;
