@@ -6,6 +6,11 @@ import {
     CancelSubscriptionResponseSchema,
     ChatRequestSchema,
     ChatResponseSchema,
+    CliLoginApproveRequestSchema,
+    CliLoginPollRequestSchema,
+    CliLoginPollResponseSchema,
+    CliLoginStartRequestSchema,
+    CliLoginStartResponseSchema,
     CreateCheckoutSessionRequestSchema,
     CreateCheckoutSessionResponseSchema,
     CreatePortalSessionResponseSchema,
@@ -154,6 +159,37 @@ export const apiContract = c.router({
             401: ApiErrorSchema,
             404: ApiErrorSchema,
         },
+    },
+    cliLoginStart: {
+        method: "POST",
+        path: "/cli/login/start",
+        body: CliLoginStartRequestSchema,
+        responses: {
+            200: CliLoginStartResponseSchema,
+            429: ApiErrorSchema,
+        },
+    },
+    cliLoginPoll: {
+        method: "POST",
+        path: "/cli/login/poll",
+        body: CliLoginPollRequestSchema,
+        responses: {
+            200: CliLoginPollResponseSchema,
+            400: ApiErrorSchema,
+            429: ApiErrorSchema,
+        },
+    },
+    cliLoginApprove: {
+        method: "POST",
+        path: "/cli/login/approve",
+        body: CliLoginApproveRequestSchema,
+        responses: {
+            200: SuccessResponseSchema,
+            400: ApiErrorSchema,
+            401: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
     },
 
     userByUsername: {

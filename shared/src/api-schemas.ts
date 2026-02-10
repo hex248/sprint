@@ -67,6 +67,55 @@ export const AuthResponseSchema = z.object({
 
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 
+export const CliLoginStartRequestSchema = z.object({
+    deviceName: z.string().min(1).max(64).optional(),
+});
+
+export type CliLoginStartRequest = z.infer<typeof CliLoginStartRequestSchema>;
+
+export const CliLoginStartResponseSchema = z.object({
+    deviceCode: z.string(),
+    userCode: z.string(),
+    verificationUri: z.string().url(),
+    expiresInSeconds: z.number().int().positive(),
+    intervalSeconds: z.number().int().positive(),
+});
+
+export type CliLoginStartResponse = z.infer<typeof CliLoginStartResponseSchema>;
+
+export const CliLoginPollRequestSchema = z.object({
+    deviceCode: z.string().min(1),
+});
+
+export type CliLoginPollRequest = z.infer<typeof CliLoginPollRequestSchema>;
+
+export const CliLoginPollResponseSchema = z.discriminatedUnion("status", [
+    z.object({
+        status: z.literal("pending"),
+        intervalSeconds: z.number().int().positive(),
+        expiresInSeconds: z.number().int().nonnegative(),
+    }),
+    z.object({
+        status: z.literal("approved"),
+        token: z.string(),
+        csrfToken: z.string(),
+    }),
+    z.object({
+        status: z.literal("expired"),
+    }),
+    z.object({
+        status: z.literal("denied"),
+    }),
+]);
+
+export type CliLoginPollResponse = z.infer<typeof CliLoginPollResponseSchema>;
+
+export const CliLoginApproveRequestSchema = z.object({
+    userCode: z.string().min(1),
+});
+
+export type CliLoginApproveRequest = z.infer<typeof CliLoginApproveRequestSchema>;
+
 // email verification schemas
 
 export const VerifyEmailRequestSchema = z.object({

@@ -35,6 +35,16 @@ export const REGISTER_RATE_LIMIT: RateLimitConfig = {
     max: 3,
 };
 
+export const CLI_LOGIN_START_RATE_LIMIT: RateLimitConfig = {
+    windowMs: 60 * 1000,
+    max: 10,
+};
+
+export const CLI_LOGIN_POLL_RATE_LIMIT: RateLimitConfig = {
+    windowMs: 60 * 1000,
+    max: 60,
+};
+
 export const getClientIP = (req: Request) => {
     const forwardedFor = req.headers.get("x-forwarded-for");
     if (forwardedFor) {

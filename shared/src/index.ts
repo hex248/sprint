@@ -4,6 +4,11 @@ export type {
     CancelSubscriptionResponse,
     ChatRequest,
     ChatResponse,
+    CliLoginApproveRequest,
+    CliLoginPollRequest,
+    CliLoginPollResponse,
+    CliLoginStartRequest,
+    CliLoginStartResponse,
     CreateCheckoutSessionRequest,
     CreateCheckoutSessionResponse,
     CreatePortalSessionResponse,
@@ -77,6 +82,11 @@ export {
     CancelSubscriptionResponseSchema,
     ChatRequestSchema,
     ChatResponseSchema,
+    CliLoginApproveRequestSchema,
+    CliLoginPollRequestSchema,
+    CliLoginPollResponseSchema,
+    CliLoginStartRequestSchema,
+    CliLoginStartResponseSchema,
     CreateCheckoutSessionRequestSchema,
     CreateCheckoutSessionResponseSchema,
     CreatePortalSessionResponseSchema,
@@ -165,6 +175,8 @@ export {
 export type { ApiContract } from "./contract";
 export { apiContract } from "./contract";
 export type {
+    CliLoginCodeInsert,
+    CliLoginCodeRecord,
     EmailJobInsert,
     EmailJobRecord,
     EmailVerificationInsert,
@@ -202,6 +214,9 @@ export type {
     UserRecord,
 } from "./schema";
 export {
+    CliLoginCode,
+    CliLoginCodeInsertSchema,
+    CliLoginCodeSelectSchema,
     DEFAULT_FEATURES,
     DEFAULT_ISSUE_TYPES,
     DEFAULT_SPRINT_COLOUR,

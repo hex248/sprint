@@ -42,6 +42,21 @@
         "typescript": "^5",
       },
     },
+    "cli": {
+      "name": "@sprintpm/cli",
+      "version": "0.1.1",
+      "bin": {
+        "sprint": "./dist/index.js",
+      },
+      "dependencies": {
+        "dotenv": "^17.2.3",
+      },
+      "devDependencies": {
+        "@sprint/shared": "workspace:*",
+        "@types/node": "^25.1.0",
+        "typescript": "~5.8.3",
+      },
+    },
     "frontend": {
       "name": "@sprint/frontend",
       "version": "0.1.0",
@@ -459,6 +474,8 @@
     "@sprint/frontend": ["@sprint/frontend@workspace:frontend"],
 
     "@sprint/shared": ["@sprint/shared@workspace:shared"],
+
+    "@sprintpm/cli": ["@sprintpm/cli@workspace:cli"],
 
     "@stablelib/base64": ["@stablelib/base64@1.0.1", "", {}, "sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ=="],
 
