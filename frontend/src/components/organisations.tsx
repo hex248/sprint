@@ -7,7 +7,6 @@ import {
   type SprintRecord,
 } from "@sprint/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 // import { Link } from "react-router-dom";
 import { toast } from "sonner";
