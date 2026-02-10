@@ -348,8 +348,11 @@ export default function Timeline() {
                               {barStyle && (
                                 <SprintForm
                                   mode="edit"
+                                  projectId={selectedProjectId}
                                   existingSprint={sprint}
                                   sprints={sprints}
+                                  statuses={selectedOrganisation?.Organisation.statuses ?? {}}
+                                  issues={issuesData}
                                   trigger={
                                     <button
                                       type="button"

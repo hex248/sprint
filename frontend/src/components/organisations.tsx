@@ -1366,8 +1366,11 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                     />
                     <SprintForm
                       mode="edit"
+                      projectId={selectedProject?.Project.id}
                       existingSprint={editingSprint ?? undefined}
                       sprints={sprints}
+                      statuses={selectedOrganisation?.Organisation.statuses ?? {}}
+                      issues={issues}
                       open={editSprintOpen}
                       onOpenChange={(open) => {
                         setEditSprintOpen(open);
