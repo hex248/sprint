@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { runBranchCommand } from "./commands/branch";
 import { runCreateCommand } from "./commands/create";
@@ -25,7 +25,7 @@ Commands:
 `;
 
 const main = async () => {
-    const [, , command, ...args] = Bun.argv;
+    const [, , command, ...args] = process.argv;
 
     if (!command || command === "--help" || command === "-h" || command === "help") {
         console.log(helpText);

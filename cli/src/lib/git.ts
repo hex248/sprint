@@ -1,17 +1,18 @@
+import { spawnSync } from "node:child_process";
+
 const runGit = (args: string[]) => {
-    const result = Bun.spawnSync({
-        cmd: ["git", ...args],
-        stdout: "pipe",
-        stderr: "pipe",
+    const result = spawnSync("git", args, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
     });
 
-    if (result.exitCode !== 0) {
-        const stderr = new TextDecoder().decode(result.stderr).trim();
-        const stdout = new TextDecoder().decode(result.stdout).trim();
+    if (result.status !== 0) {
+        const stderr = (result.stderr ?? "").trim();
+        const stdout = (result.stdout ?? "").trim();
         throw new Error(stderr || stdout || `git ${args.join(" ")} failed`);
     }
 
-    return new TextDecoder().decode(result.stdout).trim();
+    return (result.stdout ?? "").trim();
 };
 
 export const getCurrentBranch = () => runGit(["rev-parse", "--abbrev-ref", "HEAD"]);

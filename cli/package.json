@@ -1,21 +1,36 @@
 {
-    "name": "@sprint/cli",
-    "version": "0.1.0",
+    "name": "@sprintpm/cli",
+    "version": "0.1.2",
+    "description": "Sprint command line interface",
+    "license": "MIT",
     "type": "module",
-    "bin": {
-        "sprint": "./src/index.ts"
+    "publishConfig": {
+        "access": "public"
     },
+    "engines": {
+        "node": ">=18"
+    },
+    "bin": {
+        "sprint": "./dist/index.js"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "AGENT_MODE.md"
+    ],
     "scripts": {
         "dev": "bun src/index.ts",
-        "start": "bun src/index.ts"
+        "build": "bun build ./src/index.ts --target=node --outfile ./dist/index.js && chmod +x ./dist/index.js",
+        "start": "node dist/index.js",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "prepack": "bun run build"
     },
     "dependencies": {
-        "@sprint/shared": "workspace:*",
         "dotenv": "^17.2.3"
     },
     "devDependencies": {
+        "@sprint/shared": "workspace:*",
         "@types/node": "^25.1.0",
-        "@types/bun": "latest",
         "typescript": "~5.8.3"
     }
 }
