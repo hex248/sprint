@@ -34,7 +34,7 @@ type RoomJoinedMessage = {
 
 type RoomErrorMessage = {
   type: "room-error";
-  code: "INVALID_ROOM" | "FORBIDDEN_ROOM";
+  code: "INVALID_ROOM" | "FORBIDDEN_ROOM" | "IN_CALL";
   message: string;
 };
 
@@ -274,6 +274,7 @@ export function OnlineUsersOverlay() {
   }
 
   const isRoomOwner = currentRoomUserId === session.user.id;
+  const viewerIsInCall = inCallUserSet.has(session.user.id);
 
   return (
     <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-50 flex w-[min(32rem,calc(100vw-2rem))] flex-col gap-2">
@@ -303,6 +304,7 @@ export function OnlineUsersOverlay() {
                 />
                 <div className="flex items-center gap-2">
                   {!roomParticipantSet.has(member.User.id) &&
+                    !viewerIsInCall &&
                     (!inCallUserSet.has(member.User.id) || inCallRoomOwnerUserSet.has(member.User.id)) && (
                       <IconButton
                         size="sm"

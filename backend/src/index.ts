@@ -106,6 +106,25 @@ const getUsersInCall = (organisationId: number) => {
     return [...usersInCall];
 };
 
+const isUserInCall = (organisationId: number, userId: number) => {
+    const orgConnections = roomConnections.get(organisationId);
+    if (!orgConnections) {
+        return false;
+    }
+
+    for (const roomUsers of orgConnections.values()) {
+        if (roomUsers.size < 2) {
+            continue;
+        }
+
+        if (roomUsers.has(userId)) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 const getInCallRoomOwnerUserIds = (organisationId: number) => {
     const orgConnections = roomConnections.get(organisationId);
     if (!orgConnections) {
@@ -563,6 +582,17 @@ const main = async () => {
                 }
 
                 if (data.type !== "join-room") {
+                    return;
+                }
+
+                if (isUserInCall(organisationId, userId)) {
+                    ws.send(
+                        JSON.stringify({
+                            type: "room-error",
+                            code: "IN_CALL",
+                            message: "already in call",
+                        }),
+                    );
                     return;
                 }
 
