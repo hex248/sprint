@@ -16,11 +16,28 @@ type PresenceSocketData = {
     organisationId: number;
     userId: number;
     connectionId: string;
+    activeRoomUserId: number;
 };
 
+type ClientRoomMessage =
+    | {
+          type: "join-room";
+          roomUserId: number;
+      }
+    | {
+          type: "leave-room";
+      }
+    | {
+          type: "end-room";
+      };
+
 const presenceConnections = new Map<number, Map<number, Set<string>>>();
+const roomConnections = new Map<number, Map<number, Map<number, Set<string>>>>();
+const socketConnections = new Map<string, Bun.ServerWebSocket<PresenceSocketData>>();
 
 const getOrganisationPresenceTopic = (organisationId: number) => `organisation:${organisationId}:online`;
+const getOrganisationRoomTopic = (organisationId: number, roomUserId: number) =>
+    `organisation:${organisationId}:room:${roomUserId}`;
 
 const addPresenceConnection = (organisationId: number, userId: number, connectionId: string) => {
     let orgConnections = presenceConnections.get(organisationId);
@@ -69,6 +86,83 @@ const getOnlineUserIds = (organisationId: number) => {
     return [...orgConnections.keys()];
 };
 
+const addRoomConnection = (
+    organisationId: number,
+    roomUserId: number,
+    userId: number,
+    connectionId: string,
+) => {
+    let orgConnections = roomConnections.get(organisationId);
+    if (!orgConnections) {
+        orgConnections = new Map();
+        roomConnections.set(organisationId, orgConnections);
+    }
+
+    let roomUsers = orgConnections.get(roomUserId);
+    if (!roomUsers) {
+        roomUsers = new Map();
+        orgConnections.set(roomUserId, roomUsers);
+    }
+
+    let userConnections = roomUsers.get(userId);
+    if (!userConnections) {
+        userConnections = new Set();
+        roomUsers.set(userId, userConnections);
+    }
+
+    userConnections.add(connectionId);
+};
+
+const removeRoomConnection = (
+    organisationId: number,
+    roomUserId: number,
+    userId: number,
+    connectionId: string,
+) => {
+    const orgConnections = roomConnections.get(organisationId);
+    if (!orgConnections) {
+        return;
+    }
+
+    const roomUsers = orgConnections.get(roomUserId);
+    if (!roomUsers) {
+        return;
+    }
+
+    const userConnections = roomUsers.get(userId);
+    if (!userConnections) {
+        return;
+    }
+
+    userConnections.delete(connectionId);
+
+    if (userConnections.size === 0) {
+        roomUsers.delete(userId);
+    }
+
+    if (roomUsers.size === 0) {
+        orgConnections.delete(roomUserId);
+    }
+
+    if (orgConnections.size === 0) {
+        roomConnections.delete(organisationId);
+    }
+};
+
+const getRoomParticipantUserIds = (organisationId: number, roomUserId: number) => {
+    const orgConnections = roomConnections.get(organisationId);
+    if (!orgConnections) {
+        return [] as number[];
+    }
+
+    const roomUsers = orgConnections.get(roomUserId);
+    if (!roomUsers) {
+        return [] as number[];
+    }
+
+    return [...roomUsers.keys()];
+};
+
 const publishOnlineUsers = (server: Bun.Server<PresenceSocketData>, organisationId: number) => {
     const payload = JSON.stringify({
         type: "online-users",
@@ -76,6 +170,20 @@ const publishOnlineUsers = (server: Bun.Server<PresenceSocketData>, organisation
         userIds: getOnlineUserIds(organisationId),
     });
     server.publish(getOrganisationPresenceTopic(organisationId), payload);
+};
+
+const publishRoomParticipants = (
+    server: Bun.Server<PresenceSocketData>,
+    organisationId: number,
+    roomUserId: number,
+) => {
+    const payload = JSON.stringify({
+        type: "room-participants",
+        organisationId,
+        roomUserId,
+        participantUserIds: getRoomParticipantUserIds(organisationId, roomUserId),
+    });
+    server.publish(getOrganisationRoomTopic(organisationId, roomUserId), payload);
 };
 
 const startSessionCleanup = () => {
@@ -139,6 +247,7 @@ const main = async () => {
                 organisationId,
                 userId,
                 connectionId: crypto.randomUUID(),
+                activeRoomUserId: userId,
             },
         });
 
@@ -253,15 +362,203 @@ const main = async () => {
         websocket: {
             open(ws) {
                 const { organisationId, userId, connectionId } = ws.data;
+                socketConnections.set(connectionId, ws);
                 ws.subscribe(getOrganisationPresenceTopic(organisationId));
                 addPresenceConnection(organisationId, userId, connectionId);
                 publishOnlineUsers(server, organisationId);
+
+                ws.subscribe(getOrganisationRoomTopic(organisationId, userId));
+                addRoomConnection(organisationId, userId, userId, connectionId);
+                publishRoomParticipants(server, organisationId, userId);
             },
-            message() {},
-            close(ws) {
+            async message(ws, message) {
+                let parsedMessage: unknown;
+                try {
+                    const raw = typeof message === "string" ? message : Buffer.from(message).toString("utf8");
+                    parsedMessage = JSON.parse(raw);
+                } catch {
+                    return;
+                }
+
+                if (
+                    !parsedMessage ||
+                    typeof parsedMessage !== "object" ||
+                    !("type" in parsedMessage) ||
+                    typeof parsedMessage.type !== "string"
+                ) {
+                    return;
+                }
+
+                const data = parsedMessage as ClientRoomMessage;
                 const { organisationId, userId, connectionId } = ws.data;
+
+                const joinRoom = (roomUserId: number) => {
+                    const previousRoomUserId = ws.data.activeRoomUserId;
+                    if (previousRoomUserId === roomUserId) {
+                        ws.send(
+                            JSON.stringify({
+                                type: "room-joined",
+                                organisationId,
+                                roomUserId,
+                            }),
+                        );
+                        ws.send(
+                            JSON.stringify({
+                                type: "room-participants",
+                                organisationId,
+                                roomUserId,
+                                participantUserIds: getRoomParticipantUserIds(organisationId, roomUserId),
+                            }),
+                        );
+                        return;
+                    }
+
+                    ws.unsubscribe(getOrganisationRoomTopic(organisationId, previousRoomUserId));
+                    removeRoomConnection(organisationId, previousRoomUserId, userId, connectionId);
+                    publishRoomParticipants(server, organisationId, previousRoomUserId);
+
+                    ws.subscribe(getOrganisationRoomTopic(organisationId, roomUserId));
+                    addRoomConnection(organisationId, roomUserId, userId, connectionId);
+                    ws.data.activeRoomUserId = roomUserId;
+                    publishRoomParticipants(server, organisationId, roomUserId);
+
+                    ws.send(
+                        JSON.stringify({
+                            type: "room-joined",
+                            organisationId,
+                            roomUserId,
+                        }),
+                    );
+                };
+
+                if (data.type === "leave-room") {
+                    joinRoom(userId);
+                    return;
+                }
+
+                if (data.type === "end-room") {
+                    const activeRoomUserId = ws.data.activeRoomUserId;
+                    if (activeRoomUserId !== userId) {
+                        ws.send(
+                            JSON.stringify({
+                                type: "room-error",
+                                code: "FORBIDDEN_ROOM",
+                                message: "forbidden room",
+                            }),
+                        );
+                        return;
+                    }
+
+                    const orgConnections = roomConnections.get(organisationId);
+                    const roomUsers = orgConnections?.get(activeRoomUserId);
+                    if (!roomUsers) {
+                        ws.send(
+                            JSON.stringify({
+                                type: "room-participants",
+                                organisationId,
+                                roomUserId: activeRoomUserId,
+                                participantUserIds: getRoomParticipantUserIds(
+                                    organisationId,
+                                    activeRoomUserId,
+                                ),
+                            }),
+                        );
+                        return;
+                    }
+
+                    const movedUserIds = new Set<number>();
+                    for (const [participantUserId, participantConnectionIds] of roomUsers.entries()) {
+                        if (participantUserId === userId) {
+                            continue;
+                        }
+
+                        for (const participantConnectionId of participantConnectionIds) {
+                            const participantSocket = socketConnections.get(participantConnectionId);
+                            if (
+                                !participantSocket ||
+                                participantSocket.data.organisationId !== organisationId
+                            ) {
+                                continue;
+                            }
+
+                            participantSocket.unsubscribe(
+                                getOrganisationRoomTopic(organisationId, activeRoomUserId),
+                            );
+                            removeRoomConnection(
+                                organisationId,
+                                activeRoomUserId,
+                                participantUserId,
+                                participantConnectionId,
+                            );
+
+                            participantSocket.subscribe(
+                                getOrganisationRoomTopic(organisationId, participantSocket.data.userId),
+                            );
+                            addRoomConnection(
+                                organisationId,
+                                participantSocket.data.userId,
+                                participantUserId,
+                                participantConnectionId,
+                            );
+                            participantSocket.data.activeRoomUserId = participantSocket.data.userId;
+                            movedUserIds.add(participantSocket.data.userId);
+
+                            participantSocket.send(
+                                JSON.stringify({
+                                    type: "room-joined",
+                                    organisationId,
+                                    roomUserId: participantSocket.data.userId,
+                                }),
+                            );
+                        }
+                    }
+
+                    publishRoomParticipants(server, organisationId, activeRoomUserId);
+                    for (const movedUserId of movedUserIds) {
+                        publishRoomParticipants(server, organisationId, movedUserId);
+                    }
+
+                    return;
+                }
+
+                if (data.type !== "join-room") {
+                    return;
+                }
+
+                const roomUserId = Number(data.roomUserId);
+                if (!Number.isInteger(roomUserId) || roomUserId <= 0) {
+                    ws.send(
+                        JSON.stringify({
+                            type: "room-error",
+                            code: "INVALID_ROOM",
+                            message: "invalid room",
+                        }),
+                    );
+                    return;
+                }
+
+                const targetMember = await getOrganisationMemberRole(organisationId, roomUserId);
+                if (!targetMember) {
+                    ws.send(
+                        JSON.stringify({
+                            type: "room-error",
+                            code: "FORBIDDEN_ROOM",
+                            message: "forbidden room",
+                        }),
+                    );
+                    return;
+                }
+
+                joinRoom(roomUserId);
+            },
+            close(ws) {
+                const { organisationId, userId, connectionId, activeRoomUserId } = ws.data;
+                socketConnections.delete(connectionId);
                 removePresenceConnection(organisationId, userId, connectionId);
                 publishOnlineUsers(server, organisationId);
+
+                removeRoomConnection(organisationId, activeRoomUserId, userId, connectionId);
+                publishRoomParticipants(server, organisationId, activeRoomUserId);
             },
         },
     });
