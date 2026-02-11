@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useSelection } from "@/components/selection-provider";
 import { useSessionSafe } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
@@ -14,10 +15,13 @@ type PresenceMessage = {
 };
 
 export function OnlineUsersOverlay() {
+  const location = useLocation();
   const session = useSessionSafe();
   const { selectedOrganisationId } = useSelection();
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
   const [onlineUserIds, setOnlineUserIds] = useState<number[]>([]);
+  const isSupportedRoute =
+    location.pathname.startsWith("/issues") || location.pathname.startsWith("/timeline");
 
   useEffect(() => {
     if (!session?.user || !selectedOrganisationId) {
@@ -94,7 +98,7 @@ export function OnlineUsersOverlay() {
     [onlineMembers, session?.user?.id],
   );
 
-  if (!session?.user || !selectedOrganisationId || otherOnlineMembers.length === 0) {
+  if (!isSupportedRoute || !session?.user || !selectedOrganisationId || otherOnlineMembers.length === 0) {
     return null;
   }
 
