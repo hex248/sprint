@@ -86,6 +86,42 @@ const getOnlineUserIds = (organisationId: number) => {
     return [...orgConnections.keys()];
 };
 
+const getUsersInCall = (organisationId: number) => {
+    const orgConnections = roomConnections.get(organisationId);
+    if (!orgConnections) {
+        return [] as number[];
+    }
+
+    const usersInCall = new Set<number>();
+    for (const roomUsers of orgConnections.values()) {
+        if (roomUsers.size < 2) {
+            continue;
+        }
+
+        for (const userId of roomUsers.keys()) {
+            usersInCall.add(userId);
+        }
+    }
+
+    return [...usersInCall];
+};
+
+const getInCallRoomOwnerUserIds = (organisationId: number) => {
+    const orgConnections = roomConnections.get(organisationId);
+    if (!orgConnections) {
+        return [] as number[];
+    }
+
+    const roomOwnerUserIds: number[] = [];
+    for (const [roomUserId, roomUsers] of orgConnections.entries()) {
+        if (roomUsers.size >= 2) {
+            roomOwnerUserIds.push(roomUserId);
+        }
+    }
+
+    return roomOwnerUserIds;
+};
+
 const addRoomConnection = (
     organisationId: number,
     roomUserId: number,
@@ -168,6 +204,8 @@ const publishOnlineUsers = (server: Bun.Server<PresenceSocketData>, organisation
         type: "online-users",
         organisationId,
         userIds: getOnlineUserIds(organisationId),
+        inCallUserIds: getUsersInCall(organisationId),
+        inCallRoomOwnerUserIds: getInCallRoomOwnerUserIds(organisationId),
     });
     server.publish(getOrganisationPresenceTopic(organisationId), payload);
 };
@@ -370,6 +408,7 @@ const main = async () => {
                 ws.subscribe(getOrganisationRoomTopic(organisationId, userId));
                 addRoomConnection(organisationId, userId, userId, connectionId);
                 publishRoomParticipants(server, organisationId, userId);
+                publishOnlineUsers(server, organisationId);
             },
             async message(ws, message) {
                 let parsedMessage: unknown;
@@ -421,6 +460,7 @@ const main = async () => {
                     addRoomConnection(organisationId, roomUserId, userId, connectionId);
                     ws.data.activeRoomUserId = roomUserId;
                     publishRoomParticipants(server, organisationId, roomUserId);
+                    publishOnlineUsers(server, organisationId);
 
                     ws.send(
                         JSON.stringify({
@@ -517,6 +557,7 @@ const main = async () => {
                     for (const movedUserId of movedUserIds) {
                         publishRoomParticipants(server, organisationId, movedUserId);
                     }
+                    publishOnlineUsers(server, organisationId);
 
                     return;
                 }
@@ -559,6 +600,7 @@ const main = async () => {
 
                 removeRoomConnection(organisationId, activeRoomUserId, userId, connectionId);
                 publishRoomParticipants(server, organisationId, activeRoomUserId);
+                publishOnlineUsers(server, organisationId);
             },
         },
     });

@@ -15,6 +15,8 @@ type PresenceMessage = {
   type: "online-users";
   organisationId: number;
   userIds: number[];
+  inCallUserIds: number[];
+  inCallRoomOwnerUserIds: number[];
 };
 
 type RoomParticipantsMessage = {
@@ -44,6 +46,8 @@ export function OnlineUsersOverlay() {
   const { selectedOrganisationId } = useSelection();
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
   const [onlineUserIds, setOnlineUserIds] = useState<number[]>([]);
+  const [inCallUserIds, setInCallUserIds] = useState<number[]>([]);
+  const [inCallRoomOwnerUserIds, setInCallRoomOwnerUserIds] = useState<number[]>([]);
   const [currentRoomUserId, setCurrentRoomUserId] = useState<number | null>(null);
   const [roomParticipantUserIds, setRoomParticipantUserIds] = useState<number[]>([]);
   const [desiredRoomUserId, setDesiredRoomUserId] = useState<number | null>(null);
@@ -114,6 +118,8 @@ export function OnlineUsersOverlay() {
   useEffect(() => {
     if (!isSupportedRoute || !session?.user || !selectedOrganisationId) {
       setOnlineUserIds([]);
+      setInCallUserIds([]);
+      setInCallRoomOwnerUserIds([]);
       setCurrentRoomUserId(null);
       setRoomParticipantUserIds([]);
       setDesiredRoomUserId(null);
@@ -165,6 +171,14 @@ export function OnlineUsersOverlay() {
 
             const nextUserIds = message.userIds.filter((userId) => Number.isInteger(userId) && userId > 0);
             setOnlineUserIds(nextUserIds);
+            const nextInCallUserIds = message.inCallUserIds.filter(
+              (userId) => Number.isInteger(userId) && userId > 0,
+            );
+            setInCallUserIds(nextInCallUserIds);
+            const nextInCallRoomOwnerUserIds = message.inCallRoomOwnerUserIds.filter(
+              (userId) => Number.isInteger(userId) && userId > 0,
+            );
+            setInCallRoomOwnerUserIds(nextInCallRoomOwnerUserIds);
             return;
           }
 
@@ -251,6 +265,10 @@ export function OnlineUsersOverlay() {
     [currentRoomUserId, membersById],
   );
 
+  const roomParticipantSet = useMemo(() => new Set(roomParticipantUserIds), [roomParticipantUserIds]);
+  const inCallUserSet = useMemo(() => new Set(inCallUserIds), [inCallUserIds]);
+  const inCallRoomOwnerUserSet = useMemo(() => new Set(inCallRoomOwnerUserIds), [inCallRoomOwnerUserIds]);
+
   if (!isSupportedRoute || !session?.user || !selectedOrganisationId) {
     return null;
   }
@@ -275,15 +293,27 @@ export function OnlineUsersOverlay() {
           <div className="mt-2 flex max-h-56 flex-col gap-2 overflow-y-auto">
             {otherOnlineMembers.map((member) => (
               <div key={member.User.id} className="flex items-center justify-between gap-2">
-                <SmallUserDisplay user={member.User} className="min-w-0 text-sm" />
-                <IconButton
-                  size="sm"
-                  variant="outline"
-                  aria-label={`nudge ${member.User.name}`}
-                  onClick={() => sendJoinRoom(member.User.id)}
-                >
-                  <Icon icon="handsUp" className="size-3.5" />
-                </IconButton>
+                <SmallUserDisplay
+                  user={member.User}
+                  className={
+                    roomParticipantSet.has(member.User.id) || inCallUserSet.has(member.User.id)
+                      ? "min-w-0 text-sm text-destructive"
+                      : "min-w-0 text-sm"
+                  }
+                />
+                <div className="flex items-center gap-2">
+                  {!roomParticipantSet.has(member.User.id) &&
+                    (!inCallUserSet.has(member.User.id) || inCallRoomOwnerUserSet.has(member.User.id)) && (
+                      <IconButton
+                        size="sm"
+                        variant="outline"
+                        aria-label={`nudge ${member.User.name}`}
+                        onClick={() => sendJoinRoom(member.User.id)}
+                      >
+                        <Icon icon="handsUp" className="size-3.5" />
+                      </IconButton>
+                    )}
+                </div>
               </div>
             ))}
           </div>
