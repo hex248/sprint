@@ -38,7 +38,19 @@ type RoomErrorMessage = {
   message: string;
 };
 
-type PresenceSocketMessage = PresenceMessage | RoomParticipantsMessage | RoomJoinedMessage | RoomErrorMessage;
+type RoomUserJoinedMessage = {
+  type: "room-user-joined";
+  organisationId: number;
+  roomUserId: number;
+  userId: number;
+};
+
+type PresenceSocketMessage =
+  | PresenceMessage
+  | RoomParticipantsMessage
+  | RoomJoinedMessage
+  | RoomErrorMessage
+  | RoomUserJoinedMessage;
 
 export function OnlineUsersOverlay() {
   const location = useLocation();
@@ -53,6 +65,7 @@ export function OnlineUsersOverlay() {
   const [desiredRoomUserId, setDesiredRoomUserId] = useState<number | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const desiredRoomUserIdRef = useRef<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const isSupportedRoute =
     location.pathname.startsWith("/issues") || location.pathname.startsWith("/timeline");
 
@@ -73,6 +86,41 @@ export function OnlineUsersOverlay() {
         roomUserId,
       }),
     );
+  }, []);
+
+  const playBloop = useCallback(() => {
+    try {
+      const webAudioWindow = window as Window & {
+        webkitAudioContext?: typeof AudioContext;
+      };
+      const AudioContextConstructor = window.AudioContext ?? webAudioWindow.webkitAudioContext;
+      if (!AudioContextConstructor) {
+        return;
+      }
+
+      const audioContext = audioContextRef.current ?? new AudioContextConstructor();
+      audioContextRef.current = audioContext;
+
+      const now = audioContext.currentTime;
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(660, now);
+      oscillator.frequency.exponentialRampToValueAtTime(920, now + 0.12);
+
+      gainNode.gain.setValueAtTime(0.0001, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start(now);
+      oscillator.stop(now + 0.2);
+    } catch {
+      return;
+    }
   }, []);
 
   const leaveRoom = useCallback(() => {
@@ -182,6 +230,15 @@ export function OnlineUsersOverlay() {
             return;
           }
 
+          if (message.type === "room-user-joined") {
+            if (message.organisationId !== selectedOrganisationId) {
+              return;
+            }
+
+            playBloop();
+            return;
+          }
+
           if (message.type === "room-participants") {
             if (message.organisationId !== selectedOrganisationId) {
               return;
@@ -232,7 +289,7 @@ export function OnlineUsersOverlay() {
         socketRef.current = null;
       }
     };
-  }, [isSupportedRoute, selectedOrganisationId, session?.user]);
+  }, [isSupportedRoute, playBloop, selectedOrganisationId, session?.user]);
 
   const onlineMembers = useMemo(() => {
     if (onlineUserIds.length === 0) {

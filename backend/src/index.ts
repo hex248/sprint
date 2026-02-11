@@ -229,6 +229,21 @@ const publishOnlineUsers = (server: Bun.Server<PresenceSocketData>, organisation
     server.publish(getOrganisationPresenceTopic(organisationId), payload);
 };
 
+const publishRoomJoin = (
+    server: Bun.Server<PresenceSocketData>,
+    organisationId: number,
+    roomUserId: number,
+    userId: number,
+) => {
+    const payload = JSON.stringify({
+        type: "room-user-joined",
+        organisationId,
+        roomUserId,
+        userId,
+    });
+    server.publish(getOrganisationPresenceTopic(organisationId), payload);
+};
+
 const publishRoomParticipants = (
     server: Bun.Server<PresenceSocketData>,
     organisationId: number,
@@ -620,7 +635,11 @@ const main = async () => {
                     return;
                 }
 
+                const previousRoomUserId = ws.data.activeRoomUserId;
                 joinRoom(roomUserId);
+                if (previousRoomUserId !== roomUserId) {
+                    publishRoomJoin(server, organisationId, roomUserId, userId);
+                }
             },
             close(ws) {
                 const { organisationId, userId, connectionId, activeRoomUserId } = ws.data;
