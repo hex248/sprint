@@ -1,7 +1,8 @@
 import type { BunRequest } from "bun";
 import { withAuth, withCors, withCSRF, withRateLimit } from "./auth/middleware";
+import { parseCookies, verifyToken } from "./auth/utils";
 import { testDB } from "./db/client";
-import { cleanupExpiredSessions } from "./db/queries";
+import { cleanupExpiredSessions, getOrganisationMemberRole, getSession } from "./db/queries";
 import { withAuthedLogging, withLogging } from "./logger";
 import { routes } from "./routes";
 import { initializeFreeModelsCache } from "./routes/ai/opencode";
@@ -10,6 +11,72 @@ const DEV = process.argv.find((arg) => ["--dev", "--developer", "-d"].includes(a
 const PORT = process.argv.find((arg) => arg.toLowerCase().startsWith("--port="))?.split("=")[1] || 0;
 
 const SESSION_CLEANUP_INTERVAL = 60 * 60 * 1000; // 1 hour in ms
+
+type PresenceSocketData = {
+    organisationId: number;
+    userId: number;
+    connectionId: string;
+};
+
+const presenceConnections = new Map<number, Map<number, Set<string>>>();
+
+const getOrganisationPresenceTopic = (organisationId: number) => `organisation:${organisationId}:online`;
+
+const addPresenceConnection = (organisationId: number, userId: number, connectionId: string) => {
+    let orgConnections = presenceConnections.get(organisationId);
+    if (!orgConnections) {
+        orgConnections = new Map();
+        presenceConnections.set(organisationId, orgConnections);
+    }
+
+    let userConnections = orgConnections.get(userId);
+    if (!userConnections) {
+        userConnections = new Set();
+        orgConnections.set(userId, userConnections);
+    }
+
+    userConnections.add(connectionId);
+};
+
+const removePresenceConnection = (organisationId: number, userId: number, connectionId: string) => {
+    const orgConnections = presenceConnections.get(organisationId);
+    if (!orgConnections) {
+        return;
+    }
+
+    const userConnections = orgConnections.get(userId);
+    if (!userConnections) {
+        return;
+    }
+
+    userConnections.delete(connectionId);
+
+    if (userConnections.size === 0) {
+        orgConnections.delete(userId);
+    }
+
+    if (orgConnections.size === 0) {
+        presenceConnections.delete(organisationId);
+    }
+};
+
+const getOnlineUserIds = (organisationId: number) => {
+    const orgConnections = presenceConnections.get(organisationId);
+    if (!orgConnections) {
+        return [] as number[];
+    }
+
+    return [...orgConnections.keys()];
+};
+
+const publishOnlineUsers = (server: Bun.Server<PresenceSocketData>, organisationId: number) => {
+    const payload = JSON.stringify({
+        type: "online-users",
+        organisationId,
+        userIds: getOnlineUserIds(organisationId),
+    });
+    server.publish(getOrganisationPresenceTopic(organisationId), payload);
+};
 
 const startSessionCleanup = () => {
     const cleanup = async () => {
@@ -31,12 +98,65 @@ const withGlobalAuthed = <T extends BunRequest>(handler: RouteHandler<T>) =>
     withAuthedLogging(withCors(withRateLimit(handler)));
 
 const main = async () => {
-    const server = Bun.serve({
+    let server: Bun.Server<PresenceSocketData>;
+
+    const handleOrganisationWebSocket = async (req: Request) => {
+        const { searchParams } = new URL(req.url);
+        const organisationIdRaw = searchParams.get("organisationId") ?? searchParams.get("orgId");
+        const organisationId = Number(organisationIdRaw);
+
+        if (!Number.isInteger(organisationId) || organisationId <= 0) {
+            return new Response("Invalid organisation id", { status: 400 });
+        }
+
+        const token = parseCookies(req.headers.get("Cookie")).token;
+        if (!token) {
+            return new Response("Unauthorized", { status: 401 });
+        }
+
+        let sessionId: number;
+        let userId: number;
+        try {
+            const verified = verifyToken(token);
+            sessionId = verified.sessionId;
+            userId = verified.userId;
+        } catch {
+            return new Response("Invalid token", { status: 401 });
+        }
+
+        const session = await getSession(sessionId);
+        if (!session || session.expiresAt < new Date() || session.userId !== userId) {
+            return new Response("Session expired", { status: 401 });
+        }
+
+        const organisationMember = await getOrganisationMemberRole(organisationId, userId);
+        if (!organisationMember) {
+            return new Response("Forbidden", { status: 403 });
+        }
+
+        const upgraded = server.upgrade(req, {
+            data: {
+                organisationId,
+                userId,
+                connectionId: crypto.randomUUID(),
+            },
+        });
+
+        if (!upgraded) {
+            return new Response("WebSocket upgrade failed", { status: 500 });
+        }
+
+        return;
+    };
+
+    server = Bun.serve<PresenceSocketData>({
         port: Number(PORT),
         idleTimeout: 60, // 1 minute for AI chat responses
         routes: {
             "/": withGlobal(() => new Response(`title: tnirps\ndev-mode: ${DEV}\nport: ${PORT}`)),
             "/health": withGlobal(() => new Response("OK")),
+
+            "/organisation/ws": handleOrganisationWebSocket,
 
             "/ai/chat": withGlobalAuthed(withAuth(routes.aiChat)),
             "/ai/models": withGlobalAuthed(withAuth(routes.aiModels)),
@@ -129,6 +249,20 @@ const main = async () => {
             "/subscription/cancel": withGlobalAuthed(withAuth(withCSRF(routes.subscriptionCancel))),
             "/subscription/get": withGlobalAuthed(withAuth(routes.subscriptionGet)),
             "/subscription/webhook": withGlobal(routes.subscriptionWebhook),
+        },
+        websocket: {
+            open(ws) {
+                const { organisationId, userId, connectionId } = ws.data;
+                ws.subscribe(getOrganisationPresenceTopic(organisationId));
+                addPresenceConnection(organisationId, userId, connectionId);
+                publishOnlineUsers(server, organisationId);
+            },
+            message() {},
+            close(ws) {
+                const { organisationId, userId, connectionId } = ws.data;
+                removePresenceConnection(organisationId, userId, connectionId);
+                publishOnlineUsers(server, organisationId);
+            },
         },
     });
 
