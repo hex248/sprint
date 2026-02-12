@@ -32,6 +32,7 @@ export function capitalise(str: string) {
 }
 
 const ENV_SERVER_URL = import.meta.env.VITE_SERVER_URL?.trim();
+const ENV_WEBRTC_STUN_URLS = import.meta.env.VITE_WEBRTC_STUN_URLS?.trim();
 
 export function getServerURL() {
   let serverURL =
@@ -42,6 +43,23 @@ export function getServerURL() {
     serverURL = serverURL.slice(0, -1);
   }
   return serverURL;
+}
+
+const DEFAULT_STUN_URLS = ["stun:stun.l.google.com:19302"];
+
+export function getWebRTCStunUrls(): string[] {
+  const raw = ENV_WEBRTC_STUN_URLS;
+  if (!raw) {
+    return DEFAULT_STUN_URLS;
+  }
+
+  const urls = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .filter((s) => s.startsWith("stun:") || s.startsWith("stuns:"));
+
+  return urls.length > 0 ? urls : DEFAULT_STUN_URLS;
 }
 
 export function formatTime(ms: number): string {
