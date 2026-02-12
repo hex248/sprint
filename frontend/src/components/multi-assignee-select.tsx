@@ -84,9 +84,9 @@ export function MultiAssigneeSelect({
   const canAddMore = selectedCount < users.length && lastRowHasSelection;
 
   return (
-    <div className="flex flex-wrap items-end gap-1">
+    <div className="flex flex-wrap items-end gap-2">
       {assignees.map((assignee, index) => (
-        <div key={`assignee-${index}-${assignee.userId}`} className="flex flex-col gap-1">
+        <div key={`assignee-${index}-${assignee.userId}`} className="relative w-fit">
           <Input
             type="text"
             value={noteDrafts[`${index}-${assignee.userId}`] ?? assignee.note}
@@ -99,8 +99,8 @@ export function MultiAssigneeSelect({
             maxLength={ISSUE_ASSIGNEE_NOTE_MAX_LENGTH}
             showCounter={false}
             disabled={assignee.userId === "unassigned"}
-            className="h-7 w-48"
-            inputClassName="text-xs px-2"
+            className="absolute -right-[5px] top-[35px] z-50 h-4 w-22 -translate-y-1/2  border-border/80 bg-background px-0"
+            inputClassName="text-[11px] px-1 py-0 text-right"
           />
           <div className="flex items-center gap-1">
             <UserSelect
