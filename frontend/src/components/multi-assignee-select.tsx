@@ -15,11 +15,13 @@ export function MultiAssigneeSelect({
   assignees,
   onChange,
   fallbackUsers = [],
+  assigneeNotesEnabled = true,
 }: {
   users: UserResponse[];
   assignees: AssigneeSelectValue[];
   onChange: (assignees: AssigneeSelectValue[]) => void;
   fallbackUsers?: UserResponse[];
+  assigneeNotesEnabled?: boolean;
 }) {
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
 
@@ -43,7 +45,7 @@ export function MultiAssigneeSelect({
     newAssignees[index] = {
       ...newAssignees[index],
       userId: value,
-      note: value === "unassigned" ? "" : (newAssignees[index]?.note ?? ""),
+      note: value === "unassigned" || !assigneeNotesEnabled ? "" : (newAssignees[index]?.note ?? ""),
     };
     onChange(newAssignees);
   };
@@ -87,21 +89,23 @@ export function MultiAssigneeSelect({
     <div className="flex flex-wrap items-end gap-2">
       {assignees.map((assignee, index) => (
         <div key={`assignee-${index}-${assignee.userId}`} className="relative w-fit">
-          <Input
-            type="text"
-            value={noteDrafts[`${index}-${assignee.userId}`] ?? assignee.note}
-            onChange={(event) => {
-              const key = `${index}-${assignee.userId}`;
-              setNoteDrafts((previous) => ({ ...previous, [key]: event.target.value }));
-            }}
-            onBlur={(event) => handleNoteBlur(index, event.target.value)}
-            placeholder="assignee note"
-            maxLength={ISSUE_ASSIGNEE_NOTE_MAX_LENGTH}
-            showCounter={false}
-            disabled={assignee.userId === "unassigned"}
-            className="absolute -right-[5px] top-[35px] z-50 h-4 w-22 -translate-y-1/2  border-border/80 bg-background px-0"
-            inputClassName="text-[11px] px-1 py-0 text-right"
-          />
+          {assigneeNotesEnabled && assignee.userId !== "unassigned" && (
+            <Input
+              type="text"
+              value={noteDrafts[`${index}-${assignee.userId}`] ?? assignee.note}
+              onChange={(event) => {
+                const key = `${index}-${assignee.userId}`;
+                setNoteDrafts((previous) => ({ ...previous, [key]: event.target.value }));
+              }}
+              onBlur={(event) => handleNoteBlur(index, event.target.value)}
+              placeholder="Assignee Note"
+              maxLength={ISSUE_ASSIGNEE_NOTE_MAX_LENGTH}
+              showCounter={false}
+              disabled={assignee.userId === "unassigned"}
+              className="absolute -right-[5px] top-[35px] z-50 h-4 w-24 -translate-y-1/2 border-border/80 bg-background px-0"
+              inputClassName="text-[11px] px-1 py-0 text-right"
+            />
+          )}
           <div className="flex items-center gap-1">
             <UserSelect
               users={getAvailableUsers(index)}

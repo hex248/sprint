@@ -45,6 +45,7 @@ export const DEFAULT_FEATURES: Record<string, boolean> = {
     issueDescriptions: true,
     issueTimeTracking: true,
     issueAssignees: true,
+    assigneeNotes: true,
     issueAssigneesShownInTable: true,
     issueCreator: true,
     issueComments: true,

@@ -77,6 +77,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const typeOptions = useMemo(() => Object.keys(issueTypes), [issueTypes]);
   const defaultStatus = statusOptions[0] ?? "";
   const defaultType = typeOptions[0] ?? "";
+  const assigneeNotesEnabled = selectedOrganisation?.Organisation.features.assigneeNotes ?? true;
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -251,7 +252,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
           .filter((assignee) => assignee.userId !== "unassigned")
           .map((assignee) => ({
             userId: Number(assignee.userId),
-            note: assignee.note,
+            note: assigneeNotesEnabled ? assignee.note : "",
           })),
         status: status.trim(),
         type: type.trim(),
@@ -467,7 +468,12 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
             {members.length > 0 && (
               <div className="flex items-start gap-2 mt-4">
                 <Label className="text-sm pt-2">Assignees</Label>
-                <MultiAssigneeSelect users={members} assignees={assignees} onChange={setAssignees} />
+                <MultiAssigneeSelect
+                  users={members}
+                  assignees={assignees}
+                  onChange={setAssignees}
+                  assigneeNotesEnabled={assigneeNotesEnabled}
+                />
               </div>
             )}
 

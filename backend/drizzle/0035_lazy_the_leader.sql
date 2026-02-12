@@ -1,0 +1,1 @@
+ALTER TABLE "Organisation" ALTER COLUMN "features" SET DEFAULT '{"userAvatars":true,"issueTypes":true,"issueStatus":true,"issueDescriptions":true,"issueTimeTracking":true,"issueAssignees":true,"assigneeNotes":true,"issueAssigneesShownInTable":true,"issueCreator":true,"issueComments":true,"sprints":true,"aiFeatures":true}'::json;

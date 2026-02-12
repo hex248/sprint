@@ -51,10 +51,13 @@ function assigneesToSelectValues(
   }));
 }
 
-function assigneeSelectValuesToApiValues(assignees: AssigneeSelectValue[]) {
+function assigneeSelectValuesToApiValues(assignees: AssigneeSelectValue[], assigneeNotesEnabled: boolean) {
   return assignees
     .filter((assignee) => assignee.userId !== "unassigned")
-    .map((assignee) => ({ userId: Number(assignee.userId), note: assignee.note }));
+    .map((assignee) => ({
+      userId: Number(assignee.userId),
+      note: assigneeNotesEnabled ? assignee.note : "",
+    }));
 }
 
 function assigneesEqual(
@@ -132,6 +135,7 @@ export function IssueDetails({
     string,
     { icon: string; color: string }
   >;
+  const assigneeNotesEnabled = organisation?.Organisation.features.assigneeNotes ?? true;
 
   const assigneeIds = assignees
     .filter((assignee) => assignee.userId !== "unassigned")
@@ -239,8 +243,8 @@ export function IssueDetails({
     const previousAssignees = assignees;
     setAssignees(newAssignees);
 
-    const newAssigneeValues = assigneeSelectValuesToApiValues(newAssignees);
-    const previousAssigneeValues = assigneeSelectValuesToApiValues(previousAssignees);
+    const newAssigneeValues = assigneeSelectValuesToApiValues(newAssignees, assigneeNotesEnabled);
+    const previousAssigneeValues = assigneeSelectValuesToApiValues(previousAssignees, assigneeNotesEnabled);
 
     const hasChanged = !assigneesEqual(newAssigneeValues, previousAssigneeValues);
 
@@ -723,6 +727,7 @@ export function IssueDetails({
               assignees={assignees}
               onChange={handleAssigneeChange}
               fallbackUsers={issueData.Assignees}
+              assigneeNotesEnabled={assigneeNotesEnabled}
             />
           </div>
         )}

@@ -1755,7 +1755,10 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                           checked={Boolean(selectedOrganisation?.Organisation.features[feature])}
                           onCheckedChange={async (checked) => {
                             if (!selectedOrganisation) return;
-                            const newFeatures = selectedOrganisation.Organisation.features;
+                            const newFeatures = {
+                              ...DEFAULT_FEATURES,
+                              ...selectedOrganisation.Organisation.features,
+                            };
                             newFeatures[feature] = checked;
 
                             await updateOrganisation.mutateAsync({
