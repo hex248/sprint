@@ -7,6 +7,7 @@ import SmallUserDisplay from "@/components/small-user-display";
 import Icon from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { useOrganisationMembers } from "@/lib/query/hooks";
+import { useRoomAudio } from "@/lib/rtc/use-room-audio";
 import { getServerURL } from "@/lib/utils";
 
 const RECONNECT_DELAY_MS = 2000;
@@ -34,7 +35,7 @@ type RoomJoinedMessage = {
 
 type RoomErrorMessage = {
   type: "room-error";
-  code: "INVALID_ROOM" | "FORBIDDEN_ROOM" | "IN_CALL";
+  code: "INVALID_ROOM" | "FORBIDDEN_ROOM" | "IN_CALL" | "SIGNAL_INVALID";
   message: string;
 };
 
@@ -63,6 +64,8 @@ export function OnlineUsersOverlay() {
   const [currentRoomUserId, setCurrentRoomUserId] = useState<number | null>(null);
   const [roomParticipantUserIds, setRoomParticipantUserIds] = useState<number[]>([]);
   const [desiredRoomUserId, setDesiredRoomUserId] = useState<number | null>(null);
+  const [socketOpen, setSocketOpen] = useState(false);
+  const [socketState, setSocketState] = useState<WebSocket | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const desiredRoomUserIdRef = useRef<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -72,6 +75,33 @@ export function OnlineUsersOverlay() {
   useEffect(() => {
     desiredRoomUserIdRef.current = desiredRoomUserId;
   }, [desiredRoomUserId]);
+
+  const rtc = useRoomAudio({
+    socket: socketState,
+    socketOpen,
+    organisationId: selectedOrganisationId ?? 0,
+    sessionUserId: session?.user?.id ?? 0,
+    roomUserId: currentRoomUserId,
+    participantUserIds: roomParticipantUserIds,
+  });
+
+  const rtcHandlerRef = useRef(rtc.handleWsMessage);
+  useEffect(() => {
+    rtcHandlerRef.current = rtc.handleWsMessage;
+  }, [rtc.handleWsMessage]);
+
+  const isRtcType = (msg: unknown): boolean => {
+    if (!msg || typeof msg !== "object" || !("type" in msg)) {
+      return false;
+    }
+    const type = (msg as { type?: unknown }).type;
+    return (
+      type === "webrtc-offer" ||
+      type === "webrtc-answer" ||
+      type === "webrtc-ice-candidate" ||
+      type === "webrtc-peer-state"
+    );
+  };
 
   const sendJoinRoom = useCallback((roomUserId: number) => {
     setDesiredRoomUserId(roomUserId);
@@ -163,6 +193,7 @@ export function OnlineUsersOverlay() {
     );
   }, [currentRoomUserId, session?.user]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <>
   useEffect(() => {
     if (!isSupportedRoute || !session?.user || !selectedOrganisationId) {
       setOnlineUserIds([]);
@@ -171,6 +202,8 @@ export function OnlineUsersOverlay() {
       setCurrentRoomUserId(null);
       setRoomParticipantUserIds([]);
       setDesiredRoomUserId(null);
+      setSocketOpen(false);
+      setSocketState(null);
       socketRef.current?.close();
       socketRef.current = null;
       return;
@@ -193,8 +226,10 @@ export function OnlineUsersOverlay() {
 
       socket = new WebSocket(socketURL.toString());
       socketRef.current = socket;
+      setSocketState(socket);
 
       socket.onopen = () => {
+        setSocketOpen(true);
         const targetRoomUserId = desiredRoomUserIdRef.current;
         if (targetRoomUserId == null || targetRoomUserId === sessionUserId) {
           return;
@@ -210,7 +245,13 @@ export function OnlineUsersOverlay() {
 
       socket.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data) as PresenceSocketMessage;
+          const unknownMessage = JSON.parse(event.data) as unknown;
+          if (isRtcType(unknownMessage)) {
+            rtcHandlerRef.current(unknownMessage);
+            return;
+          }
+
+          const message = unknownMessage as PresenceSocketMessage;
 
           if (message.type === "online-users") {
             if (message.organisationId !== selectedOrganisationId) {
@@ -269,6 +310,8 @@ export function OnlineUsersOverlay() {
 
       socket.onclose = () => {
         socketRef.current = null;
+        setSocketOpen(false);
+        setSocketState(null);
         if (isCancelled) {
           return;
         }
@@ -288,6 +331,8 @@ export function OnlineUsersOverlay() {
       if (socketRef.current === socket) {
         socketRef.current = null;
       }
+      setSocketOpen(false);
+      setSocketState(null);
     };
   }, [isSupportedRoute, playBloop, selectedOrganisationId, session?.user]);
 
@@ -339,6 +384,13 @@ export function OnlineUsersOverlay() {
         participants={roomParticipants}
         roomOwner={roomOwner}
         isRoomOwner={isRoomOwner}
+        selfUserId={session.user.id}
+        localMuted={rtc.localMuted}
+        micError={rtc.micError}
+        remoteMuted={rtc.remoteMuted}
+        remoteStreams={rtc.remoteStreams}
+        onToggleMute={rtc.toggleMuted}
+        onRetryMic={rtc.retryMic}
         onLeave={leaveRoom}
         onEnd={endRoom}
       />
