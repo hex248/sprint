@@ -180,6 +180,12 @@ export {
 } from "./constants";
 export type { ApiContract } from "./contract";
 export { apiContract } from "./contract";
+export type { RtcClientToServerMessage, RtcIceCandidate, RtcServerToClientMessage } from "./rtc-schemas";
+export {
+    RtcClientToServerMessageSchema,
+    RtcIceCandidateSchema,
+    RtcServerToClientMessageSchema,
+} from "./rtc-schemas";
 export type {
     AttachmentInsert,
     AttachmentRecord,
