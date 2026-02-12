@@ -19,7 +19,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 // import { FreeTierLimit } from "@/components/free-tier-limit";
-import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
+import { type AssigneeSelectValue, MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { SprintSelect } from "@/components/sprint-select";
 import { StatusSelect } from "@/components/status-select";
@@ -82,14 +82,14 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [sprintId, setSprintId] = useState<string>("unassigned");
-  const [assigneeIds, setAssigneeIds] = useState<string[]>(["unassigned"]);
+  const [assignees, setAssignees] = useState<AssigneeSelectValue[]>([{ userId: "unassigned", note: "" }]);
   const [status, setStatus] = useState<string>(defaultStatus);
   const [type, setType] = useState<string>(defaultType);
 
   // set default assignee based on user preference when dialog opens
   useEffect(() => {
     if (open && user.preferences?.assignByDefault) {
-      setAssigneeIds([`${user.id}`]);
+      setAssignees([{ userId: `${user.id}`, note: "" }]);
     }
   }, [open, user]);
 
@@ -109,7 +109,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
     setTitle("");
     setDescription("");
     setSprintId("unassigned");
-    setAssigneeIds(["unassigned"]);
+    setAssignees([{ userId: "unassigned", note: "" }]);
     setStatus(defaultStatus);
     setType(defaultType);
     setAttachments([]);
@@ -247,7 +247,12 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
         title,
         description,
         sprintId: sprintId === "unassigned" ? null : Number(sprintId),
-        assigneeIds: assigneeIds.filter((id) => id !== "unassigned").map((id) => Number(id)),
+        assignees: assignees
+          .filter((assignee) => assignee.userId !== "unassigned")
+          .map((assignee) => ({
+            userId: Number(assignee.userId),
+            note: assignee.note,
+          })),
         status: status.trim(),
         type: type.trim(),
         attachmentIds: attachments.map((attachment) => attachment.id),
@@ -462,7 +467,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
             {members.length > 0 && (
               <div className="flex items-start gap-2 mt-4">
                 <Label className="text-sm pt-2">Assignees</Label>
-                <MultiAssigneeSelect users={members} assigneeIds={assigneeIds} onChange={setAssigneeIds} />
+                <MultiAssigneeSelect users={members} assignees={assignees} onChange={setAssignees} />
               </div>
             )}
 
