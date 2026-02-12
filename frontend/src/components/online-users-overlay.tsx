@@ -386,8 +386,10 @@ export function OnlineUsersOverlay() {
         isRoomOwner={isRoomOwner}
         selfUserId={session.user.id}
         localMuted={rtc.localMuted}
+        localSpeaking={rtc.localSpeaking}
         micError={rtc.micError}
         remoteMuted={rtc.remoteMuted}
+        remoteSpeaking={rtc.remoteSpeaking}
         remoteStreams={rtc.remoteStreams}
         onToggleMute={rtc.toggleMuted}
         onRetryMic={rtc.retryMic}

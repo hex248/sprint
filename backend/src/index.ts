@@ -498,6 +498,7 @@ const main = async () => {
                                 roomUserId: rtc.roomUserId,
                                 fromUserId: userId,
                                 muted: rtc.muted,
+                                speaking: rtc.speaking ?? false,
                             }),
                         );
                         return;

@@ -43,8 +43,11 @@ export function useRoomAudio({
   participantUserIds,
 }: UseRoomAudioArgs) {
   const [localMuted, setLocalMuted] = useState(true);
+  const [localSpeaking, setLocalSpeaking] = useState(false);
   const [micError, setMicError] = useState<MicError | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteMuted, setRemoteMuted] = useState<Map<number, boolean>>(() => new Map());
+  const [remoteSpeaking, setRemoteSpeaking] = useState<Map<number, boolean>>(() => new Map());
   const [remoteStreams, setRemoteStreams] = useState<Map<number, MediaStream>>(() => new Map());
 
   const hasUserToggledRef = useRef(false);
@@ -57,6 +60,8 @@ export function useRoomAudio({
   const sessionUserIdRef = useRef(sessionUserId);
   const roomUserIdRef = useRef(roomUserId);
   const socketRef = useRef<WebSocket | null>(socket);
+  const localMutedRef = useRef(localMuted);
+  const localSpeakingRef = useRef(localSpeaking);
 
   useEffect(() => {
     organisationIdRef.current = organisationId;
@@ -64,6 +69,14 @@ export function useRoomAudio({
     roomUserIdRef.current = roomUserId;
     socketRef.current = socket;
   }, [organisationId, roomUserId, sessionUserId, socket]);
+
+  useEffect(() => {
+    localMutedRef.current = localMuted;
+  }, [localMuted]);
+
+  useEffect(() => {
+    localSpeakingRef.current = localSpeaking;
+  }, [localSpeaking]);
 
   const sendRtc = useCallback((message: RtcClientToServerMessage) => {
     const ws = socketRef.current;
@@ -76,6 +89,7 @@ export function useRoomAudio({
   const stopLocalStream = useCallback(() => {
     const stream = localStreamRef.current;
     localStreamRef.current = null;
+    setLocalStream(null);
     if (!stream) {
       return;
     }
@@ -98,8 +112,26 @@ export function useRoomAudio({
     }
     peersRef.current.clear();
     setRemoteMuted(new Map());
+    setRemoteSpeaking(new Map());
     setRemoteStreams(new Map());
   }, []);
+
+  const sendPeerState = useCallback(
+    (muted: boolean, speaking: boolean) => {
+      const currentRoomUserId = roomUserIdRef.current;
+      if (!currentRoomUserId) {
+        return;
+      }
+
+      sendRtc({
+        type: "webrtc-peer-state",
+        roomUserId: currentRoomUserId,
+        muted,
+        speaking,
+      });
+    },
+    [sendRtc],
+  );
 
   useEffect(() => {
     const nextKey = roomUserId ? `${organisationId}:${roomUserId}` : null;
@@ -122,6 +154,7 @@ export function useRoomAudio({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       localStreamRef.current = stream;
+      setLocalStream(stream);
       setMicError(null);
       return stream;
     } catch (e) {
@@ -138,13 +171,17 @@ export function useRoomAudio({
   const setMutedAndBroadcast = useCallback(
     (nextMuted: boolean) => {
       setLocalMuted(nextMuted);
-      const currentRoomUserId = roomUserIdRef.current;
-      if (!currentRoomUserId) {
-        return;
+      localMutedRef.current = nextMuted;
+
+      const nextSpeaking = nextMuted ? false : localSpeakingRef.current;
+      if (nextMuted) {
+        localSpeakingRef.current = false;
+        setLocalSpeaking(false);
       }
-      sendRtc({ type: "webrtc-peer-state", roomUserId: currentRoomUserId, muted: nextMuted });
+
+      sendPeerState(nextMuted, nextSpeaking);
     },
-    [sendRtc],
+    [sendPeerState],
   );
 
   const toggleMuted = useCallback(async () => {
@@ -232,6 +269,7 @@ export function useRoomAudio({
         }
         try {
           remoteStream.addTrack(track);
+          setRemoteStreams((prev) => new Map(prev));
         } catch {
           // ignore
         }
@@ -350,6 +388,11 @@ export function useRoomAudio({
           next.set(message.fromUserId, message.muted);
           return next;
         });
+        setRemoteSpeaking((prev) => {
+          const next = new Map(prev);
+          next.set(message.fromUserId, message.speaking ?? false);
+          return next;
+        });
         return;
       }
 
@@ -463,6 +506,11 @@ export function useRoomAudio({
         next.delete(peerUserId);
         return next;
       });
+      setRemoteSpeaking((prev) => {
+        const next = new Map(prev);
+        next.delete(peerUserId);
+        return next;
+      });
       setRemoteStreams((prev) => {
         const next = new Map(prev);
         next.delete(peerUserId);
@@ -503,10 +551,84 @@ export function useRoomAudio({
     }
   }, [localMuted]);
 
+  // detect local speaking and broadcast it so remote overlays can render reliably.
+  useEffect(() => {
+    if (!roomUserId || !socketOpen || !localStream || localMuted) {
+      if (localSpeakingRef.current) {
+        localSpeakingRef.current = false;
+        setLocalSpeaking(false);
+        sendPeerState(true, false);
+      }
+      return;
+    }
+
+    const webAudioWindow = window as Window & {
+      webkitAudioContext?: typeof AudioContext;
+    };
+    const AudioContextConstructor = window.AudioContext ?? webAudioWindow.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      return;
+    }
+
+    const audioContext = new AudioContextConstructor();
+    void audioContext.resume().catch(() => undefined);
+
+    const source = audioContext.createMediaStreamSource(localStream);
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(analyser);
+    const buffer = new Uint8Array(analyser.fftSize);
+
+    const speakingThreshold = 0.02;
+    let rafId = 0;
+    let disposed = false;
+
+    const updateSpeaking = () => {
+      if (disposed) {
+        return;
+      }
+
+      analyser.getByteTimeDomainData(buffer);
+      let sum = 0;
+      for (const value of buffer) {
+        const normalized = (value - 128) / 128;
+        sum += normalized * normalized;
+      }
+      const rms = Math.sqrt(sum / buffer.length);
+      const nextSpeaking = rms >= speakingThreshold;
+
+      if (nextSpeaking !== localSpeakingRef.current) {
+        localSpeakingRef.current = nextSpeaking;
+        setLocalSpeaking(nextSpeaking);
+        sendPeerState(localMutedRef.current, nextSpeaking);
+      }
+
+      rafId = window.requestAnimationFrame(updateSpeaking);
+    };
+
+    updateSpeaking();
+
+    return () => {
+      disposed = true;
+      window.cancelAnimationFrame(rafId);
+      source.disconnect();
+      void audioContext.close().catch(() => undefined);
+
+      if (localSpeakingRef.current) {
+        localSpeakingRef.current = false;
+        setLocalSpeaking(false);
+        sendPeerState(localMutedRef.current, false);
+      }
+    };
+  }, [localMuted, localStream, roomUserId, sendPeerState, socketOpen]);
+
   return {
     localMuted,
+    localSpeaking,
     micError,
+    localStream,
     remoteMuted,
+    remoteSpeaking,
     remoteStreams,
     toggleMuted,
     retryMic,

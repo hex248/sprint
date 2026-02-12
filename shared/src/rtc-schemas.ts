@@ -45,6 +45,7 @@ export const RtcClientToServerMessageSchema = z.discriminatedUnion("type", [
             type: z.literal("webrtc-peer-state"),
             roomUserId: PositiveInt,
             muted: z.boolean(),
+            speaking: z.boolean().optional(),
         })
         .strict(),
 ]);
@@ -86,6 +87,7 @@ export const RtcServerToClientMessageSchema = z.discriminatedUnion("type", [
             roomUserId: PositiveInt,
             fromUserId: PositiveInt,
             muted: z.boolean(),
+            speaking: z.boolean().optional(),
         })
         .strict(),
 ]);

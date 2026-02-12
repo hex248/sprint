@@ -4,6 +4,7 @@ import Avatar from "@/components/avatar";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
+import { cn } from "@/lib/utils";
 
 function RemoteAudio({ stream }: { stream: MediaStream }) {
   const ref = useRef<HTMLAudioElement | null>(null);
@@ -27,8 +28,10 @@ type CallRoomOverlayProps = {
   isRoomOwner: boolean;
   selfUserId: number;
   localMuted: boolean;
+  localSpeaking: boolean;
   micError: "permission-denied" | "device-error" | null;
   remoteMuted: Map<number, boolean>;
+  remoteSpeaking: Map<number, boolean>;
   remoteStreams: Map<number, MediaStream>;
   onToggleMute: () => void;
   onRetryMic: () => void;
@@ -42,8 +45,10 @@ export function CallRoomOverlay({
   isRoomOwner,
   selfUserId,
   localMuted,
+  localSpeaking,
   micError,
   remoteMuted,
+  remoteSpeaking,
   remoteStreams,
   onToggleMute,
   onRetryMic,
@@ -94,7 +99,15 @@ export function CallRoomOverlay({
 
       <div className="flex flex-wrap gap-2">
         {participants.map((participant) => (
-          <div key={participant.id} className="min-w-0 flex-1 basis-28 border bg-muted/40 p-2">
+          <div
+            key={participant.id}
+            className={cn(
+              "min-w-0 flex-1 basis-28 border bg-muted/40 p-2",
+              participant.id === selfUserId
+                ? localSpeaking && !localMuted && "border-green-500"
+                : (remoteSpeaking.get(participant.id) ?? false) && "border-green-500",
+            )}
+          >
             <div className="mb-2 flex items-start justify-between gap-2">
               <span className="inline-flex h-6 w-6 items-center justify-center">
                 <Icon
