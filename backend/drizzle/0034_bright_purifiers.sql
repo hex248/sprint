@@ -1,0 +1,1 @@
+ALTER TABLE "IssueAssignee" ADD COLUMN "note" varchar(256) DEFAULT '' NOT NULL;
