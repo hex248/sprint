@@ -48,7 +48,7 @@ export function getServerURL() {
 const DEFAULT_STUN_URLS = ["stun:stun.l.google.com:19302"];
 
 export function getWebRTCStunUrls(): string[] {
-  const raw = ENV_WEBRTC_STUN_URLS;
+  const raw = ENV_WEBRTC_STUN_URLS as string;
   if (!raw) {
     return DEFAULT_STUN_URLS;
   }
