@@ -1,3 +1,4 @@
+import { type RtcClientToServerMessage, RtcClientToServerMessageSchema } from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { withAuth, withCors, withCSRF, withRateLimit } from "./auth/middleware";
 import { parseCookies, verifyToken } from "./auth/utils";
@@ -464,6 +465,108 @@ const main = async () => {
 
                 const data = parsedMessage as ClientRoomMessage;
                 const { organisationId, userId, connectionId } = ws.data;
+
+                const sendSignalInvalid = (msg: string) => {
+                    ws.send(
+                        JSON.stringify({
+                            type: "room-error",
+                            code: "SIGNAL_INVALID",
+                            message: msg,
+                        }),
+                    );
+                };
+
+                const handleRtcMessage = (rtc: RtcClientToServerMessage) => {
+                    const activeRoomUserId = ws.data.activeRoomUserId;
+                    if (rtc.roomUserId !== activeRoomUserId) {
+                        sendSignalInvalid("stale room signaling");
+                        return;
+                    }
+
+                    const roomParticipantUserIds = getRoomParticipantUserIds(organisationId, rtc.roomUserId);
+                    if (!roomParticipantUserIds.includes(userId)) {
+                        sendSignalInvalid("sender not in room");
+                        return;
+                    }
+
+                    if (rtc.type === "webrtc-peer-state") {
+                        server.publish(
+                            getOrganisationRoomTopic(organisationId, rtc.roomUserId),
+                            JSON.stringify({
+                                type: "webrtc-peer-state",
+                                organisationId,
+                                roomUserId: rtc.roomUserId,
+                                fromUserId: userId,
+                                muted: rtc.muted,
+                            }),
+                        );
+                        return;
+                    }
+
+                    const targetUserId = rtc.targetUserId;
+                    if (targetUserId === userId) {
+                        sendSignalInvalid("invalid target");
+                        return;
+                    }
+
+                    if (!roomParticipantUserIds.includes(targetUserId)) {
+                        sendSignalInvalid("target not in room");
+                        return;
+                    }
+
+                    const orgConnections = roomConnections.get(organisationId);
+                    const roomUsers = orgConnections?.get(rtc.roomUserId);
+                    const targetConnectionIds = roomUsers?.get(targetUserId);
+                    if (!targetConnectionIds || targetConnectionIds.size === 0) {
+                        sendSignalInvalid("target not connected");
+                        return;
+                    }
+
+                    const forwarded =
+                        rtc.type === "webrtc-offer"
+                            ? {
+                                  type: "webrtc-offer" as const,
+                                  organisationId,
+                                  roomUserId: rtc.roomUserId,
+                                  fromUserId: userId,
+                                  sdp: rtc.sdp,
+                              }
+                            : rtc.type === "webrtc-answer"
+                              ? {
+                                    type: "webrtc-answer" as const,
+                                    organisationId,
+                                    roomUserId: rtc.roomUserId,
+                                    fromUserId: userId,
+                                    sdp: rtc.sdp,
+                                }
+                              : {
+                                    type: "webrtc-ice-candidate" as const,
+                                    organisationId,
+                                    roomUserId: rtc.roomUserId,
+                                    fromUserId: userId,
+                                    candidate: rtc.candidate,
+                                };
+
+                    const payload = JSON.stringify(forwarded);
+                    for (const targetConnectionId of targetConnectionIds) {
+                        const targetSocket = socketConnections.get(targetConnectionId);
+                        if (!targetSocket || targetSocket.data.organisationId !== organisationId) {
+                            continue;
+                        }
+
+                        if (targetSocket.data.activeRoomUserId !== rtc.roomUserId) {
+                            continue;
+                        }
+
+                        targetSocket.send(payload);
+                    }
+                };
+
+                const rtcParse = RtcClientToServerMessageSchema.safeParse(parsedMessage);
+                if (rtcParse.success) {
+                    handleRtcMessage(rtcParse.data);
+                    return;
+                }
 
                 const joinRoom = (roomUserId: number) => {
                     const previousRoomUserId = ws.data.activeRoomUserId;
