@@ -6,7 +6,7 @@ import { useSessionSafe } from "@/components/session-provider";
 import SmallUserDisplay from "@/components/small-user-display";
 import Icon from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
-import { useOrganisationMembers } from "@/lib/query/hooks";
+import { DEFAULT_RTC_ICE_SERVERS, useOrganisationMembers, useRtcConfig } from "@/lib/query/hooks";
 import { useRoomAudio } from "@/lib/rtc/use-room-audio";
 import { getServerURL } from "@/lib/utils";
 
@@ -71,6 +71,8 @@ export function OnlineUsersOverlay() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const isSupportedRoute =
     location.pathname.startsWith("/issues") || location.pathname.startsWith("/timeline");
+  const rtcConfigEnabled = Boolean(isSupportedRoute && session?.user && selectedOrganisationId);
+  const { data: rtcIceServers = DEFAULT_RTC_ICE_SERVERS } = useRtcConfig(rtcConfigEnabled);
 
   useEffect(() => {
     desiredRoomUserIdRef.current = desiredRoomUserId;
@@ -83,6 +85,7 @@ export function OnlineUsersOverlay() {
     sessionUserId: session?.user?.id ?? 0,
     roomUserId: currentRoomUserId,
     participantUserIds: roomParticipantUserIds,
+    iceServers: rtcIceServers,
   });
 
   const rtcHandlerRef = useRef(rtc.handleWsMessage);

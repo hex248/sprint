@@ -828,3 +828,17 @@ export const ModelsResponseSchema = z.array(
     }),
 );
 export type ModelsResponse = z.infer<typeof ModelsResponseSchema>;
+
+export const RtcIceServerSchema = z.object({
+    urls: z.union([z.string(), z.array(z.string().min(1)).min(1)]),
+    username: z.string().optional(),
+    credential: z.string().optional(),
+});
+
+export type RtcIceServer = z.infer<typeof RtcIceServerSchema>;
+
+export const RtcConfigResponseSchema = z.object({
+    iceServers: z.array(RtcIceServerSchema),
+});
+
+export type RtcConfigResponse = z.infer<typeof RtcConfigResponseSchema>;

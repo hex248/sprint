@@ -4,10 +4,9 @@ import {
   type RtcServerToClientMessage,
   RtcServerToClientMessageSchema,
 } from "@sprint/shared";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createRoomPeerConnection, ensureRecvOnlyAudio } from "@/lib/rtc/peer-connection";
 import type { RemoteAudioPeer } from "@/lib/rtc/types";
-import { getWebRTCStunUrls } from "@/lib/utils";
 
 type UseRoomAudioArgs = {
   socket: WebSocket | null;
@@ -16,6 +15,7 @@ type UseRoomAudioArgs = {
   sessionUserId: number;
   roomUserId: number | null;
   participantUserIds: number[];
+  iceServers: RTCIceServer[];
 };
 
 type MicError = "permission-denied" | "device-error";
@@ -41,6 +41,7 @@ export function useRoomAudio({
   sessionUserId,
   roomUserId,
   participantUserIds,
+  iceServers,
 }: UseRoomAudioArgs) {
   const [localMuted, setLocalMuted] = useState(true);
   const [localSpeaking, setLocalSpeaking] = useState(false);
@@ -54,8 +55,6 @@ export function useRoomAudio({
   const lastRoomKeyRef = useRef<string | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const peersRef = useRef<Map<number, RemoteAudioPeer>>(new Map());
-  const stunUrls = useMemo(() => getWebRTCStunUrls(), []);
-
   const organisationIdRef = useRef(organisationId);
   const sessionUserIdRef = useRef(sessionUserId);
   const roomUserIdRef = useRef(roomUserId);
@@ -242,7 +241,7 @@ export function useRoomAudio({
 
   const createPeer = useCallback(
     (remoteUserId: number): RemoteAudioPeer => {
-      const pc = createRoomPeerConnection({ stunUrls });
+      const pc = createRoomPeerConnection({ iceServers });
       ensureRecvOnlyAudio(pc);
 
       const remoteStream = new MediaStream();
@@ -348,7 +347,7 @@ export function useRoomAudio({
 
       return peer;
     },
-    [sendRtc, stunUrls],
+    [iceServers, sendRtc],
   );
 
   const ensurePeer = useCallback(
