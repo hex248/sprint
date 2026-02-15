@@ -1,10 +1,15 @@
-import { type RtcClientToServerMessage, RtcClientToServerMessageSchema } from "@sprint/shared";
+import {
+    ClientRoomMessageSchema,
+    type RtcClientToServerMessage,
+    RtcClientToServerMessageSchema,
+} from "@sprint/shared";
 import type { BunRequest } from "bun";
 import { withAuth, withCors, withCSRF, withRateLimit } from "./auth/middleware";
 import { parseCookies, verifyToken } from "./auth/utils";
 import { testDB } from "./db/client";
 import { cleanupExpiredSessions, getOrganisationMemberRole, getSession } from "./db/queries";
 import { withAuthedLogging, withLogging } from "./logger";
+import { registerRealtimePublisher } from "./realtime";
 import { routes } from "./routes";
 import { initializeFreeModelsCache } from "./routes/ai/opencode";
 
@@ -19,18 +24,6 @@ type PresenceSocketData = {
     connectionId: string;
     activeRoomUserId: number;
 };
-
-type ClientRoomMessage =
-    | {
-          type: "join-room";
-          roomUserId: number;
-      }
-    | {
-          type: "leave-room";
-      }
-    | {
-          type: "end-room";
-      };
 
 const presenceConnections = new Map<number, Map<number, Set<string>>>();
 const roomConnections = new Map<number, Map<number, Map<number, Set<string>>>>();
@@ -455,16 +448,6 @@ const main = async () => {
                     return;
                 }
 
-                if (
-                    !parsedMessage ||
-                    typeof parsedMessage !== "object" ||
-                    !("type" in parsedMessage) ||
-                    typeof parsedMessage.type !== "string"
-                ) {
-                    return;
-                }
-
-                const data = parsedMessage as ClientRoomMessage;
                 const { organisationId, userId, connectionId } = ws.data;
 
                 const sendSignalInvalid = (msg: string) => {
@@ -569,6 +552,13 @@ const main = async () => {
                     handleRtcMessage(rtcParse.data);
                     return;
                 }
+
+                const roomParse = ClientRoomMessageSchema.safeParse(parsedMessage);
+                if (!roomParse.success) {
+                    return;
+                }
+
+                const data = roomParse.data;
 
                 const joinRoom = (roomUserId: number) => {
                     const previousRoomUserId = ws.data.activeRoomUserId;
@@ -757,6 +747,9 @@ const main = async () => {
                 publishOnlineUsers(server, organisationId);
             },
         },
+    });
+    registerRealtimePublisher((event) => {
+        server.publish(getOrganisationPresenceTopic(event.organisationId), JSON.stringify(event));
     });
 
     console.log(`tnirps (sprint server) listening on ${server.url}`);
