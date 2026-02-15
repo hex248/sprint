@@ -1,11 +1,6 @@
 import { OrgUpdateRequestSchema } from "@sprint/shared";
 import type { AuthedRequest } from "../../auth/middleware";
-import {
-    getOrganisationById,
-    getOrganisationMemberRole,
-    getSubscriptionByUserId,
-    updateOrganisation,
-} from "../../db/queries";
+import { getOrganisationById, getOrganisationMemberRole, updateOrganisation } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function organisationUpdate(req: AuthedRequest) {

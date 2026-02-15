@@ -1,11 +1,13 @@
-import { DEFAULT_SPRINT_COLOUR, type SprintRecord } from "@sprint/shared";
+import { DEFAULT_SPRINT_COLOUR, type IssueResponse, type SprintRecord } from "@sprint/shared";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CloseSprintDialog } from "@/components/close-sprint";
 // import { FreeTierLimit } from "@/components/free-tier-limit";
 import { useAuthenticatedSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import ColourPicker from "@/components/ui/colour-picker";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
   DialogClose,
@@ -17,7 +19,7 @@ import {
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useCreateSprint, useUpdateSprint } from "@/lib/query/hooks";
+import { useCloseSprint, useCreateSprint, useDeleteSprint, useUpdateSprint } from "@/lib/query/hooks";
 import { parseError } from "@/lib/server";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +81,8 @@ export function SprintForm({
   completeAction,
   mode = "create",
   existingSprint,
+  statuses = {},
+  issues = [],
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
 }: {
@@ -88,12 +92,16 @@ export function SprintForm({
   completeAction?: (sprint: SprintRecord) => void | Promise<void>;
   mode?: "create" | "edit";
   existingSprint?: SprintRecord;
+  statuses?: Record<string, string>;
+  issues?: IssueResponse[];
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
   const { user } = useAuthenticatedSession();
   const createSprint = useCreateSprint();
   const updateSprint = useUpdateSprint();
+  const deleteSprint = useDeleteSprint();
+  const closeSprint = useCloseSprint();
 
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
@@ -108,6 +116,27 @@ export function SprintForm({
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [closeSprintOpen, setCloseSprintOpen] = useState(false);
+  const [closingSprint, setClosingSprint] = useState<SprintRecord | null>(null);
+  const [handOffStatuses, setHandOffStatuses] = useState<string[]>([]);
+  const [handOffSprintId, setHandOffSprintId] = useState<string>("");
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    confirmText: string;
+    processingText: string;
+    variant: "default" | "destructive";
+    onConfirm: () => Promise<void>;
+  }>({
+    open: false,
+    title: "",
+    message: "",
+    confirmText: "",
+    processingText: "",
+    variant: "default",
+    onConfirm: async () => {},
+  });
 
   const isEdit = mode === "edit";
 
@@ -128,6 +157,23 @@ export function SprintForm({
     return "";
   }, [endDate, startDate, submitAttempted]);
 
+  const defaultHandOffStatusSet = useMemo(
+    () => new Set(["TODO", "TO DO", "IN PROGRESS", "DOING", "BLOCKED"]),
+    [],
+  );
+  const statusOptions = useMemo(() => Object.entries(statuses), [statuses]);
+  const openHandOffSprints = useMemo(
+    () => sprints.filter((sprint) => sprint.open && sprint.id !== closingSprint?.id),
+    [sprints, closingSprint],
+  );
+  const matchingHandOffIssueCount = useMemo(() => {
+    if (!closingSprint || handOffStatuses.length === 0) return 0;
+    return issues.filter(
+      (issue) => issue.Issue.sprintId === closingSprint.id && handOffStatuses.includes(issue.Issue.status),
+    ).length;
+  }, [issues, closingSprint, handOffStatuses]);
+  const canCloseWithoutHandOff = matchingHandOffIssueCount === 0;
+
   const reset = () => {
     const defaults = getDefaultDates(sprints);
     setName("");
@@ -143,6 +189,8 @@ export function SprintForm({
     setOpen(nextOpen);
     if (!nextOpen) {
       reset();
+      closeCloseSprintDialog();
+      closeConfirmDialog();
     }
   };
 
@@ -222,6 +270,68 @@ export function SprintForm({
       setError(message || `failed to ${isEdit ? "update" : "create"} sprint`);
       setSubmitting(false);
       toast.error(`Error ${isEdit ? "updating" : "creating"} sprint: ${message}`, {
+        dismissible: false,
+      });
+    }
+  };
+
+  const openCloseSprintDialog = (sprint: SprintRecord) => {
+    const defaults = Object.keys(statuses).filter((status) =>
+      defaultHandOffStatusSet.has(status.trim().toUpperCase()),
+    );
+    setClosingSprint(sprint);
+    setHandOffStatuses(defaults);
+    setHandOffSprintId("");
+    setCloseSprintOpen(true);
+  };
+
+  const closeCloseSprintDialog = () => {
+    setCloseSprintOpen(false);
+    setClosingSprint(null);
+    setHandOffStatuses([]);
+    setHandOffSprintId("");
+  };
+
+  const closeConfirmDialog = () => {
+    setConfirmDialog((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleCloseSprintSubmit = async () => {
+    if (!closingSprint) return;
+
+    const parsedHandOffSprintId = handOffSprintId ? Number(handOffSprintId) : null;
+    if (!canCloseWithoutHandOff && !parsedHandOffSprintId) {
+      toast.error("Select an open sprint to hand over matching issues.");
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const result = await closeSprint.mutateAsync({
+        projectId: projectId ?? closingSprint.projectId,
+        sprintId: closingSprint.id,
+        statusesToHandOff: handOffStatuses,
+        handOffSprintId: parsedHandOffSprintId,
+      });
+
+      closeCloseSprintDialog();
+      setOpen(false);
+      reset();
+      toast.success(
+        result.movedIssueCount > 0
+          ? `Closed "${closingSprint.name}" and moved ${result.movedIssueCount} issue${result.movedIssueCount === 1 ? "" : "s"}.`
+          : `Closed "${closingSprint.name}".`,
+      );
+      try {
+        await completeAction?.({ ...closingSprint, open: false });
+      } catch (actionErr) {
+        console.error(actionErr);
+      }
+    } catch (submitError) {
+      console.error(submitError);
+      setError("failed to close sprint");
+      toast.error(`Failed to close sprint: ${String(submitError)}`, {
         dismissible: false,
       });
     }
@@ -335,46 +445,148 @@ export function SprintForm({
             />
           )} */}
 
-          <div className="flex gap-2 w-full justify-end mt-2">
-            <DialogClose asChild>
-              <Button variant="outline" type="button">
-                Cancel
+          <div className="flex gap-2 w-full justify-between mt-2">
+            <div className="flex gap-2">
+              {isEdit && existingSprint && (
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onClick={() => {
+                    setConfirmDialog({
+                      open: true,
+                      title: "Delete Sprint",
+                      message: `Are you sure you want to delete "${existingSprint.name}"? Issues assigned to this sprint will become unassigned.`,
+                      confirmText: "Delete",
+                      processingText: "Deleting...",
+                      variant: "destructive",
+                      onConfirm: async () => {
+                        try {
+                          await deleteSprint.mutateAsync(existingSprint.id);
+                          closeConfirmDialog();
+                          setOpen(false);
+                          reset();
+                          toast.success(`Deleted sprint "${existingSprint.name}"`);
+                          await completeAction?.(existingSprint);
+                        } catch (deleteError) {
+                          console.error(deleteError);
+                        }
+                      },
+                    });
+                  }}
+                  disabled={submitting || closeSprint.isPending || deleteSprint.isPending}
+                >
+                  {deleteSprint.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              )}
+              {isEdit && existingSprint?.open && (
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => openCloseSprintDialog(existingSprint)}
+                  disabled={submitting || closeSprint.isPending || deleteSprint.isPending}
+                >
+                  {closeSprint.isPending ? "Closing..." : "Close"}
+                </Button>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <DialogClose asChild>
+                <Button
+                  variant="outline"
+                  type="button"
+                  disabled={closeSprint.isPending || deleteSprint.isPending}
+                >
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                disabled={
+                  submitting ||
+                  closeSprint.isPending ||
+                  deleteSprint.isPending ||
+                  ((name.trim() === "" || name.trim().length > SPRINT_NAME_MAX_LENGTH) && submitAttempted) ||
+                  (dateError !== "" && submitAttempted)
+                }
+              >
+                {submitting ? (isEdit ? "Saving..." : "Creating...") : isEdit ? "Save" : "Create"}
               </Button>
-            </DialogClose>
-            <Button
-              type="submit"
-              disabled={
-                submitting ||
-                ((name.trim() === "" || name.trim().length > SPRINT_NAME_MAX_LENGTH) && submitAttempted) ||
-                (dateError !== "" && submitAttempted)
-              }
-            >
-              {submitting ? (isEdit ? "Saving..." : "Creating...") : isEdit ? "Save" : "Create"}
-            </Button>
+            </div>
           </div>
         </div>
       </form>
     </DialogContent>
   );
 
+  const closeDialogOnOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      closeCloseSprintDialog();
+      return;
+    }
+    setCloseSprintOpen(nextOpen);
+  };
+
+  const auxiliaryDialogs = (
+    <>
+      <CloseSprintDialog
+        open={closeSprintOpen}
+        onOpenChange={closeDialogOnOpenChange}
+        sprintName={closingSprint?.name}
+        handOffStatuses={handOffStatuses}
+        onHandOffStatusesChange={setHandOffStatuses}
+        statusOptions={statusOptions}
+        handOffSprintId={handOffSprintId}
+        onHandOffSprintIdChange={setHandOffSprintId}
+        openHandOffSprints={openHandOffSprints}
+        matchingHandOffIssueCount={matchingHandOffIssueCount}
+        canCloseWithoutHandOff={canCloseWithoutHandOff}
+        isPending={closeSprint.isPending}
+        onCancel={closeCloseSprintDialog}
+        onSubmit={() => void handleCloseSprintSubmit()}
+      />
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) closeConfirmDialog();
+        }}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        processingText={confirmDialog.processingText}
+        variant={confirmDialog.variant}
+        onConfirm={() => {
+          void confirmDialog.onConfirm();
+        }}
+      />
+    </>
+  );
+
   if (isControlled) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        {dialogContent}
-      </Dialog>
+      <>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          {dialogContent}
+        </Dialog>
+        {auxiliaryDialogs}
+      </>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" disabled={!projectId}>
-            Create Sprint
-          </Button>
-        )}
-      </DialogTrigger>
-      {dialogContent}
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="outline" disabled={!projectId}>
+              Create Sprint
+            </Button>
+          )}
+        </DialogTrigger>
+        {dialogContent}
+      </Dialog>
+      {auxiliaryDialogs}
+    </>
   );
 }

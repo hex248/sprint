@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
     ATTACHMENT_MAX_COUNT,
+    ISSUE_ASSIGNEE_NOTE_MAX_LENGTH,
     ISSUE_COMMENT_MAX_LENGTH,
     ISSUE_DESCRIPTION_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
@@ -133,6 +134,14 @@ export const IssueCreateRequestSchema = z.object({
     status: z.string().max(ISSUE_STATUS_MAX_LENGTH),
     title: z.string().min(1, "Title is required").max(ISSUE_TITLE_MAX_LENGTH),
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).default(""),
+    assignees: z
+        .array(
+            z.object({
+                userId: z.number().int().positive(),
+                note: z.string().max(ISSUE_ASSIGNEE_NOTE_MAX_LENGTH).default(""),
+            }),
+        )
+        .optional(),
     assigneeIds: z.array(z.number().int().positive()).optional(),
     sprintId: z.number().int().positive().nullable().optional(),
     attachmentIds: z.array(z.number().int().positive()).max(ATTACHMENT_MAX_COUNT).optional(),
@@ -146,6 +155,15 @@ export const IssueUpdateRequestSchema = z.object({
     status: z.string().max(ISSUE_STATUS_MAX_LENGTH).optional(),
     title: z.string().min(1, "Title must be at least 1 character").max(ISSUE_TITLE_MAX_LENGTH).optional(),
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).optional(),
+    assignees: z
+        .array(
+            z.object({
+                userId: z.number().int().positive(),
+                note: z.string().max(ISSUE_ASSIGNEE_NOTE_MAX_LENGTH).default(""),
+            }),
+        )
+        .nullable()
+        .optional(),
     assigneeIds: z.array(z.number().int().positive()).nullable().optional(),
     sprintId: z.number().int().positive().nullable().optional(),
     attachmentIds: z.array(z.number().int().positive()).max(ATTACHMENT_MAX_COUNT).optional(),
@@ -554,6 +572,12 @@ export const IssueResponseSchema = z.object({
     Issue: IssueRecordSchema,
     Creator: UserResponseSchema,
     Assignees: z.array(UserResponseSchema),
+    AssigneeNotes: z.array(
+        z.object({
+            userId: z.number(),
+            note: z.string(),
+        }),
+    ),
     Attachments: z.array(AttachmentRecordSchema),
 });
 
@@ -804,3 +828,17 @@ export const ModelsResponseSchema = z.array(
     }),
 );
 export type ModelsResponse = z.infer<typeof ModelsResponseSchema>;
+
+export const RtcIceServerSchema = z.object({
+    urls: z.union([z.string(), z.array(z.string().min(1)).min(1)]),
+    username: z.string().optional(),
+    credential: z.string().optional(),
+});
+
+export type RtcIceServer = z.infer<typeof RtcIceServerSchema>;
+
+export const RtcConfigResponseSchema = z.object({
+    iceServers: z.array(RtcIceServerSchema),
+});
+
+export type RtcConfigResponse = z.infer<typeof RtcConfigResponseSchema>;

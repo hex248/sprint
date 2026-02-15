@@ -1,72 +1,126 @@
-import type { UserResponse } from "@sprint/shared";
+import { ISSUE_ASSIGNEE_NOTE_MAX_LENGTH, type UserResponse } from "@sprint/shared";
+import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
 import { UserSelect } from "@/components/user-select";
+
+export type AssigneeSelectValue = {
+  userId: string;
+  note: string;
+};
 
 export function MultiAssigneeSelect({
   users,
-  assigneeIds,
+  assignees,
   onChange,
   fallbackUsers = [],
+  assigneeNotesEnabled = true,
 }: {
   users: UserResponse[];
-  assigneeIds: string[];
-  onChange: (assigneeIds: string[]) => void;
+  assignees: AssigneeSelectValue[];
+  onChange: (assignees: AssigneeSelectValue[]) => void;
   fallbackUsers?: UserResponse[];
+  assigneeNotesEnabled?: boolean;
 }) {
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const nextDrafts: Record<string, string> = {};
+    for (const [index, assignee] of assignees.entries()) {
+      nextDrafts[`${index}-${assignee.userId}`] = assignee.note;
+    }
+    setNoteDrafts(nextDrafts);
+  }, [assignees]);
+
   const handleAssigneeChange = (index: number, value: string) => {
     // if set to "unassigned" and there are other rows, remove this row
-    if (value === "unassigned" && assigneeIds.length > 1) {
-      const newAssigneeIds = assigneeIds.filter((_, i) => i !== index);
-      onChange(newAssigneeIds);
+    if (value === "unassigned" && assignees.length > 1) {
+      const newAssignees = assignees.filter((_, i) => i !== index);
+      onChange(newAssignees);
       return;
     }
 
-    const newAssigneeIds = [...assigneeIds];
-    newAssigneeIds[index] = value;
-    onChange(newAssigneeIds);
+    const newAssignees = [...assignees];
+    newAssignees[index] = {
+      ...newAssignees[index],
+      userId: value,
+      note: value === "unassigned" || !assigneeNotesEnabled ? "" : (newAssignees[index]?.note ?? ""),
+    };
+    onChange(newAssignees);
+  };
+
+  const handleNoteBlur = (index: number, note: string) => {
+    if (assignees[index]?.note === note) {
+      return;
+    }
+
+    const newAssignees = [...assignees];
+    newAssignees[index] = {
+      ...newAssignees[index],
+      note,
+    };
+    onChange(newAssignees);
   };
 
   const handleAddAssignee = () => {
-    onChange([...assigneeIds, "unassigned"]);
+    onChange([...assignees, { userId: "unassigned", note: "" }]);
   };
 
   const getAvailableUsers = (currentIndex: number) => {
-    const selectedIds = assigneeIds
+    const selectedIds = assignees
       .filter((_, i) => i !== currentIndex)
+      .map((assignee) => assignee.userId)
       .filter((id) => id !== "unassigned")
       .map((id) => Number(id));
     return users.filter((user) => !selectedIds.includes(user.id));
   };
 
-  const getFallbackUser = (assigneeId: string) => {
-    if (assigneeId === "unassigned") return null;
-    return fallbackUsers.find((u) => u.id.toString() === assigneeId) || null;
+  const getFallbackUser = (userId: string) => {
+    if (userId === "unassigned") return null;
+    return fallbackUsers.find((u) => u.id.toString() === userId) || null;
   };
 
-  const selectedCount = assigneeIds.filter((id) => id !== "unassigned").length;
-  const lastRowHasSelection = assigneeIds[assigneeIds.length - 1] !== "unassigned";
+  const selectedCount = assignees.filter((assignee) => assignee.userId !== "unassigned").length;
+  const lastRowHasSelection = assignees[assignees.length - 1]?.userId !== "unassigned";
   const canAddMore = selectedCount < users.length && lastRowHasSelection;
 
   return (
-    <div className="flex flex-wrap gap-1">
-      {assigneeIds.map((assigneeId, index) => (
-        <>
-          <div key={`assignee-${index}-${assigneeId}`} className="flex items-center gap-1">
+    <div className="flex flex-wrap items-end gap-2">
+      {assignees.map((assignee, index) => (
+        <div key={`assignee-${index}-${assignee.userId}`} className="relative w-fit">
+          {assigneeNotesEnabled && assignee.userId !== "unassigned" && (
+            <Input
+              type="text"
+              value={noteDrafts[`${index}-${assignee.userId}`] ?? assignee.note}
+              onChange={(event) => {
+                const key = `${index}-${assignee.userId}`;
+                setNoteDrafts((previous) => ({ ...previous, [key]: event.target.value }));
+              }}
+              onBlur={(event) => handleNoteBlur(index, event.target.value)}
+              placeholder="Assignee Note"
+              maxLength={ISSUE_ASSIGNEE_NOTE_MAX_LENGTH}
+              showCounter={false}
+              disabled={assignee.userId === "unassigned"}
+              className="absolute -right-[5px] top-[35px] z-50 h-4 w-24 -translate-y-1/2 border-border/80 bg-background px-0"
+              inputClassName="text-[11px] px-1 py-0 text-right"
+            />
+          )}
+          <div className="flex items-center gap-1">
             <UserSelect
               users={getAvailableUsers(index)}
-              value={assigneeId}
+              value={assignee.userId}
               onChange={(value) => handleAssigneeChange(index, value)}
-              fallbackUser={getFallbackUser(assigneeId)}
+              fallbackUser={getFallbackUser(assignee.userId)}
             />
           </div>
-          {index === assigneeIds.length - 1 && canAddMore && (
-            <IconButton onClick={handleAddAssignee} title={"Add assignee"} className="w-9 h-9">
-              <Icon icon="plus" className="h-4 w-4" />
-            </IconButton>
-          )}
-        </>
+        </div>
       ))}
+      {canAddMore && (
+        <IconButton onClick={handleAddAssignee} title={"Add assignee"} className="w-9 h-9">
+          <Icon icon="plus" className="h-4 w-4" />
+        </IconButton>
+      )}
     </div>
   );
 }

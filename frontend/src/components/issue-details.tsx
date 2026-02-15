@@ -10,7 +10,7 @@ import { type ClipboardEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { InlineContent } from "@/components/inline-content";
 import { IssueComments } from "@/components/issue-comments";
-import { MultiAssigneeSelect } from "@/components/multi-assignee-select";
+import { type AssigneeSelectValue, MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useSession } from "@/components/session-provider";
 import SmallSprintDisplay from "@/components/small-sprint-display";
 import SmallUserDisplay from "@/components/small-user-display";
@@ -38,13 +38,35 @@ import {
 import { parseError } from "@/lib/server";
 import { cn, issueID } from "@/lib/utils";
 
-function assigneesToStringArray(assignees: { id: number }[]): string[] {
-  if (assignees.length === 0) return ["unassigned"];
-  return assignees.map((a) => a.id.toString());
+function assigneesToSelectValues(
+  assignees: { id: number }[],
+  assigneeNotes: { userId: number; note: string }[],
+): AssigneeSelectValue[] {
+  if (assignees.length === 0) return [{ userId: "unassigned", note: "" }];
+
+  const noteByUserId = new Map(assigneeNotes.map((assigneeNote) => [assigneeNote.userId, assigneeNote.note]));
+  return assignees.map((assignee) => ({
+    userId: assignee.id.toString(),
+    note: noteByUserId.get(assignee.id) ?? "",
+  }));
 }
 
-function stringArrayToAssigneeIds(assigneeIds: string[]): number[] {
-  return assigneeIds.filter((id) => id !== "unassigned").map((id) => Number(id));
+function assigneeSelectValuesToApiValues(assignees: AssigneeSelectValue[], assigneeNotesEnabled: boolean) {
+  return assignees
+    .filter((assignee) => assignee.userId !== "unassigned")
+    .map((assignee) => ({
+      userId: Number(assignee.userId),
+      note: assigneeNotesEnabled ? assignee.note : "",
+    }));
+}
+
+function assigneesEqual(
+  left: { userId: number; note: string }[],
+  right: { userId: number; note: string }[],
+): boolean {
+  if (left.length !== right.length) return false;
+  const rightByUserId = new Map(right.map((assignee) => [assignee.userId, assignee.note]));
+  return left.every((assignee) => rightByUserId.get(assignee.userId) === assignee.note);
 }
 
 function escapeRegex(value: string) {
@@ -88,7 +110,7 @@ export function IssueDetails({
   const { data: inactiveTimers = [] } = useInactiveTimers(issueData.Issue.id, { refetchInterval: 10000 });
   const [timerTick, setTimerTick] = useState(0);
 
-  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [assignees, setAssignees] = useState<AssigneeSelectValue[]>([]);
   const [sprintId, setSprintId] = useState<string>("unassigned");
   const [status, setStatus] = useState<string>("");
   const [type, setType] = useState<string>("");
@@ -113,9 +135,13 @@ export function IssueDetails({
     string,
     { icon: string; color: string }
   >;
+  const assigneeNotesEnabled = organisation?.Organisation.features.assigneeNotes ?? true;
 
+  const assigneeIds = assignees
+    .filter((assignee) => assignee.userId !== "unassigned")
+    .map((assignee) => assignee.userId);
   const isAssignee = assigneeIds.some((id) => user?.id === Number(id));
-  const actualAssigneeIds = assigneeIds.filter((id) => id !== "unassigned");
+  const actualAssigneeIds = assigneeIds;
   const hasMultipleAssignees = actualAssigneeIds.length > 1;
 
   useEffect(() => {
@@ -123,7 +149,7 @@ export function IssueDetails({
     previousIssueIdRef.current = issueData.Issue.id;
 
     setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
-    setAssigneeIds(assigneesToStringArray(issueData.Assignees));
+    setAssignees(assigneesToSelectValues(issueData.Assignees, issueData.AssigneeNotes));
     setStatus(issueData.Issue.status);
     setType(issueData.Issue.type);
     setTitle(issueData.Issue.title);
@@ -213,16 +239,14 @@ export function IssueDetails({
     }
   };
 
-  const handleAssigneeChange = async (newAssigneeIds: string[]) => {
-    const previousAssigneeIds = assigneeIds;
-    setAssigneeIds(newAssigneeIds);
+  const handleAssigneeChange = async (newAssignees: AssigneeSelectValue[]) => {
+    const previousAssignees = assignees;
+    setAssignees(newAssignees);
 
-    const newAssigneeIdNumbers = stringArrayToAssigneeIds(newAssigneeIds);
-    const previousAssigneeIdNumbers = stringArrayToAssigneeIds(previousAssigneeIds);
+    const newAssigneeValues = assigneeSelectValuesToApiValues(newAssignees, assigneeNotesEnabled);
+    const previousAssigneeValues = assigneeSelectValuesToApiValues(previousAssignees, assigneeNotesEnabled);
 
-    const hasChanged =
-      newAssigneeIdNumbers.length !== previousAssigneeIdNumbers.length ||
-      !newAssigneeIdNumbers.every((id) => previousAssigneeIdNumbers.includes(id));
+    const hasChanged = !assigneesEqual(newAssigneeValues, previousAssigneeValues);
 
     if (!hasChanged) {
       return;
@@ -231,9 +255,11 @@ export function IssueDetails({
     try {
       await updateIssue.mutateAsync({
         id: issueData.Issue.id,
-        assigneeIds: newAssigneeIdNumbers,
+        assignees: newAssigneeValues,
       });
-      const assignedUsers = members.filter((member) => newAssigneeIdNumbers.includes(member.id));
+      const assignedUsers = members.filter((member) =>
+        newAssigneeValues.some((assignee) => assignee.userId === member.id),
+      );
       const displayText =
         assignedUsers.length === 0
           ? "Unassigned"
@@ -250,7 +276,7 @@ export function IssueDetails({
       );
     } catch (error) {
       console.error("error updating assignees:", error);
-      setAssigneeIds(previousAssigneeIds);
+      setAssignees(previousAssignees);
       toast.error(`Error updating assignees: ${parseError(error as Error)}`, {
         dismissible: false,
       });
@@ -698,9 +724,10 @@ export function IssueDetails({
             <span className="text-sm pt-2">Assignees:</span>
             <MultiAssigneeSelect
               users={members}
-              assigneeIds={assigneeIds}
+              assignees={assignees}
               onChange={handleAssigneeChange}
               fallbackUsers={issueData.Assignees}
+              assigneeNotesEnabled={assigneeNotesEnabled}
             />
           </div>
         )}

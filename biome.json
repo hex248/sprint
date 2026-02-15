@@ -13,6 +13,6 @@
         }
     },
     "files": {
-        "includes": ["**", "!shared/dist"]
+        "includes": ["**", "!shared/dist", "!cli/dist"]
     }
 }

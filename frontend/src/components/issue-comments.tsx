@@ -5,7 +5,7 @@ import {
   type AttachmentRecord,
   type IssueCommentResponse,
 } from "@sprint/shared";
-import { type ChangeEvent, type ClipboardEvent, useMemo, useState } from "react";
+import { type ClipboardEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { extractImageUrls, InlineContent } from "@/components/inline-content";
 import { useSession } from "@/components/session-provider";
@@ -99,12 +99,6 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
     } finally {
       setUploadingAttachments(false);
     }
-  };
-
-  const handleAttachmentSelect = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    event.target.value = "";
-    await uploadFiles(files);
   };
 
   const handleCommentPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
@@ -206,14 +200,6 @@ export function IssueComments({ issueId, className }: { issueId: number; classNa
         </IconButton>
       </div>
       <div className="flex flex-col gap-2">
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          multiple
-          onChange={handleAttachmentSelect}
-          disabled={uploadingAttachments || attachments.length >= ATTACHMENT_MAX_COUNT}
-          className="text-sm"
-        />
         {attachments.length > 0 && (
           <div className="grid grid-cols-3 gap-2">
             {attachments.map((attachment) => (

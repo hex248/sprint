@@ -7,6 +7,7 @@ import authMe from "./auth/me";
 import authRegister from "./auth/register";
 import authResendVerification from "./auth/resend-verification";
 import authVerifyEmail from "./auth/verify-email";
+import rtcConfig from "./rtc/config";
 import cliLoginApprove from "./cli/login-approve";
 import cliLoginPoll from "./cli/login-poll";
 import cliLoginStart from "./cli/login-start";
@@ -75,6 +76,7 @@ export const routes = {
     authLogin,
     authLogout,
     authMe,
+    rtcConfig,
     authVerifyEmail,
     authResendVerification,
     cliLoginStart,

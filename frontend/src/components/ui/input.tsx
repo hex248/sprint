@@ -24,7 +24,7 @@ function Input({
   return (
     <div
       className={cn(
-        "border-input dark:bg-input/30 flex h-9 w-full min-w-0 items-center border bg-transparent",
+        "border-input bg-input/30 flex h-9 w-full min-w-0 items-center border",
         "transition-[color,box-shadow]",
         "has-[:focus-visible]:border-[var(--personality)] ",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -46,7 +46,7 @@ function Input({
           "h-full flex-1 min-w-0 bg-transparent px-3 py-1 pr-1 text-base outline-none",
           "file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
           "appearance-none [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden",
-          "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
           showHashPrefix ? "pl-2 py-0" : "pl-3",
           inputClassName,
         )}

@@ -10,17 +10,53 @@ import { aliasedTable, and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../client";
 import { toPublicUser } from "./users";
 
-export async function createIssue(
-    projectId: number,
-    title: string,
-    description: string,
-    creatorId: number,
-    status: string,
-    type: string,
-    sprintId?: number,
-    assigneeIds?: number[],
-    attachmentIds?: number[],
-) {
+type CreateIssueInput = {
+    projectId: number;
+    title: string;
+    description: string;
+    creatorId: number;
+    status: string;
+    type: string;
+    sprintId?: number | null;
+    assignees?: AssigneeInput[] | null;
+    assigneeIds?: number[] | null;
+    attachmentIds?: number[] | null;
+};
+
+type AssigneeInput = {
+    userId: number;
+    note?: string | null;
+};
+
+function normalizeAssignees(
+    assignees?: AssigneeInput[] | null,
+    assigneeIds?: number[] | null,
+): { userId: number; note: string }[] {
+    const values =
+        assignees && assignees.length > 0
+            ? assignees.map((assignee) => ({ userId: assignee.userId, note: assignee.note ?? "" }))
+            : (assigneeIds ?? []).map((userId) => ({ userId, note: "" }));
+
+    const uniqueAssignees = new Map<number, { userId: number; note: string }>();
+    for (const assignee of values) {
+        uniqueAssignees.set(assignee.userId, assignee);
+    }
+
+    return Array.from(uniqueAssignees.values());
+}
+
+export async function createIssue({
+    projectId,
+    title,
+    description,
+    creatorId,
+    status,
+    type,
+    sprintId,
+    assignees,
+    assigneeIds,
+    attachmentIds,
+}: CreateIssueInput) {
     // prevents two issues with the same unique number
     return await db.transaction(async (tx) => {
         // raw sql for speed
@@ -50,11 +86,13 @@ export async function createIssue(
             throw new Error("failed to create issue");
         }
 
-        if (assigneeIds && assigneeIds.length > 0) {
+        const normalizedAssignees = normalizeAssignees(assignees, assigneeIds);
+        if (normalizedAssignees.length > 0) {
             await tx.insert(IssueAssignee).values(
-                assigneeIds.map((userId) => ({
+                normalizedAssignees.map((assignee) => ({
                     issueId: newIssue.id,
-                    userId,
+                    userId: assignee.userId,
+                    note: assignee.note,
                 })),
             );
         }
@@ -93,15 +131,16 @@ export async function updateIssue(
     return await db.update(Issue).set(updates).where(eq(Issue.id, id)).returning();
 }
 
-export async function setIssueAssignees(issueId: number, userIds: number[]) {
+export async function setIssueAssignees(issueId: number, assignees: AssigneeInput[]) {
     return await db.transaction(async (tx) => {
         await tx.delete(IssueAssignee).where(eq(IssueAssignee.issueId, issueId));
 
-        if (userIds.length > 0) {
+        if (assignees.length > 0) {
             await tx.insert(IssueAssignee).values(
-                userIds.map((userId) => ({
+                assignees.map((assignee) => ({
                     issueId,
-                    userId,
+                    userId: assignee.userId,
+                    note: assignee.note ?? "",
                 })),
             );
         }
@@ -147,6 +186,8 @@ export async function getIssueWithUsersById(issueId: number): Promise<IssueRespo
 
     const assigneesData = await db
         .select({
+            userId: IssueAssignee.userId,
+            note: IssueAssignee.note,
             User: {
                 id: User.id,
                 name: User.name,
@@ -172,6 +213,7 @@ export async function getIssueWithUsersById(issueId: number): Promise<IssueRespo
         Issue: issueWithCreator.Issue,
         Creator: toPublicUser(issueWithCreator.Creator),
         Assignees: assigneesData.map((row) => toPublicUser(row.User)),
+        AssigneeNotes: assigneesData.map((row) => ({ userId: row.userId, note: row.note })),
         Attachments: attachments,
     };
 }
@@ -290,6 +332,8 @@ export async function getIssuesWithUsersByProject(projectId: number): Promise<Is
             ? await db
                   .select({
                       issueId: IssueAssignee.issueId,
+                      userId: IssueAssignee.userId,
+                      note: IssueAssignee.note,
                       User: {
                           id: User.id,
                           name: User.name,
@@ -308,10 +352,15 @@ export async function getIssuesWithUsersByProject(projectId: number): Promise<Is
             : [];
 
     const assigneesByIssue = new Map<number, UserResponse[]>();
+    const assigneeNotesByIssue = new Map<number, { userId: number; note: string }[]>();
     for (const a of assigneesData) {
         const existing = assigneesByIssue.get(a.issueId) || [];
         existing.push(toPublicUser(a.User));
         assigneesByIssue.set(a.issueId, existing);
+
+        const existingNotes = assigneeNotesByIssue.get(a.issueId) || [];
+        existingNotes.push({ userId: a.userId, note: a.note });
+        assigneeNotesByIssue.set(a.issueId, existingNotes);
     }
 
     const attachmentRows =
@@ -336,6 +385,7 @@ export async function getIssuesWithUsersByProject(projectId: number): Promise<Is
         Issue: row.Issue,
         Creator: toPublicUser(row.Creator),
         Assignees: assigneesByIssue.get(row.Issue.id) || [],
+        AssigneeNotes: assigneeNotesByIssue.get(row.Issue.id) || [],
         Attachments: attachmentsByIssue.get(row.Issue.id) || [],
     }));
 }

@@ -155,13 +155,15 @@ export async function importOrganisation(importData: ExportedOrganisationData, i
                 .map((assignee) => ({
                     issueId: issueIdMap.get(assignee.issueId),
                     userId: resolveUserId(assignee.userId),
+                    note: assignee.note ?? "",
                 }))
                 .filter(
-                    (assignee): assignee is { issueId: number; userId: number } => assignee.issueId != null,
+                    (assignee): assignee is { issueId: number; userId: number; note: string } =>
+                        assignee.issueId != null,
                 );
 
             if (assigneesToInsert.length > 0) {
-                const uniqueAssignees = new Map<string, { issueId: number; userId: number }>();
+                const uniqueAssignees = new Map<string, { issueId: number; userId: number; note: string }>();
                 for (const assignee of assigneesToInsert) {
                     const key = `${assignee.issueId}:${assignee.userId}`;
                     if (!uniqueAssignees.has(key)) {

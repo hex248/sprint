@@ -999,7 +999,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                   {isAdmin && (
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm" onClick={() => void downloadOrganisationExport()}>
-                        Export JSON
+                        <Icon icon="download" className="size-4" /> Export JSON
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => setEditOrgOpen(true)}>
                         <Icon icon="edit" className="size-4" />
@@ -1365,8 +1365,11 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                     />
                     <SprintForm
                       mode="edit"
+                      projectId={selectedProject?.Project.id}
                       existingSprint={editingSprint ?? undefined}
                       sprints={sprints}
+                      statuses={selectedOrganisation?.Organisation.statuses ?? {}}
+                      issues={issues}
                       open={editSprintOpen}
                       onOpenChange={(open) => {
                         setEditSprintOpen(open);
@@ -1752,7 +1755,10 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                           checked={Boolean(selectedOrganisation?.Organisation.features[feature])}
                           onCheckedChange={async (checked) => {
                             if (!selectedOrganisation) return;
-                            const newFeatures = selectedOrganisation.Organisation.features;
+                            const newFeatures = {
+                              ...DEFAULT_FEATURES,
+                              ...selectedOrganisation.Organisation.features,
+                            };
                             newFeatures[feature] = checked;
 
                             await updateOrganisation.mutateAsync({

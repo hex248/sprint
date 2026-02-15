@@ -3,6 +3,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { z } from "zod";
 import {
     type ATTACHMENT_ALLOWED_IMAGE_TYPES,
+    ISSUE_ASSIGNEE_NOTE_MAX_LENGTH,
     ISSUE_COMMENT_MAX_LENGTH,
     ISSUE_DESCRIPTION_MAX_LENGTH,
     ISSUE_STATUS_MAX_LENGTH,
@@ -44,6 +45,7 @@ export const DEFAULT_FEATURES: Record<string, boolean> = {
     issueDescriptions: true,
     issueTimeTracking: true,
     issueAssignees: true,
+    assigneeNotes: true,
     issueAssigneesShownInTable: true,
     issueCreator: true,
     issueComments: true,
@@ -207,6 +209,7 @@ export const IssueAssignee = pgTable(
         userId: integer()
             .notNull()
             .references(() => User.id, { onDelete: "cascade" }),
+        note: varchar({ length: ISSUE_ASSIGNEE_NOTE_MAX_LENGTH }).notNull().default(""),
         assignedAt: timestamp({ withTimezone: false }).defaultNow(),
     },
     (t) => [uniqueIndex("unique_issue_user").on(t.issueId, t.userId)],
@@ -325,6 +328,7 @@ export type IssueResponse = {
     Issue: IssueRecord;
     Creator: UserRecord;
     Assignees: UserRecord[];
+    AssigneeNotes: { userId: number; note: string }[];
     Attachments: AttachmentRecord[];
 };
 

@@ -61,6 +61,7 @@ import {
     RegisterRequestSchema,
     ReplaceStatusResponseSchema,
     ReplaceTypeResponseSchema,
+    RtcConfigResponseSchema,
     SprintCloseRequestSchema,
     SprintCloseResponseSchema,
     SprintCreateRequestSchema,
@@ -159,6 +160,14 @@ export const apiContract = c.router({
             200: AuthResponseSchema,
             401: ApiErrorSchema,
             404: ApiErrorSchema,
+        },
+    },
+    rtcConfig: {
+        method: "GET",
+        path: "/rtc/config",
+        responses: {
+            200: RtcConfigResponseSchema,
+            401: ApiErrorSchema,
         },
     },
     cliLoginStart: {
