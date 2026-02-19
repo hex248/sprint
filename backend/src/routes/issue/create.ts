@@ -9,6 +9,7 @@ import {
     getProjectByID,
     // getUserById,
 } from "../../db/queries";
+import { broadcastIssueChanged } from "../../realtime";
 import { errorResponse, parseJsonBody } from "../../validation";
 
 export default async function issueCreate(req: AuthedRequest) {
@@ -66,6 +67,14 @@ export default async function issueCreate(req: AuthedRequest) {
         description: parsed.data.description ?? "",
         sprintId: parsed.data.sprintId ?? undefined,
         attachmentIds: dedupedAttachmentIds,
+    });
+
+    broadcastIssueChanged({
+        organisationId: project.organisationId,
+        projectId: project.id,
+        issueId: issue.id,
+        action: "created",
+        actorUserId: req.userId,
     });
 
     return Response.json(issue);

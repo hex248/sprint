@@ -185,6 +185,26 @@ export {
 } from "./constants";
 export type { ApiContract } from "./contract";
 export { apiContract } from "./contract";
+export type {
+    ClientRoomMessage,
+    IssueChangedMessage,
+    PresenceServerToClientMessage,
+} from "./presence-schemas";
+export {
+    ClientRoomEndMessageSchema,
+    ClientRoomJoinMessageSchema,
+    ClientRoomLeaveMessageSchema,
+    ClientRoomMessageSchema,
+    IssueChangedActionSchema,
+    IssueChangedMessageSchema,
+    PresenceOnlineUsersMessageSchema,
+    PresenceServerToClientMessageSchema,
+    RoomErrorCodeSchema,
+    RoomErrorMessageSchema,
+    RoomJoinedMessageSchema,
+    RoomParticipantsMessageSchema,
+    RoomUserJoinedMessageSchema,
+} from "./presence-schemas";
 export type { RtcClientToServerMessage, RtcIceCandidate, RtcServerToClientMessage } from "./rtc-schemas";
 export {
     RtcClientToServerMessageSchema,

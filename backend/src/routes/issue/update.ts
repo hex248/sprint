@@ -11,6 +11,7 @@ import {
     setIssueAssignees,
     updateIssue,
 } from "../../db/queries";
+import { broadcastIssueChanged } from "../../realtime";
 import { deleteFromS3 } from "../../s3";
 import { errorResponse, parseJsonBody } from "../../validation";
 
@@ -105,6 +106,14 @@ export default async function issueUpdate(req: AuthedRequest) {
             await deleteAttachmentsByIds(toRemove.map((attachment) => attachment.id));
         }
     }
+
+    broadcastIssueChanged({
+        organisationId: project.organisationId,
+        projectId: project.id,
+        issueId: id,
+        action: "updated",
+        actorUserId: req.userId,
+    });
 
     return Response.json(issue);
 }

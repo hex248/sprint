@@ -1,3 +1,5 @@
+import { type PresenceServerToClientMessage, PresenceServerToClientMessageSchema } from "@sprint/shared";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { CallRoomOverlay } from "@/components/call-room-overlay";
@@ -7,56 +9,17 @@ import SmallUserDisplay from "@/components/small-user-display";
 import Icon from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { DEFAULT_RTC_ICE_SERVERS, useOrganisationMembers, useRtcConfig } from "@/lib/query/hooks";
+import { queryKeys } from "@/lib/query/keys";
 import { useRoomAudio } from "@/lib/rtc/use-room-audio";
 import { getServerURL } from "@/lib/utils";
 
 const RECONNECT_DELAY_MS = 2000;
 
-type PresenceMessage = {
-  type: "online-users";
-  organisationId: number;
-  userIds: number[];
-  inCallUserIds: number[];
-  inCallRoomOwnerUserIds: number[];
-};
-
-type RoomParticipantsMessage = {
-  type: "room-participants";
-  organisationId: number;
-  roomUserId: number;
-  participantUserIds: number[];
-};
-
-type RoomJoinedMessage = {
-  type: "room-joined";
-  organisationId: number;
-  roomUserId: number;
-};
-
-type RoomErrorMessage = {
-  type: "room-error";
-  code: "INVALID_ROOM" | "FORBIDDEN_ROOM" | "IN_CALL" | "SIGNAL_INVALID";
-  message: string;
-};
-
-type RoomUserJoinedMessage = {
-  type: "room-user-joined";
-  organisationId: number;
-  roomUserId: number;
-  userId: number;
-};
-
-type PresenceSocketMessage =
-  | PresenceMessage
-  | RoomParticipantsMessage
-  | RoomJoinedMessage
-  | RoomErrorMessage
-  | RoomUserJoinedMessage;
-
 export function OnlineUsersOverlay() {
   const location = useLocation();
+  const queryClient = useQueryClient();
   const session = useSessionSafe();
-  const { selectedOrganisationId } = useSelection();
+  const { selectedOrganisationId, selectedProjectId, selectedIssueId } = useSelection();
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
   const [onlineUserIds, setOnlineUserIds] = useState<number[]>([]);
   const [inCallUserIds, setInCallUserIds] = useState<number[]>([]);
@@ -254,7 +217,11 @@ export function OnlineUsersOverlay() {
             return;
           }
 
-          const message = unknownMessage as PresenceSocketMessage;
+          const presenceParse = PresenceServerToClientMessageSchema.safeParse(unknownMessage);
+          if (!presenceParse.success) {
+            return;
+          }
+          const message: PresenceServerToClientMessage = presenceParse.data;
 
           if (message.type === "online-users") {
             if (message.organisationId !== selectedOrganisationId) {
@@ -280,6 +247,25 @@ export function OnlineUsersOverlay() {
             }
 
             playBloop();
+            return;
+          }
+
+          if (message.type === "issue-changed") {
+            if (message.organisationId !== selectedOrganisationId) {
+              return;
+            }
+
+            if (selectedProjectId === message.projectId) {
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.issues.byProject(selectedProjectId),
+              });
+            }
+
+            if (selectedIssueId === message.issueId) {
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.issues.byId(message.issueId),
+              });
+            }
             return;
           }
 
@@ -337,7 +323,15 @@ export function OnlineUsersOverlay() {
       setSocketOpen(false);
       setSocketState(null);
     };
-  }, [isSupportedRoute, playBloop, selectedOrganisationId, session?.user]);
+  }, [
+    isSupportedRoute,
+    playBloop,
+    queryClient,
+    selectedIssueId,
+    selectedOrganisationId,
+    selectedProjectId,
+    session?.user,
+  ]);
 
   const onlineMembers = useMemo(() => {
     if (onlineUserIds.length === 0) {
