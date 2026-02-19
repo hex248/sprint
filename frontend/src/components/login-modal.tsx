@@ -15,18 +15,18 @@ interface LoginModalProps {
 export function LoginModal({ open, onOpenChange, onSuccess, dismissible = true }: LoginModalProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isLoading, emailVerified } = useSession();
+  const { user, isLoading } = useSession();
   const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    if (open && !isLoading && user && emailVerified && !hasRedirected) {
+    if (open && !isLoading && user && !hasRedirected) {
       setHasRedirected(true);
       const next = searchParams.get("next") || "/issues";
       navigate(next, { replace: true });
       onSuccess?.();
       onOpenChange(false);
     }
-  }, [open, user, isLoading, emailVerified, navigate, searchParams, onSuccess, onOpenChange, hasRedirected]);
+  }, [open, user, isLoading, navigate, searchParams, onSuccess, onOpenChange, hasRedirected]);
 
   useEffect(() => {
     if (!open) {
