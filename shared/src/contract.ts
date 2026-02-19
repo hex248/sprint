@@ -26,6 +26,7 @@ import {
     IssueCommentsByIssueQuerySchema,
     IssueCreateRequestSchema,
     IssueDeleteRequestSchema,
+    IssueImportJiraCsvResultSchema,
     IssueRecordSchema,
     IssueResponseSchema,
     IssuesByProjectQuerySchema,
@@ -287,6 +288,19 @@ export const apiContract = c.router({
         body: IssueDeleteRequestSchema,
         responses: {
             200: SuccessResponseSchema,
+            403: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    issueImportJiraCsv: {
+        method: "POST",
+        path: "/issue/import-jira-csv",
+        contentType: "multipart/form-data",
+        body: z.instanceof(FormData),
+        responses: {
+            200: IssueImportJiraCsvResultSchema,
+            400: ApiErrorSchema,
             403: ApiErrorSchema,
             404: ApiErrorSchema,
         },

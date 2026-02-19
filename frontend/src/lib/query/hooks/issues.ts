@@ -2,6 +2,7 @@ import type {
   AttachmentRecord,
   IssueByIdQuery,
   IssueCreateRequest,
+  IssueImportJiraCsvResult,
   IssueRecord,
   IssueResponse,
   IssuesReplaceStatusRequest,
@@ -171,6 +172,30 @@ export function useUploadAttachment() {
       if (error) throw new Error(error);
       if (!payload?.attachment) throw new Error("failed to upload attachment");
       return payload.attachment;
+    },
+  });
+}
+
+export function useImportJiraCsvIssues() {
+  const queryClient = useQueryClient();
+
+  return useMutation<IssueImportJiraCsvResult, Error, { file: File; projectId: number }>({
+    mutationKey: ["issues", "import-jira-csv"],
+    mutationFn: async ({ file, projectId }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("projectId", projectId.toString());
+
+      const { data, error } = await apiClient.issueImportJiraCsv({ body: formData });
+      if (error) throw new Error(error);
+      if (!data) throw new Error("failed to import jira csv");
+      return data as IssueImportJiraCsvResult;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.issues.byProject(variables.projectId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.issues.all });
     },
   });
 }

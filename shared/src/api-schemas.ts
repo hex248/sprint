@@ -177,6 +177,23 @@ export const IssueDeleteRequestSchema = z.object({
 
 export type IssueDeleteRequest = z.infer<typeof IssueDeleteRequestSchema>;
 
+export const IssueImportJiraCsvRowErrorSchema = z.object({
+    row: z.number().int().positive(),
+    field: z.enum(["summary", "status", "issueType", "description", "general"]).optional(),
+    message: z.string(),
+});
+
+export type IssueImportJiraCsvRowError = z.infer<typeof IssueImportJiraCsvRowErrorSchema>;
+
+export const IssueImportJiraCsvResultSchema = z.object({
+    importedCount: z.number().int().nonnegative(),
+    skippedCount: z.number().int().nonnegative(),
+    totalRows: z.number().int().nonnegative(),
+    errors: z.array(IssueImportJiraCsvRowErrorSchema),
+});
+
+export type IssueImportJiraCsvResult = z.infer<typeof IssueImportJiraCsvResultSchema>;
+
 export const IssuesByProjectQuerySchema = z.object({
     projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
 });

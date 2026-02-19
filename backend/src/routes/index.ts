@@ -7,13 +7,13 @@ import authMe from "./auth/me";
 import authRegister from "./auth/register";
 import authResendVerification from "./auth/resend-verification";
 import authVerifyEmail from "./auth/verify-email";
-import rtcConfig from "./rtc/config";
 import cliLoginApprove from "./cli/login-approve";
 import cliLoginPoll from "./cli/login-poll";
 import cliLoginStart from "./cli/login-start";
 import issueById from "./issue/by-id";
 import issueCreate from "./issue/create";
 import issueDelete from "./issue/delete";
+import issueImportJiraCsv from "./issue/import-jira-csv";
 import issueUpdate from "./issue/update";
 import issueCommentCreate from "./issue-comment/create";
 import issueCommentDelete from "./issue-comment/delete";
@@ -45,6 +45,7 @@ import projectDelete from "./project/delete";
 import projectUpdate from "./project/update";
 import projectWithCreator from "./project/with-creator";
 import projectsWithCreators from "./project/with-creators";
+import rtcConfig from "./rtc/config";
 import sprintClose from "./sprint/close";
 import sprintCreate from "./sprint/create";
 import sprintDelete from "./sprint/delete";
@@ -91,6 +92,7 @@ export const routes = {
     issueCreate,
     issueById,
     issueDelete,
+    issueImportJiraCsv,
     issueUpdate,
 
     issueCommentCreate,

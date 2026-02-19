@@ -18,6 +18,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { IssueImportJiraDialog } from "@/components/issue-import-jira-dialog";
 // import { FreeTierLimit } from "@/components/free-tier-limit";
 import { type AssigneeSelectValue, MultiAssigneeSelect } from "@/components/multi-assignee-select";
 import { useAuthenticatedSession } from "@/components/session-provider";
@@ -80,6 +81,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const assigneeNotesEnabled = selectedOrganisation?.Organisation.features.assigneeNotes ?? true;
 
   const [open, setOpen] = useState(false);
+  const [jiraImportOpen, setJiraImportOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [sprintId, setSprintId] = useState<string>("unassigned");
@@ -118,6 +120,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
     setSubmitAttempted(false);
     setSubmitting(false);
     setError(null);
+    setJiraImportOpen(false);
   };
 
   const uploadFiles = async (files: File[]) => {
@@ -486,6 +489,15 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
             </div>
 
             <div className="flex gap-2 w-full justify-end mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={submitting || uploadingAttachments || !selectedProject}
+                onClick={() => setJiraImportOpen(true)}
+              >
+                <Icon icon="upload" size={16} />
+                Import from Jira
+              </Button>
               <DialogClose asChild>
                 <Button variant="outline" type="button">
                   Cancel
@@ -507,6 +519,12 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
           </div>
         </form>
       </DialogContent>
+
+      <IssueImportJiraDialog
+        open={jiraImportOpen}
+        onOpenChange={setJiraImportOpen}
+        projectId={selectedProject?.Project.id}
+      />
     </Dialog>
   );
 }
