@@ -134,7 +134,9 @@ export default function LogInForm() {
         >
           <span className="text-xl font-basteleur mb-2">{capitalise(mode)}</span>
 
-          <div className={"flex flex-col items-center mb-0"}>
+          <div
+            className={cn("mb-0 flex flex-col", mode === "register" ? "w-full gap-2 px-1" : "items-center")}
+          >
             {mode === "register" && (
               <>
                 <UploadAvatar
@@ -143,7 +145,7 @@ export default function LogInForm() {
                   avatarURL={avatarURL}
                   onAvatarUploaded={setAvatarUrl}
                   skipOrgCheck
-                  className="mb-2"
+                  className="mb-2 self-center"
                 />
                 {avatarURL && (
                   <Button

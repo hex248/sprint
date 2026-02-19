@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { GlobalTimerControls } from "@/components/global-timer-controls";
 import { IssueModal } from "@/components/issue-modal";
 import { useSessionSafe } from "@/components/session-provider";
@@ -11,6 +12,7 @@ import { issueID } from "@/lib/utils";
 const REFRESH_INTERVAL_MS = 10000;
 
 export function ActiveTimersOverlay() {
+  const { pathname } = useLocation();
   const session = useSessionSafe();
   const { data: activeTimers = [] } = useActiveTimers({
     refetchInterval: REFRESH_INTERVAL_MS,
@@ -38,6 +40,7 @@ export function ActiveTimersOverlay() {
   void tick;
 
   if (!session?.user) return null;
+  if (pathname !== "/issues" && pathname !== "/timeline") return null;
 
   return (
     <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-[calc(1rem+env(safe-area-inset-left))] z-50 flex flex-col gap-2">
