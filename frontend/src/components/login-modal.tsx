@@ -43,7 +43,7 @@ export function LoginModal({ open, onOpenChange, onSuccess, dismissible = true }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent showCloseButton={false} className={cn("p-0 w-xs py-8")}>
+      <DialogContent showCloseButton={false} className={cn("p-0 w-sm py-8")}>
         <DialogTitle className="sr-only">Log In or Register</DialogTitle>
         <LogInForm />
       </DialogContent>
