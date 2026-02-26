@@ -1749,34 +1749,36 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                     </div>
                   )} */}
                   <div className="flex flex-col gap-2 w-full">
-                    {Object.keys(DEFAULT_FEATURES).map((feature) => (
-                      <div key={feature} className="flex items-center gap-2 p-1">
-                        <Switch
-                          checked={Boolean(selectedOrganisation?.Organisation.features[feature])}
-                          onCheckedChange={async (checked) => {
-                            if (!selectedOrganisation) return;
-                            const newFeatures = {
-                              ...DEFAULT_FEATURES,
-                              ...selectedOrganisation.Organisation.features,
-                            };
-                            newFeatures[feature] = checked;
+                    {Object.keys(DEFAULT_FEATURES)
+                      .filter((feature) => feature !== "aiFeatures")
+                      .map((feature) => (
+                        <div key={feature} className="flex items-center gap-2 p-1">
+                          <Switch
+                            checked={Boolean(selectedOrganisation?.Organisation.features[feature])}
+                            onCheckedChange={async (checked) => {
+                              if (!selectedOrganisation) return;
+                              const newFeatures = {
+                                ...DEFAULT_FEATURES,
+                                ...selectedOrganisation.Organisation.features,
+                              };
+                              newFeatures[feature] = checked;
 
-                            await updateOrganisation.mutateAsync({
-                              id: selectedOrganisation.Organisation.id,
-                              features: newFeatures,
-                            });
-                            toast.success(
-                              `${capitalise(unCamelCase(feature))} ${
-                                checked ? "enabled" : "disabled"
-                              } for ${selectedOrganisation.Organisation.name}`,
-                            );
-                            await invalidateOrganisations();
-                          }}
-                          color={"#ff0000"}
-                        />
-                        <span className="text-sm">{unCamelCase(feature)}</span>
-                      </div>
-                    ))}
+                              await updateOrganisation.mutateAsync({
+                                id: selectedOrganisation.Organisation.id,
+                                features: newFeatures,
+                              });
+                              toast.success(
+                                `${capitalise(unCamelCase(feature))} ${
+                                  checked ? "enabled" : "disabled"
+                                } for ${selectedOrganisation.Organisation.name}`,
+                              );
+                              await invalidateOrganisations();
+                            }}
+                            color={"#ff0000"}
+                          />
+                          <span className="text-sm">{unCamelCase(feature)}</span>
+                        </div>
+                      ))}
                   </div>
                 </div>
               </TabsContent>

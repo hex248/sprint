@@ -713,10 +713,10 @@ export default function Issues() {
         />
       )}
 
-      {(user.preferences?.aiFeatures ?? true) &&
+      {/* {(user.preferences?.aiFeatures ?? true) &&
         (selectedOrganisation?.Organisation.features?.aiFeatures ?? true) && (
           <Chat setHighlighted={setHighlighted} />
-        )}
+        )} */}
     </main>
   );
 }
