@@ -70,7 +70,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <ActiveTimersOverlay />
-              <OnlineUsersOverlay />
+              {/* <OnlineUsersOverlay /> */}
             </SelectionProvider>
           </BrowserRouter>
           <Toaster visibleToasts={1} duration={2000} />
