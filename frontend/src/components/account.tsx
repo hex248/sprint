@@ -143,7 +143,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
               />
               <span className="text-sm">Assign to me by default</span>
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Switch
                 checked={preferences.aiFeatures ?? true}
                 onCheckedChange={(checked) => {
@@ -151,7 +151,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
                 }}
               />
               <span className="text-sm">AI features</span>
-            </div>
+            </div> */}
           </div>
 
           <div className="flex gap-8 justify w-full">
