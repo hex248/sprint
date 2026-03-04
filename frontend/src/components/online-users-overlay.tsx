@@ -376,7 +376,7 @@ export function OnlineUsersOverlay() {
   const viewerIsInCall = inCallUserSet.has(session.user.id);
 
   return (
-    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-50 flex w-[min(32rem,calc(100vw-2rem))] flex-col gap-2">
+    <div className="hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-50 flex w-[min(32rem,calc(100vw-2rem))] flex-col gap-2">
       <CallRoomOverlay
         participants={roomParticipants}
         roomOwner={roomOwner}
