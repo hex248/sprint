@@ -717,17 +717,14 @@ export const TimerListResponseSchema = z.array(TimerListItemSchema);
 
 export type TimerListResponse = z.infer<typeof TimerListResponseSchema>;
 
-export const StatusCountResponseSchema = z.array(
-    z.object({
-        status: z.string(),
-        count: z.number(),
-    }),
-);
+export const StatusCountResponseSchema = z.object({
+    count: z.number(),
+});
 
 export type StatusCountResponse = z.infer<typeof StatusCountResponseSchema>;
 
 export const ReplaceStatusResponseSchema = z.object({
-    rowCount: z.number(),
+    updated: z.number(),
 });
 
 export type ReplaceStatusResponse = z.infer<typeof ReplaceStatusResponseSchema>;
@@ -739,7 +736,7 @@ export const TypeCountResponseSchema = z.object({
 export type TypeCountResponse = z.infer<typeof TypeCountResponseSchema>;
 
 export const ReplaceTypeResponseSchema = z.object({
-    rowCount: z.number(),
+    updated: z.number(),
 });
 
 export type ReplaceTypeResponse = z.infer<typeof ReplaceTypeResponseSchema>;
