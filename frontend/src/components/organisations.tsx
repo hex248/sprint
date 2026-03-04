@@ -628,8 +628,8 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
         query: { organisationId: selectedOrganisation.Organisation.id, status },
       });
       if (error) throw new Error(error);
-      const statusCounts = (data ?? []) as { status: string; count: number }[];
-      const count = statusCounts.find((item) => item.status === status)?.count ?? 0;
+      const statusCount = (data ?? { count: 0 }) as { count: number };
+      const count = statusCount.count ?? 0;
       if (count > 0) {
         setStatusToRemove(status);
         setIssuesUsingStatus(count);

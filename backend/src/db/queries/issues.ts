@@ -242,7 +242,7 @@ export async function getIssueStatusCountByOrganisation(organisationId: number, 
         .from(Issue)
         .where(and(eq(Issue.status, status), inArray(Issue.projectId, projectIds)));
 
-    return { count: result?.count ?? 0 };
+    return { count: Number(result?.count ?? 0) };
 }
 
 export async function replaceIssueStatus(organisationId: number, oldStatus: string, newStatus: string) {
@@ -282,7 +282,7 @@ export async function getIssueTypeCountByOrganisation(organisationId: number, ty
         .from(Issue)
         .where(and(eq(Issue.type, type), inArray(Issue.projectId, projectIds)));
 
-    return { count: result?.count ?? 0 };
+    return { count: Number(result?.count ?? 0) };
 }
 
 export async function replaceIssueType(organisationId: number, oldType: string, newType: string) {

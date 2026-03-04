@@ -52,7 +52,8 @@ export function useIssueStatusCount(organisationId?: number | null, status?: str
         query: { organisationId: organisationId ?? 0, status: status ?? "" },
       });
       if (error) throw new Error(error);
-      return (data ?? []) as StatusCountResponse;
+      if (!data) throw new Error("failed to get status count");
+      return data as StatusCountResponse;
     },
     enabled: Boolean(organisationId && status),
   });
