@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Avatar from "@/components/avatar";
-import { Chat } from "@/components/chat";
+// import { Chat } from "@/components/chat";
 import { DataLoadingError } from "@/components/data-loading-error";
 import { IssueDetailPane } from "@/components/issue-detail-pane";
 import { IssueModal } from "@/components/issue-modal";
 import { defaultIssuesTableFilters, IssuesTable, type IssuesTableFilters } from "@/components/issues-table";
 import { useSelection } from "@/components/selection-provider";
-import { useAuthenticatedSession } from "@/components/session-provider";
+// import { useAuthenticatedSession } from "@/components/session-provider";
 import SmallSprintDisplay from "@/components/small-sprint-display";
 import SmallUserDisplay from "@/components/small-user-display";
 import StatusTag from "@/components/status-tag";
@@ -159,7 +159,7 @@ const filtersEqual = (left: IssuesTableFilters, right: IssuesTableFilters) => {
 };
 
 export default function Issues() {
-  const { user } = useAuthenticatedSession();
+  // const { user } = useAuthenticatedSession();
   const {
     selectedOrganisationId,
     selectedProjectId,
@@ -170,7 +170,7 @@ export default function Issues() {
   } = useSelection();
   const location = useLocation();
 
-  const [highlighted, setHighlighted] = useState<number[]>([]);
+  // const [highlighted, setHighlighted] = useState<number[]>([]);
 
   const deepLinkParams = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -684,7 +684,7 @@ export default function Issues() {
               columns={{ description: false }}
               className="w-full"
               filters={issueFilters}
-              highlighted={highlighted}
+              // highlighted={highlighted}
             />
           </ResizablePanel>
 
@@ -713,10 +713,10 @@ export default function Issues() {
         />
       )}
 
-      {(user.preferences?.aiFeatures ?? true) &&
+      {/* {(user.preferences?.aiFeatures ?? true) &&
         (selectedOrganisation?.Organisation.features?.aiFeatures ?? true) && (
           <Chat setHighlighted={setHighlighted} />
-        )}
+        )} */}
     </main>
   );
 }
