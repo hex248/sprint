@@ -31,8 +31,8 @@ export function capitalise(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-const ENV_SERVER_URL = import.meta.env.VITE_SERVER_URL?.trim();
-const ENV_WEBRTC_STUN_URLS = import.meta.env.VITE_WEBRTC_STUN_URLS?.trim();
+const ENV_SERVER_URL = import.meta.env.PUBLIC_SERVER_URL?.trim();
+const ENV_WEBRTC_STUN_URLS = import.meta.env.PUBLIC_WEBRTC_STUN_URLS?.trim();
 
 export function getServerURL() {
   let serverURL =
