@@ -21,7 +21,7 @@ module.exports = {
             name: "sprint-frontend",
             cwd: path.join(__dirname, "frontend"),
             script: "bun",
-            args: "preview --host --port 1420",
+            args: "preview --host 0.0.0.0 --port 1420",
             interpreter: "none",
             exec_mode: "fork",
             instances: 1,
