@@ -65,9 +65,9 @@ export default async function timerToggle(req: AuthedRequest) {
 
     if (!activeSession) {
         // end any active global timer before starting issue timer
-        await endActiveGlobalTimer(req.userId);
+        await endActiveGlobalTimer(req.userId, project.organisationId);
 
-        const newSession = await createTimedSession(req.userId, issueId);
+        const newSession = await createTimedSession(req.userId, issueId, project.organisationId);
         return Response.json({
             ...newSession,
             workTimeMs: 0,

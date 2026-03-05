@@ -1,20 +1,34 @@
 import { calculateBreakTimeMs, calculateWorkTimeMs, isTimerRunning } from "@sprint/shared";
+import { z } from "zod";
 import type { AuthedRequest } from "../auth/middleware";
-import { getActiveTimedSessionsWithIssueIncludingGlobal, getUserTimedSessions } from "../db/queries";
+import {
+    getActiveTimedSessionsWithIssueIncludingGlobal,
+    getOrganisationMemberRole,
+    getUserTimedSessions,
+} from "../db/queries";
+import { errorResponse, parseQueryParams } from "../validation";
 
-// GET /timers?limit=50&offset=0
+const TimersQuerySchema = z.object({
+    limit: z.coerce.number().int().positive().optional(),
+    offset: z.coerce.number().int().nonnegative().optional(),
+    activeOnly: z.coerce.boolean().optional(),
+    organisationId: z.coerce.number().int().positive(),
+});
+
 export default async function timers(req: AuthedRequest) {
     const url = new URL(req.url);
-    const limitParam = url.searchParams.get("limit");
-    const offsetParam = url.searchParams.get("offset");
-    const activeOnlyParam = url.searchParams.get("activeOnly");
+    const parsed = parseQueryParams(url, TimersQuerySchema);
+    if ("error" in parsed) return parsed.error;
 
-    const limit = limitParam ? Number(limitParam) : 50;
-    const offset = offsetParam ? Number(offsetParam) : 0;
-    const activeOnly = activeOnlyParam === "true" || activeOnlyParam === "1";
+    const { limit = 50, offset = 0, activeOnly = false, organisationId } = parsed.data;
+
+    const membership = await getOrganisationMemberRole(organisationId, req.userId);
+    if (!membership) {
+        return errorResponse("you are not a member of this organisation", "NOT_MEMBER", 403);
+    }
 
     if (activeOnly) {
-        const sessions = await getActiveTimedSessionsWithIssueIncludingGlobal(req.userId);
+        const sessions = await getActiveTimedSessionsWithIssueIncludingGlobal(req.userId, organisationId);
         const enriched = sessions.map((session) => ({
             id: session.id,
             issueId: session.issueId,
@@ -30,7 +44,7 @@ export default async function timers(req: AuthedRequest) {
         return Response.json(enriched);
     }
 
-    const sessions = await getUserTimedSessions(req.userId, limit, offset);
+    const sessions = await getUserTimedSessions(req.userId, organisationId, limit, offset);
 
     const enriched = sessions.map((session) => ({
         ...session,

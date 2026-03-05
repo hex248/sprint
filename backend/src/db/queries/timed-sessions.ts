@@ -3,7 +3,6 @@ import { and, desc, eq, gte, inArray, isNotNull, isNull } from "drizzle-orm";
 import { db } from "../client"; // Import OrganisationMember and gte, inArray for the new query
 
 export async function getOrganisationMemberTimedSessions(organisationId: number, fromDate?: Date) {
-    // First get all member user IDs for the organisation
     const members = await db
         .select({ userId: OrganisationMember.userId })
         .from(OrganisationMember)
@@ -15,13 +14,21 @@ export async function getOrganisationMemberTimedSessions(organisationId: number,
         return [];
     }
 
-    // Build the where clause
-    const conditions = [inArray(TimedSession.userId, userIds)];
+    const issueConditions = [
+        inArray(TimedSession.userId, userIds),
+        eq(Project.organisationId, organisationId),
+    ];
+    const globalConditions = [
+        inArray(TimedSession.userId, userIds),
+        eq(TimedSession.organisationId, organisationId),
+        isNull(TimedSession.issueId),
+    ];
     if (fromDate) {
-        conditions.push(gte(TimedSession.createdAt, fromDate));
+        issueConditions.push(gte(TimedSession.createdAt, fromDate));
+        globalConditions.push(gte(TimedSession.createdAt, fromDate));
     }
 
-    const timedSessions = await db
+    const issueSessions = await db
         .select({
             id: TimedSession.id,
             userId: TimedSession.userId,
@@ -35,16 +42,40 @@ export async function getOrganisationMemberTimedSessions(organisationId: number,
         .from(TimedSession)
         .innerJoin(Issue, eq(TimedSession.issueId, Issue.id))
         .innerJoin(Project, eq(Issue.projectId, Project.id))
-        .where(and(...conditions))
+        .where(and(...issueConditions))
         .orderBy(desc(TimedSession.createdAt));
 
-    return timedSessions;
+    const globalSessions = await db
+        .select({
+            id: TimedSession.id,
+            userId: TimedSession.userId,
+            issueId: TimedSession.issueId,
+            timestamps: TimedSession.timestamps,
+            endedAt: TimedSession.endedAt,
+            createdAt: TimedSession.createdAt,
+        })
+        .from(TimedSession)
+        .where(and(...globalConditions))
+        .orderBy(desc(TimedSession.createdAt));
+
+    return [
+        ...issueSessions,
+        ...globalSessions.map((session) => ({
+            ...session,
+            issueNumber: null as number | null,
+            projectKey: null as string | null,
+        })),
+    ].sort((left, right) => {
+        const leftTime = left.createdAt ? new Date(left.createdAt).getTime() : 0;
+        const rightTime = right.createdAt ? new Date(right.createdAt).getTime() : 0;
+        return rightTime - leftTime;
+    });
 }
 
-export async function createTimedSession(userId: number, issueId: number) {
+export async function createTimedSession(userId: number, issueId: number, organisationId: number) {
     const [timedSession] = await db
         .insert(TimedSession)
-        .values({ userId, issueId, timestamps: [new Date()] })
+        .values({ userId, organisationId, issueId, timestamps: [new Date()] })
         .returning();
     return timedSession;
 }
@@ -108,11 +139,11 @@ export async function endTimedSession(timedSessionId: number, currentTimestamps:
     return endedTimedSession;
 }
 
-export async function getUserTimedSessions(userId: number, limit = 50, offset = 0) {
+export async function getUserTimedSessions(userId: number, organisationId: number, limit = 50, offset = 0) {
     const timedSessions = await db
         .select()
         .from(TimedSession)
-        .where(eq(TimedSession.userId, userId))
+        .where(and(eq(TimedSession.userId, userId), eq(TimedSession.organisationId, organisationId)))
         .orderBy(desc(TimedSession.createdAt))
         .limit(limit)
         .offset(offset);
@@ -152,41 +183,49 @@ export async function getCompletedTimedSessions(userId: number, limit = 50, offs
 
 // global timer queries (issueId = null)
 
-export async function createGlobalTimedSession(userId: number) {
+export async function createGlobalTimedSession(userId: number, organisationId: number) {
     const [timedSession] = await db
         .insert(TimedSession)
-        .values({ userId, issueId: null, timestamps: [new Date()] })
+        .values({ userId, organisationId, issueId: null, timestamps: [new Date()] })
         .returning();
     return timedSession;
 }
 
-export async function getActiveGlobalTimedSession(userId: number) {
+export async function getActiveGlobalTimedSession(userId: number, organisationId: number) {
     const [timedSession] = await db
-        .select()
-        .from(TimedSession)
-        .where(
-            and(eq(TimedSession.userId, userId), isNull(TimedSession.issueId), isNull(TimedSession.endedAt)),
-        );
-    return timedSession ?? null;
-}
-
-export async function endAllActiveIssueTimers(userId: number) {
-    const now = new Date();
-    // find all active issue timers (issueId not null, endedAt null)
-    const activeSessions = await db
         .select()
         .from(TimedSession)
         .where(
             and(
                 eq(TimedSession.userId, userId),
-                isNotNull(TimedSession.issueId),
+                eq(TimedSession.organisationId, organisationId),
+                isNull(TimedSession.issueId),
+                isNull(TimedSession.endedAt),
+            ),
+        );
+    return timedSession ?? null;
+}
+
+export async function endAllActiveIssueTimers(userId: number, organisationId: number) {
+    const now = new Date();
+    const activeSessions = await db
+        .select({
+            id: TimedSession.id,
+            timestamps: TimedSession.timestamps,
+        })
+        .from(TimedSession)
+        .innerJoin(Issue, eq(TimedSession.issueId, Issue.id))
+        .innerJoin(Project, eq(Issue.projectId, Project.id))
+        .where(
+            and(
+                eq(TimedSession.userId, userId),
+                eq(Project.organisationId, organisationId),
                 isNull(TimedSession.endedAt),
             ),
         );
 
     for (const session of activeSessions) {
         let finalTimestamps = [...(session.timestamps || [])];
-        // if running (odd timestamps), add final timestamp
         if (finalTimestamps.length % 2 === 1) {
             finalTimestamps = [...finalTimestamps, now];
         }
@@ -197,9 +236,9 @@ export async function endAllActiveIssueTimers(userId: number) {
     }
 }
 
-export async function endActiveGlobalTimer(userId: number) {
+export async function endActiveGlobalTimer(userId: number, organisationId: number) {
     const now = new Date();
-    const session = await getActiveGlobalTimedSession(userId);
+    const session = await getActiveGlobalTimedSession(userId, organisationId);
     if (!session) return null;
 
     let finalTimestamps = [...(session.timestamps || [])];
@@ -216,8 +255,7 @@ export async function endActiveGlobalTimer(userId: number) {
     return ended;
 }
 
-export async function getActiveTimedSessionsWithIssueIncludingGlobal(userId: number) {
-    // get issue-linked sessions
+export async function getActiveTimedSessionsWithIssueIncludingGlobal(userId: number, organisationId: number) {
     const issueSessions = await db
         .select({
             id: TimedSession.id,
@@ -232,7 +270,13 @@ export async function getActiveTimedSessionsWithIssueIncludingGlobal(userId: num
         .from(TimedSession)
         .innerJoin(Issue, eq(TimedSession.issueId, Issue.id))
         .innerJoin(Project, eq(Issue.projectId, Project.id))
-        .where(and(eq(TimedSession.userId, userId), isNull(TimedSession.endedAt)))
+        .where(
+            and(
+                eq(TimedSession.userId, userId),
+                eq(Project.organisationId, organisationId),
+                isNull(TimedSession.endedAt),
+            ),
+        )
         .orderBy(desc(TimedSession.createdAt));
 
     // get global sessions (issueId null)
@@ -247,7 +291,12 @@ export async function getActiveTimedSessionsWithIssueIncludingGlobal(userId: num
         })
         .from(TimedSession)
         .where(
-            and(eq(TimedSession.userId, userId), isNull(TimedSession.issueId), isNull(TimedSession.endedAt)),
+            and(
+                eq(TimedSession.userId, userId),
+                eq(TimedSession.organisationId, organisationId),
+                isNull(TimedSession.issueId),
+                isNull(TimedSession.endedAt),
+            ),
         )
         .orderBy(desc(TimedSession.createdAt));
 
@@ -261,13 +310,14 @@ export async function getActiveTimedSessionsWithIssueIncludingGlobal(userId: num
     return [...mappedGlobal, ...issueSessions];
 }
 
-export async function getInactiveGlobalTimedSessions(userId: number) {
+export async function getInactiveGlobalTimedSessions(userId: number, organisationId: number) {
     const timedSessions = await db
         .select()
         .from(TimedSession)
         .where(
             and(
                 eq(TimedSession.userId, userId),
+                eq(TimedSession.organisationId, organisationId),
                 isNull(TimedSession.issueId),
                 isNotNull(TimedSession.endedAt),
             ),
