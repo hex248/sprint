@@ -1,0 +1,2 @@
+ALTER TABLE "TimedSession" ADD COLUMN "organisationId" integer;--> statement-breakpoint
+ALTER TABLE "TimedSession" ADD CONSTRAINT "TimedSession_organisationId_Organisation_id_fk" FOREIGN KEY ("organisationId") REFERENCES "public"."Organisation"("id") ON DELETE cascade ON UPDATE no action;

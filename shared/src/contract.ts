@@ -17,6 +17,7 @@ import {
     CreatePortalSessionResponseSchema,
     GetSubscriptionResponseSchema,
     GlobalTimerEndRequestSchema,
+    GlobalTimerQuerySchema,
     GlobalTimerToggleRequestSchema,
     IssueByIdQuerySchema,
     IssueCommentCreateRequestSchema,
@@ -26,6 +27,7 @@ import {
     IssueCommentsByIssueQuerySchema,
     IssueCreateRequestSchema,
     IssueDeleteRequestSchema,
+    IssueImportJiraCsvResultSchema,
     IssueRecordSchema,
     IssueResponseSchema,
     IssuesByProjectQuerySchema,
@@ -122,6 +124,7 @@ const timersQuerySchema = z.object({
     limit: z.coerce.number().int().positive().optional(),
     offset: z.coerce.number().int().nonnegative().optional(),
     activeOnly: z.coerce.boolean().optional(),
+    organisationId: z.coerce.number().int().positive(),
 });
 
 export const apiContract = c.router({
@@ -287,6 +290,19 @@ export const apiContract = c.router({
         body: IssueDeleteRequestSchema,
         responses: {
             200: SuccessResponseSchema,
+            403: ApiErrorSchema,
+            404: ApiErrorSchema,
+        },
+        headers: csrfHeaderSchema,
+    },
+    issueImportJiraCsv: {
+        method: "POST",
+        path: "/issue/import-jira-csv",
+        contentType: "multipart/form-data",
+        body: z.instanceof(FormData),
+        responses: {
+            200: IssueImportJiraCsvResultSchema,
+            400: ApiErrorSchema,
             403: ApiErrorSchema,
             404: ApiErrorSchema,
         },
@@ -483,9 +499,9 @@ export const apiContract = c.router({
                 z.object({
                     id: z.number(),
                     userId: z.number(),
-                    issueId: z.number(),
-                    issueNumber: z.number(),
-                    projectKey: z.string(),
+                    issueId: z.number().nullable(),
+                    issueNumber: z.number().nullable(),
+                    projectKey: z.string().nullable(),
                     timestamps: z.array(z.string()),
                     endedAt: z.string().nullable(),
                     createdAt: z.string().nullable(),
@@ -731,6 +747,7 @@ export const apiContract = c.router({
     timerGetGlobal: {
         method: "GET",
         path: "/timer/get-global",
+        query: GlobalTimerQuerySchema,
         responses: {
             200: TimerStateSchema,
         },
@@ -738,6 +755,7 @@ export const apiContract = c.router({
     timerGetInactiveGlobal: {
         method: "GET",
         path: "/timer/get-inactive-global",
+        query: GlobalTimerQuerySchema,
         responses: {
             200: timerInactiveResponseSchema,
         },

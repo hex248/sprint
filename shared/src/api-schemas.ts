@@ -177,6 +177,23 @@ export const IssueDeleteRequestSchema = z.object({
 
 export type IssueDeleteRequest = z.infer<typeof IssueDeleteRequestSchema>;
 
+export const IssueImportJiraCsvRowErrorSchema = z.object({
+    row: z.number().int().positive(),
+    field: z.enum(["summary", "status", "issueType", "description", "general"]).optional(),
+    message: z.string(),
+});
+
+export type IssueImportJiraCsvRowError = z.infer<typeof IssueImportJiraCsvRowErrorSchema>;
+
+export const IssueImportJiraCsvResultSchema = z.object({
+    importedCount: z.number().int().nonnegative(),
+    skippedCount: z.number().int().nonnegative(),
+    totalRows: z.number().int().nonnegative(),
+    errors: z.array(IssueImportJiraCsvRowErrorSchema),
+});
+
+export type IssueImportJiraCsvResult = z.infer<typeof IssueImportJiraCsvResultSchema>;
+
 export const IssuesByProjectQuerySchema = z.object({
     projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
 });
@@ -483,13 +500,23 @@ export const TimerGetQuerySchema = z.object({
 
 export type TimerGetQuery = z.infer<typeof TimerGetQuerySchema>;
 
+export const GlobalTimerQuerySchema = z.object({
+    organisationId: z.coerce.number().int().positive("organisationId must be a positive integer"),
+});
+
+export type GlobalTimerQuery = z.infer<typeof GlobalTimerQuerySchema>;
+
 // global timer schemas (userId comes from auth session, not request body)
 
-export const GlobalTimerToggleRequestSchema = z.object({});
+export const GlobalTimerToggleRequestSchema = z.object({
+    organisationId: z.number().int().positive("organisationId must be a positive integer"),
+});
 
 export type GlobalTimerToggleRequest = z.infer<typeof GlobalTimerToggleRequestSchema>;
 
-export const GlobalTimerEndRequestSchema = z.object({});
+export const GlobalTimerEndRequestSchema = z.object({
+    organisationId: z.number().int().positive("organisationId must be a positive integer"),
+});
 
 export type GlobalTimerEndRequest = z.infer<typeof GlobalTimerEndRequestSchema>;
 

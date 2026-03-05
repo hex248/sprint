@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { GlobalTimerControls } from "@/components/global-timer-controls";
 import { IssueModal } from "@/components/issue-modal";
+import { useSelection } from "@/components/selection-provider";
 import { useSessionSafe } from "@/components/session-provider";
 import { TimerControls } from "@/components/timer-controls";
 import { getWorkTimeMs } from "@/components/timer-display";
@@ -14,9 +15,10 @@ const REFRESH_INTERVAL_MS = 10000;
 export function ActiveTimersOverlay() {
   const { pathname } = useLocation();
   const session = useSessionSafe();
+  const { selectedOrganisationId } = useSelection();
   const { data: activeTimers = [] } = useActiveTimers({
     refetchInterval: REFRESH_INTERVAL_MS,
-    enabled: Boolean(session?.user),
+    enabled: Boolean(session?.user && selectedOrganisationId),
   });
   const [tick, setTick] = useState(0);
 
@@ -40,6 +42,7 @@ export function ActiveTimersOverlay() {
   void tick;
 
   if (!session?.user) return null;
+  if (!selectedOrganisationId) return null;
   if (pathname !== "/issues" && pathname !== "/timeline") return null;
 
   return (

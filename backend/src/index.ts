@@ -355,6 +355,7 @@ const main = async () => {
 
             "/issue/create": withGlobalAuthed(withAuth(withCSRF(routes.issueCreate))),
             "/issue/by-id": withGlobalAuthed(withAuth(routes.issueById)),
+            "/issue/import-jira-csv": withGlobalAuthed(withAuth(withCSRF(routes.issueImportJiraCsv))),
             "/issue/update": withGlobalAuthed(withAuth(withCSRF(routes.issueUpdate))),
             "/issue/delete": withGlobalAuthed(withAuth(withCSRF(routes.issueDelete))),
             "/issue-comment/create": withGlobalAuthed(withAuth(withCSRF(routes.issueCommentCreate))),

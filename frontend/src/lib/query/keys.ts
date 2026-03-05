@@ -33,8 +33,9 @@ export const queryKeys = {
     all: ["timers"] as const,
     active: (issueId: number) => [...queryKeys.timers.all, "active", issueId] as const,
     inactive: (issueId: number) => [...queryKeys.timers.all, "inactive", issueId] as const,
-    inactiveGlobal: () => [...queryKeys.timers.all, "inactive-global"] as const,
-    list: () => [...queryKeys.timers.all, "list"] as const,
+    inactiveGlobal: (organisationId: number) =>
+      [...queryKeys.timers.all, "inactive-global", organisationId] as const,
+    list: (organisationId: number) => [...queryKeys.timers.all, "list", organisationId] as const,
   },
   users: {
     all: ["users"] as const,
