@@ -7,6 +7,9 @@ const { publicVars } = loadEnv({ prefixes: ["PUBLIC_"] });
 
 export default defineConfig({
   plugins: [pluginReact()],
+  html: {
+    template: "./index.html",
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
