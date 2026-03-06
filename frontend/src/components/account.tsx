@@ -99,6 +99,7 @@ function Account({ trigger }: { trigger?: ReactNode }) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          <span className="text-center">@{username}</span>
           <UploadAvatar
             name={name}
             username={username}
