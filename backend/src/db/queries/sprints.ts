@@ -1,4 +1,4 @@
-import { Issue, Sprint } from "@sprint/shared";
+import { Issue, Project, Sprint } from "@sprint/shared";
 import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { db } from "../client";
 
@@ -116,6 +116,22 @@ export async function closeSprintWithHandOff(
             throw new CloseSprintError("sprint is already closed", "SPRINT_ALREADY_CLOSED", 409);
         }
 
+        const [sourceProject] = await tx
+            .select({
+                id: Project.id,
+                defaultSprintAssignment: Project.defaultSprintAssignment,
+            })
+            .from(Project)
+            .where(eq(Project.id, sourceSprint.projectId));
+
+        if (!sourceProject) {
+            throw new CloseSprintError("project not found", "PROJECT_NOT_FOUND", 404);
+        }
+
+        const shouldReassignDefaultSprint =
+            sourceProject.defaultSprintAssignment.mode === "specific" &&
+            sourceProject.defaultSprintAssignment.sprintId === sprintId;
+
         const normalisedStatuses = Array.from(
             new Set(statusesToHandOff.map((status) => status.trim()).filter(Boolean)),
         );
@@ -133,15 +149,7 @@ export async function closeSprintWithHandOff(
         let movedIssueCount = 0;
         let resolvedHandOffSprintId: number | null = null;
 
-        if (matchedIssueCount > 0) {
-            if (!handOffSprintId) {
-                throw new CloseSprintError(
-                    "handoff sprint is required when matching issues exist",
-                    "HANDOFF_TARGET_REQUIRED",
-                    400,
-                );
-            }
-
+        if (handOffSprintId != null) {
             if (handOffSprintId === sprintId) {
                 throw new CloseSprintError(
                     "handoff sprint cannot be the sprint being closed",
@@ -164,9 +172,21 @@ export async function closeSprintWithHandOff(
                 throw new CloseSprintError("handoff sprint must be open", "HANDOFF_TARGET_CLOSED", 400);
             }
 
+            resolvedHandOffSprintId = handOffSprintId;
+        }
+
+        if (matchedIssueCount > 0 && resolvedHandOffSprintId == null) {
+            throw new CloseSprintError(
+                "handoff sprint is required when matching issues exist",
+                "HANDOFF_TARGET_REQUIRED",
+                400,
+            );
+        }
+
+        if (matchedIssueCount > 0 && resolvedHandOffSprintId != null) {
             const updateResult = await tx
                 .update(Issue)
-                .set({ sprintId: handOffSprintId })
+                .set({ sprintId: resolvedHandOffSprintId })
                 .where(and(eq(Issue.sprintId, sprintId), inArray(Issue.status, normalisedStatuses)));
             movedIssueCount = updateResult.rowCount ?? 0;
 
@@ -179,9 +199,7 @@ export async function closeSprintWithHandOff(
                         ELSE ${Sprint.handOffs}
                     END`,
                 })
-                .where(eq(Sprint.id, handOffSprintId));
-
-            resolvedHandOffSprintId = handOffSprintId;
+                .where(eq(Sprint.id, resolvedHandOffSprintId));
         }
 
         const [updatedSourceSprint] = await tx
@@ -192,6 +210,18 @@ export async function closeSprintWithHandOff(
 
         if (!updatedSourceSprint) {
             throw new CloseSprintError("failed to close sprint", "SPRINT_CLOSE_FAILED", 400);
+        }
+
+        if (shouldReassignDefaultSprint) {
+            await tx
+                .update(Project)
+                .set({
+                    defaultSprintAssignment:
+                        resolvedHandOffSprintId != null
+                            ? { mode: "specific", sprintId: resolvedHandOffSprintId }
+                            : { mode: "none", sprintId: null },
+                })
+                .where(eq(Project.id, sourceProject.id));
         }
 
         return {

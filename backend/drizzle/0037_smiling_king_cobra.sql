@@ -1,0 +1,1 @@
+ALTER TABLE "Project" ADD COLUMN "defaultSprintAssignment" json DEFAULT '{"mode":"none","sprintId":null}'::json NOT NULL;

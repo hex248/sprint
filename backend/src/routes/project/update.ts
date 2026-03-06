@@ -4,6 +4,7 @@ import {
     getOrganisationMemberRole,
     getProjectByID,
     getProjectByKey,
+    getSprintById,
     getUserById,
     updateProject,
 } from "../../db/queries";
@@ -13,7 +14,7 @@ export default async function projectUpdate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, ProjectUpdateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { id, key, name, creatorId, organisationId } = parsed.data;
+    const { id, key, name, creatorId, organisationId, defaultSprintAssignment } = parsed.data;
 
     const existingProject = await getProjectByID(id);
     if (!existingProject) {
@@ -32,9 +33,20 @@ export default async function projectUpdate(req: AuthedRequest) {
         );
     }
 
-    if (!key && !name && !creatorId && !organisationId) {
+    if (defaultSprintAssignment?.mode === "specific") {
+        const sprint = await getSprintById(defaultSprintAssignment.sprintId);
+        if (!sprint || sprint.projectId !== existingProject.id) {
+            return errorResponse("default sprint must belong to this project", "INVALID_DEFAULT_SPRINT", 400);
+        }
+
+        if (!sprint.open) {
+            return errorResponse("cannot set a closed sprint as default", "SPRINT_CLOSED", 400);
+        }
+    }
+
+    if (!key && !name && !creatorId && !organisationId && !defaultSprintAssignment) {
         return errorResponse(
-            "at least one of key, name, creatorId, or organisationId must be provided",
+            "at least one of key, name, creatorId, organisationId, or defaultSprintAssignment must be provided",
             "NO_UPDATES",
             400,
         );
@@ -59,6 +71,7 @@ export default async function projectUpdate(req: AuthedRequest) {
         name,
         creatorId,
         organisationId,
+        defaultSprintAssignment,
     });
 
     return Response.json(project);

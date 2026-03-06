@@ -17,7 +17,13 @@ export async function createProject(key: string, name: string, creatorId: number
 
 export async function updateProject(
     projectId: number,
-    updates: { key?: string; name?: string; creatorId?: number; organisationId?: number },
+    updates: {
+        key?: string;
+        name?: string;
+        creatorId?: number;
+        organisationId?: number;
+        defaultSprintAssignment?: { mode: "none" | "current" | "specific"; sprintId: number | null };
+    },
 ) {
     const [project] = await db.update(Project).set(updates).where(eq(Project.id, projectId)).returning();
     return project;

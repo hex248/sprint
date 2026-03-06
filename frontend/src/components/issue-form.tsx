@@ -11,6 +11,7 @@ import {
   type ChangeEvent,
   type ClipboardEvent,
   type FormEvent,
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -80,11 +81,37 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const defaultType = typeOptions[0] ?? "";
   const assigneeNotesEnabled = selectedOrganisation?.Organisation.features.assigneeNotes ?? true;
 
+  const resolveDefaultSprintId = useCallback(() => {
+    if (!selectedProject) return "unassigned";
+
+    const defaultSprintAssignment = selectedProject.Project.defaultSprintAssignment;
+    if (!defaultSprintAssignment || defaultSprintAssignment.mode === "none") {
+      return "unassigned";
+    }
+
+    if (defaultSprintAssignment.mode === "specific") {
+      const specificSprint = sprints.find(
+        (sprint) => sprint.id === defaultSprintAssignment.sprintId && sprint.open,
+      );
+      return specificSprint ? `${specificSprint.id}` : "unassigned";
+    }
+
+    const now = new Date();
+    const currentSprint = sprints.find((sprint) => {
+      if (!sprint.open) return false;
+      const start = new Date(sprint.startDate);
+      const end = new Date(sprint.endDate);
+      return start <= now && now <= end;
+    });
+
+    return currentSprint ? `${currentSprint.id}` : "unassigned";
+  }, [selectedProject, sprints]);
+
   const [open, setOpen] = useState(false);
   const [jiraImportOpen, setJiraImportOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [sprintId, setSprintId] = useState<string>("unassigned");
+  const [sprintId, setSprintId] = useState<string>(() => resolveDefaultSprintId());
   const [assignees, setAssignees] = useState<AssigneeSelectValue[]>([{ userId: "unassigned", note: "" }]);
   const [status, setStatus] = useState<string>(defaultStatus);
   const [type, setType] = useState<string>(defaultType);
@@ -111,7 +138,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
   const reset = () => {
     setTitle("");
     setDescription("");
-    setSprintId("unassigned");
+    setSprintId(resolveDefaultSprintId());
     setAssignees([{ userId: "unassigned", note: "" }]);
     setStatus(defaultStatus);
     setType(defaultType);
@@ -215,9 +242,12 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
 
   const onOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    if (!nextOpen) {
-      reset();
+    if (nextOpen) {
+      setSprintId(resolveDefaultSprintId());
+      return;
     }
+
+    reset();
   };
 
   const handleSubmit = async (event: FormEvent) => {

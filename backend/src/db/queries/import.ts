@@ -126,6 +126,40 @@ export async function importOrganisation(importData: ExportedOrganisationData, i
             }
         }
 
+        for (const importedProject of importData.projects) {
+            const mappedProjectId = projectIdMap.get(importedProject.id);
+            if (!mappedProjectId) continue;
+
+            const importedDefaultSprintAssignment = importedProject.defaultSprintAssignment;
+            const mappedDefaultSprintAssignment =
+                importedDefaultSprintAssignment.mode === "specific"
+                    ? {
+                          mode: "specific" as const,
+                          sprintId:
+                              importedDefaultSprintAssignment.sprintId != null
+                                  ? (sprintIdMap.get(importedDefaultSprintAssignment.sprintId) ?? null)
+                                  : null,
+                      }
+                    : {
+                          mode:
+                              importedDefaultSprintAssignment.mode === "current"
+                                  ? ("current" as const)
+                                  : ("none" as const),
+                          sprintId: null,
+                      };
+
+            await tx
+                .update(Project)
+                .set({
+                    defaultSprintAssignment:
+                        mappedDefaultSprintAssignment.mode === "specific" &&
+                        mappedDefaultSprintAssignment.sprintId == null
+                            ? { mode: "none", sprintId: null }
+                            : mappedDefaultSprintAssignment,
+                })
+                .where(eq(Project.id, mappedProjectId));
+        }
+
         const issueIdMap = new Map<number, number>();
         for (const issue of importData.issues) {
             const mappedProjectId = projectIdMap.get(issue.projectId);

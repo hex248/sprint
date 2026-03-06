@@ -59,6 +59,7 @@ import {
   useSprints,
   useUpdateOrganisation,
   useUpdateOrganisationMemberRole,
+  useUpdateProject,
 } from "@/lib/query/hooks";
 import { queryKeys } from "@/lib/query/keys";
 import { apiClient } from "@/lib/server";
@@ -82,6 +83,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
   const { data: issues = [] } = useIssues(selectedProjectId);
   const { data: membersData = [] } = useOrganisationMembers(selectedOrganisationId);
   const updateOrganisation = useUpdateOrganisation();
+  const updateProject = useUpdateProject();
   const updateMemberRole = useUpdateOrganisationMemberRole();
   const removeMember = useRemoveOrganisationMember();
   const deleteOrganisation = useDeleteOrganisation();
@@ -307,6 +309,10 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
 
   // issue types state
   type IssueTypeConfig = { icon: string; color: string };
+  type DefaultSprintAssignmentUpdate =
+    | { mode: "none"; sprintId: null }
+    | { mode: "current"; sprintId: null }
+    | { mode: "specific"; sprintId: number };
   const [issueTypes, setIssueTypes] = useState<Record<string, IssueTypeConfig>>({});
   const [isCreatingType, setIsCreatingType] = useState(false);
   const [newTypeName, setNewTypeName] = useState("");
@@ -376,6 +382,94 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
     () => Object.entries(selectedOrganisation?.Organisation.statuses ?? {}),
     [selectedOrganisation],
   );
+
+  const openSprints = useMemo(() => sprints.filter((sprint) => sprint.open), [sprints]);
+
+  const defaultSprintAssignment = selectedProject?.Project.defaultSprintAssignment ?? {
+    mode: "none" as const,
+    sprintId: null,
+  };
+
+  const defaultSpecificSprintId =
+    defaultSprintAssignment.mode === "specific" ? defaultSprintAssignment.sprintId : null;
+
+  const DEFAULT_SPRINT_NONE_OPTION = "none";
+  const DEFAULT_SPRINT_CURRENT_OPTION = "current";
+  const SPECIFIC_SPRINT_OPTION_PREFIX = "sprint:";
+  const SPECIFIC_SPRINT_UNAVAILABLE_PREFIX = "specific-unavailable:";
+
+  const toSpecificSprintOptionValue = (sprintId: number) => `${SPECIFIC_SPRINT_OPTION_PREFIX}${sprintId}`;
+
+  const unavailableSpecificSprintOptionValue =
+    defaultSpecificSprintId != null
+      ? `${SPECIFIC_SPRINT_UNAVAILABLE_PREFIX}${defaultSpecificSprintId}`
+      : null;
+
+  const selectedDefaultSprintOptionValue =
+    defaultSprintAssignment.mode === "none"
+      ? DEFAULT_SPRINT_NONE_OPTION
+      : defaultSprintAssignment.mode === "current"
+        ? DEFAULT_SPRINT_CURRENT_OPTION
+        : defaultSpecificSprintId == null
+          ? DEFAULT_SPRINT_NONE_OPTION
+          : openSprints.some((sprint) => sprint.id === defaultSpecificSprintId)
+            ? toSpecificSprintOptionValue(defaultSpecificSprintId)
+            : (unavailableSpecificSprintOptionValue ?? DEFAULT_SPRINT_NONE_OPTION);
+
+  const handleDefaultSprintAssignmentUpdate = async (
+    defaultSprintAssignment: DefaultSprintAssignmentUpdate,
+  ) => {
+    if (!selectedProject) return;
+
+    await updateProject.mutateAsync({
+      id: selectedProject.Project.id,
+      defaultSprintAssignment,
+    });
+
+    const modeLabel =
+      defaultSprintAssignment.mode === "none"
+        ? "No sprint"
+        : defaultSprintAssignment.mode === "current"
+          ? "Current sprint"
+          : "Specific sprint";
+
+    toast.success(`Default sprint assignment set to ${modeLabel} for ${selectedProject.Project.name}`);
+
+    await invalidateProjects();
+  };
+
+  const handleDefaultSprintOptionChange = async (value: string) => {
+    if (value === DEFAULT_SPRINT_NONE_OPTION) {
+      await handleDefaultSprintAssignmentUpdate({ mode: "none", sprintId: null });
+      return;
+    }
+
+    if (value === DEFAULT_SPRINT_CURRENT_OPTION) {
+      await handleDefaultSprintAssignmentUpdate({ mode: "current", sprintId: null });
+      return;
+    }
+
+    if (value.startsWith(SPECIFIC_SPRINT_OPTION_PREFIX)) {
+      const parsedSprintId = Number(value.slice(SPECIFIC_SPRINT_OPTION_PREFIX.length));
+      if (!Number.isFinite(parsedSprintId)) return;
+
+      const selectedSprint = openSprints.find((sprint) => sprint.id === parsedSprintId);
+      if (!selectedSprint) {
+        toast.error("Select an open sprint.");
+        return;
+      }
+
+      await handleDefaultSprintAssignmentUpdate({
+        mode: "specific",
+        sprintId: selectedSprint.id,
+      });
+      return;
+    }
+
+    if (value.startsWith(SPECIFIC_SPRINT_UNAVAILABLE_PREFIX)) {
+      return;
+    }
+  };
 
   const openHandOffSprints = useMemo(
     () => sprints.filter((sprint) => sprint.open && sprint.id !== closingSprint?.id),
@@ -1200,6 +1294,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                                 Creator: {selectedProject.User.name}
                               </p>
                             </div>
+
                             {isAdmin && (
                               <div className="flex gap-2 mt-3">
                                 <Button variant="outline" size="sm" onClick={() => setEditProjectOpen(true)}>
@@ -1244,6 +1339,33 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
                         ) : (
                           <p className="text-sm text-muted-foreground">Select a project to view details.</p>
                         )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm">Default sprint assignment:</span>
+                        <Select
+                          value={selectedDefaultSprintOptionValue}
+                          onValueChange={(value) => void handleDefaultSprintOptionChange(value)}
+                          disabled={!isAdmin}
+                        >
+                          <SelectTrigger className="w-fit">
+                            <SelectValue placeholder="Select default" />
+                          </SelectTrigger>
+                          <SelectContent side="bottom" position="popper" align="start">
+                            <SelectItem value={DEFAULT_SPRINT_NONE_OPTION}>None</SelectItem>
+                            <SelectItem value={DEFAULT_SPRINT_CURRENT_OPTION}>Current</SelectItem>
+                            {openSprints.map((sprint) => (
+                              <SelectItem key={sprint.id} value={toSpecificSprintOptionValue(sprint.id)}>
+                                <SmallSprintDisplay sprint={sprint} />
+                              </SelectItem>
+                            ))}
+                            {unavailableSpecificSprintOptionValue != null &&
+                              selectedDefaultSprintOptionValue === unavailableSpecificSprintOptionValue && (
+                                <SelectItem value={unavailableSpecificSprintOptionValue}>
+                                  Specific sprint (unavailable)
+                                </SelectItem>
+                              )}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="flex flex-col gap-2 min-w-0 flex-1">
                         {selectedProject ? (

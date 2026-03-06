@@ -89,6 +89,7 @@ export function useCloseSprint() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sprints.byProject(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.byProject(variables.projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
     },
   });
 }

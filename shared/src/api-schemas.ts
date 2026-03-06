@@ -258,6 +258,23 @@ export type IssueCommentsByIssueQuery = z.infer<typeof IssueCommentsByIssueQuery
 
 // organisation schemas
 
+export const DefaultSprintAssignmentSchema = z.discriminatedUnion("mode", [
+    z.object({
+        mode: z.literal("none"),
+        sprintId: z.null(),
+    }),
+    z.object({
+        mode: z.literal("current"),
+        sprintId: z.null(),
+    }),
+    z.object({
+        mode: z.literal("specific"),
+        sprintId: z.number().int().positive(),
+    }),
+]);
+
+export type DefaultSprintAssignment = z.infer<typeof DefaultSprintAssignmentSchema>;
+
 export const OrgCreateRequestSchema = z.object({
     name: z.string().min(1, "Name is required").max(ORG_NAME_MAX_LENGTH),
     slug: z
@@ -381,6 +398,7 @@ export const ProjectUpdateRequestSchema = z.object({
         .optional(),
     creatorId: z.number().int().positive().optional(),
     organisationId: z.number().int().positive().optional(),
+    defaultSprintAssignment: DefaultSprintAssignmentSchema.optional(),
 });
 
 export type ProjectUpdateRequest = z.infer<typeof ProjectUpdateRequestSchema>;
@@ -673,6 +691,7 @@ export const ProjectRecordSchema = z.object({
     name: z.string(),
     organisationId: z.number(),
     creatorId: z.number(),
+    defaultSprintAssignment: DefaultSprintAssignmentSchema,
 });
 
 export const ProjectResponseSchema = z.object({

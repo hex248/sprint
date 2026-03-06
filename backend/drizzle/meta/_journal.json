@@ -260,6 +260,13 @@
       "when": 1772743479994,
       "tag": "0036_worried_weapon_omega",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1772838036587,
+      "tag": "0037_smiling_king_cobra",
+      "breakpoints": true
     }
   ]
 }

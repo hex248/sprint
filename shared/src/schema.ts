@@ -55,6 +55,18 @@ export const DEFAULT_FEATURES: Record<string, boolean> = {
     aiFeatures: true,
 };
 
+export type DefaultSprintAssignmentMode = "none" | "current" | "specific";
+
+export type DefaultSprintAssignment = {
+    mode: DefaultSprintAssignmentMode;
+    sprintId: number | null;
+};
+
+export const DEFAULT_SPRINT_ASSIGNMENT: DefaultSprintAssignment = {
+    mode: "none",
+    sprintId: null,
+};
+
 export const DEFAULT_USER_PREFERENCES: Record<string, boolean> = {
     assignByDefault: false,
     aiFeatures: true,
@@ -120,6 +132,10 @@ export const Project = pgTable("Project", {
     creatorId: integer()
         .notNull()
         .references(() => User.id),
+    defaultSprintAssignment: json("defaultSprintAssignment")
+        .$type<DefaultSprintAssignment>()
+        .notNull()
+        .default(DEFAULT_SPRINT_ASSIGNMENT),
 });
 
 export const Sprint = pgTable("Sprint", {
@@ -298,7 +314,9 @@ export type OrganisationInsert = z.infer<typeof OrganisationInsertSchema>;
 export type OrganisationMemberRecord = z.infer<typeof OrganisationMemberSelectSchema>;
 export type OrganisationMemberInsert = z.infer<typeof OrganisationMemberInsertSchema>;
 
-export type ProjectRecord = z.infer<typeof ProjectSelectSchema>;
+export type ProjectRecord = z.infer<typeof ProjectSelectSchema> & {
+    defaultSprintAssignment: DefaultSprintAssignment;
+};
 export type ProjectInsert = z.infer<typeof ProjectInsertSchema>;
 
 export type SprintRecord = z.infer<typeof SprintSelectSchema>;
