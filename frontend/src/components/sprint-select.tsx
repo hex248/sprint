@@ -15,6 +15,8 @@ export function SprintSelect({
   placeholder?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const selectedSprint = sprints.find((sprint) => sprint.id.toString() === value);
+  const openSprints = sprints.filter((sprint) => sprint.open);
 
   return (
     <Select value={value} onValueChange={onChange} onOpenChange={setIsOpen}>
@@ -34,7 +36,15 @@ export function SprintSelect({
         <SelectItem value="unassigned">
           <SmallSprintDisplay />
         </SelectItem>
-        {sprints.map((sprint) => (
+        {selectedSprint && !selectedSprint.open && (
+          <SelectItem value={selectedSprint.id.toString()} disabled>
+            <div className="flex items-center gap-2">
+              <SmallSprintDisplay sprint={selectedSprint} />
+              <span className="text-[10px] text-muted-foreground uppercase">closed</span>
+            </div>
+          </SelectItem>
+        )}
+        {openSprints.map((sprint) => (
           <SelectItem key={sprint.id} value={sprint.id.toString()}>
             <SmallSprintDisplay sprint={sprint} />
           </SelectItem>

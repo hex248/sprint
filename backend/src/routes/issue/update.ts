@@ -7,6 +7,7 @@ import {
     getIssueByID,
     getOrganisationMemberRole,
     getProjectByID,
+    getSprintById,
     linkAttachmentsToIssue,
     setIssueAssignees,
     updateIssue,
@@ -56,6 +57,16 @@ export default async function issueUpdate(req: AuthedRequest) {
     const requesterMember = await getOrganisationMemberRole(project.organisationId, req.userId);
     if (!requesterMember) {
         return errorResponse("you are not a member of this organisation", "NOT_MEMBER", 403);
+    }
+
+    if (sprintId != null) {
+        const sprint = await getSprintById(sprintId);
+        if (!sprint || sprint.projectId !== project.id) {
+            return errorResponse("invalid sprint", "INVALID_SPRINT", 400);
+        }
+        if (!sprint.open) {
+            return errorResponse("cannot assign issue to a closed sprint", "SPRINT_CLOSED", 400);
+        }
     }
 
     let issue: IssueRecord | undefined = existingIssue;

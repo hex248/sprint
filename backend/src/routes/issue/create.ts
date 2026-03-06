@@ -7,6 +7,7 @@ import {
     // getOrganisationIssueCount,
     getOrganisationMemberRole,
     getProjectByID,
+    getSprintById,
     // getUserById,
 } from "../../db/queries";
 import { broadcastIssueChanged } from "../../realtime";
@@ -47,6 +48,16 @@ export default async function issueCreate(req: AuthedRequest) {
     //         );
     //     }
     // }
+
+    if (parsed.data.sprintId != null) {
+        const sprint = await getSprintById(parsed.data.sprintId);
+        if (!sprint || sprint.projectId !== project.id) {
+            return errorResponse("invalid sprint", "INVALID_SPRINT", 400);
+        }
+        if (!sprint.open) {
+            return errorResponse("cannot assign issue to a closed sprint", "SPRINT_CLOSED", 400);
+        }
+    }
 
     const dedupedAttachmentIds = [...new Set(attachmentIds)];
     if (dedupedAttachmentIds.length > 0) {
