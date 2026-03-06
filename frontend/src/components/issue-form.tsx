@@ -390,6 +390,7 @@ export function IssueForm({ trigger }: { trigger?: React.ReactNode }) {
               </div>
               <Textarea
                 id="issue-description"
+                className="max-w-full [overflow-wrap:anywhere]"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 onPaste={(event) => {
