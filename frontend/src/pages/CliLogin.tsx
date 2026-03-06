@@ -2,7 +2,7 @@ import { type FormEvent, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/components/session-provider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { getCsrfToken, getServerURL } from "@/lib/utils";
 
 const formatCode = (value: string) => {
@@ -11,7 +11,7 @@ const formatCode = (value: string) => {
     .replace(/[^A-Z0-9]/g, "")
     .slice(0, 8);
   if (normalized.length <= 4) return normalized;
-  return `${normalized.slice(0, 4)}-${normalized.slice(4)}`;
+  return normalized;
 };
 
 export default function CliLogin() {
@@ -21,7 +21,7 @@ export default function CliLogin() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = useMemo(() => formatCode(userCode).length === 9, [userCode]);
+  const canSubmit = useMemo(() => formatCode(userCode).length === 8, [userCode]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -66,16 +66,16 @@ export default function CliLogin() {
 
   return (
     <main className="min-h-dvh px-4 py-12">
-      <div className="mx-auto w-full max-w-xl border bg-card p-6">
+      <div className="mx-auto w-full max-w-lg p-6">
         <h1 className="text-2xl">Approve CLI Login</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Enter the user code shown in your terminal to approve device login.
         </p>
 
         {isLoading ? (
-          <p className="mt-6 text-sm text-muted-foreground">Checking your session...</p>
+          <p className="mt-6 text-md text-muted-foreground">Checking your session...</p>
         ) : !user ? (
-          <p className="mt-6 text-sm">
+          <p className="mmdm">
             You need to sign in first. Visit{" "}
             <Link className="underline" to="/">
               home
@@ -83,23 +83,32 @@ export default function CliLogin() {
             and sign in, then come back to this page.
           </p>
         ) : (
-          <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-            <label className="block text-sm font-medium" htmlFor="cli-user-code">
-              User code
-            </label>
-            <Input
+          <form className="mt-4 space-y-4 flex flex-col items-center" onSubmit={onSubmit}>
+            <InputOTP
               id="cli-user-code"
+              maxLength={8}
               value={formatCode(userCode)}
-              onChange={(event) => setUserCode(event.target.value)}
-              placeholder="ABCD-1234"
-              maxLength={9}
-              autoComplete="off"
-              showCounter={false}
-              inputClassName="font-mono uppercase"
-            />
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Approving..." : "Approve"}
-            </Button>
+              onChange={setUserCode}
+              disabled={isSubmitting}
+              autoFocus
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} className="w-14 h-16 text-2xl" />
+                <InputOTPSlot index={1} className="w-14 h-16 text-2xl" />
+                <InputOTPSlot index={2} className="w-14 h-16 text-2xl" />
+                <InputOTPSlot index={3} className="w-14 h-16 text-2xl" />
+                <span className="w-12 text-center text-3xl">-</span>
+                <InputOTPSlot index={4} className="w-14 h-16 text-2xl border-l" />
+                <InputOTPSlot index={5} className="w-14 h-16 text-2xl" />
+                <InputOTPSlot index={6} className="w-14 h-16 text-2xl" />
+                <InputOTPSlot index={7} className="w-14 h-16 text-2xl" />
+              </InputOTPGroup>
+            </InputOTP>
+            <div className="flex w-full justify-center">
+              <Button type="submit" disabled={!canSubmit || isSubmitting} size={"lg"} className="text-md">
+                {isSubmitting ? "Approving..." : "Approve"}
+              </Button>
+            </div>
 
             {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}

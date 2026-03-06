@@ -15,26 +15,26 @@ export default async function cliLoginApprove(req: AuthedRequest) {
     const userCodeHash = await hashCode(parsed.data.userCode.trim().toUpperCase());
     const code = await getCliLoginCodeByUserHash(userCodeHash);
     if (!code) {
-        return errorResponse("login code not found", "LOGIN_CODE_NOT_FOUND", 404);
+        return errorResponse("Login code not found", "LOGIN_CODE_NOT_FOUND", 404);
     }
 
     const now = new Date();
     if (code.expiresAt < now) {
-        return errorResponse("login code expired", "LOGIN_CODE_EXPIRED", 400);
+        return errorResponse("Login code expired", "LOGIN_CODE_EXPIRED", 400);
     }
 
     if (code.status !== "pending") {
-        return errorResponse("login code is not pending", "LOGIN_CODE_INVALID_STATE", 400);
+        return errorResponse("Login code is not pending", "LOGIN_CODE_INVALID_STATE", 400);
     }
 
     const session = await createSession(req.userId);
     if (!session) {
-        return errorResponse("failed to create session", "SESSION_ERROR", 500);
+        return errorResponse("Failed to create session", "SESSION_ERROR", 500);
     }
 
     const updated = await approveCliLoginCode(code.id, req.userId, session.id);
     if (!updated) {
-        return errorResponse("failed to approve login code", "LOGIN_CODE_APPROVAL_FAILED", 400);
+        return errorResponse("Failed to approve login code", "LOGIN_CODE_APPROVAL_FAILED", 400);
     }
 
     return Response.json({ success: true });
