@@ -125,11 +125,11 @@ export function IssuesTable({
 
   useEffect(() => {
     if (selectedIssueId == null) return;
-    const isVisible = issues.some((issueData) => issueData.Issue.id === selectedIssueId);
-    if (!isVisible) {
+    const existsInProject = issuesData.some((issueData) => issueData.Issue.id === selectedIssueId);
+    if (!existsInProject) {
       selectIssue(null);
     }
-  }, [issues, selectedIssueId, selectIssue]);
+  }, [issuesData, selectedIssueId, selectIssue]);
 
   const getIssueUrl = (issueNumber: number) => {
     if (!selectedOrganisation || !selectedProject) return "#";
