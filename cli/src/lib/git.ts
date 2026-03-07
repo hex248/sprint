@@ -25,3 +25,7 @@ export const createBranch = (branchName: string, baseBranch?: string) => {
 
     runGit(["checkout", "-b", branchName]);
 };
+
+export const pushBranchToOrigin = (branchName: string) => {
+    runGit(["push", "-u", "origin", branchName]);
+};

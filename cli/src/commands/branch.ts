@@ -1,7 +1,7 @@
 import { updateIssueGitBranch } from "../lib/api";
 import type { CliConfig } from "../lib/config";
 import { resolveIssueByRef } from "../lib/context";
-import { createBranch, getCurrentBranch } from "../lib/git";
+import { createBranch, getCurrentBranch, pushBranchToOrigin } from "../lib/git";
 
 const slugifyLower = (value: string) =>
     value
@@ -34,6 +34,14 @@ export const runBranchCommand = async (config: CliConfig, issueRefInput?: string
     createBranch(branchName, baseBranch);
     console.log(`Created branch: ${branchName} (base: ${baseBranch})`);
 
+    try {
+        pushBranchToOrigin(branchName);
+        console.log(`Pushed branch to origin: ${branchName}`);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`branch created locally, but failed to push branch to origin: ${message}`);
+    }
+
     // update issue with branch name
     try {
         await updateIssueGitBranch(config, {
@@ -43,6 +51,6 @@ export const runBranchCommand = async (config: CliConfig, issueRefInput?: string
         console.log(`Linked ${issueTag} to branch`);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`branch created locally, but failed to update issue branch: ${message}`);
+        throw new Error(`branch was pushed, but failed to update issue branch: ${message}`);
     }
 };
