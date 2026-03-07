@@ -1,5 +1,5 @@
 import { DEFAULT_SPRINT_COLOUR, type IssueResponse, type SprintRecord } from "@sprint/shared";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CloseSprintDialog } from "@/components/close-sprint";
 // import { FreeTierLimit } from "@/components/free-tier-limit";
@@ -53,10 +53,7 @@ const getDefaultDates = (sprints: SprintRecord[]) => {
     };
   }
 
-  const baseSprints = sprints.filter((sprint) => !sprint.open);
-  const candidateSprints = baseSprints.length > 0 ? baseSprints : sprints;
-
-  const latest = candidateSprints.reduce((current, sprint) => {
+  const latest = sprints.reduce((current, sprint) => {
     const currentEnd = new Date(current.endDate).getTime();
     const sprintEnd = new Date(sprint.endDate).getTime();
     if (sprintEnd !== currentEnd) {
@@ -65,7 +62,7 @@ const getDefaultDates = (sprints: SprintRecord[]) => {
     const currentStart = new Date(current.startDate).getTime();
     const sprintStart = new Date(sprint.startDate).getTime();
     return sprintStart > currentStart ? sprint : current;
-  }, candidateSprints[0]);
+  }, sprints[0]);
 
   const start = getStartOfDay(addDays(new Date(latest.endDate), 1));
   return {
@@ -113,6 +110,7 @@ export function SprintForm({
   const [colour, setColour] = useState(DEFAULT_SPRINT_COLOUR);
   const [startDate, setStartDate] = useState(defaultDates.start);
   const [endDate, setEndDate] = useState(defaultDates.end);
+  const hasTouchedDatesRef = useRef(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -146,8 +144,15 @@ export function SprintForm({
       setColour(existingSprint.color);
       setStartDate(new Date(existingSprint.startDate));
       setEndDate(new Date(existingSprint.endDate));
+      hasTouchedDatesRef.current = false;
     }
   }, [isEdit, existingSprint, open]);
+
+  useEffect(() => {
+    if (!open || isEdit || hasTouchedDatesRef.current) return;
+    setStartDate(defaultDates.start);
+    setEndDate(defaultDates.end);
+  }, [defaultDates, isEdit, open]);
 
   const dateError = useMemo(() => {
     if (!submitAttempted) return "";
@@ -180,6 +185,7 @@ export function SprintForm({
     setColour(DEFAULT_SPRINT_COLOUR);
     setStartDate(defaults.start);
     setEndDate(defaults.end);
+    hasTouchedDatesRef.current = false;
     setSubmitAttempted(false);
     setSubmitting(false);
     setError(null);
@@ -381,6 +387,7 @@ export function SprintForm({
                     selected={startDate}
                     onSelect={(value) => {
                       if (!value) return;
+                      hasTouchedDatesRef.current = true;
                       setStartDate(getStartOfDay(value));
                     }}
                     autoFocus
@@ -408,6 +415,7 @@ export function SprintForm({
                     selected={endDate}
                     onSelect={(value) => {
                       if (!value) return;
+                      hasTouchedDatesRef.current = true;
                       setEndDate(getEndOfDay(value));
                     }}
                     autoFocus
