@@ -30,8 +30,11 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
   const { data: sprintsData = [] } = useSprints(selectedProjectId);
   const location = useLocation();
   const navigate = useNavigate();
-  const activeView = location.pathname.startsWith("/timeline") ? "timeline" : "issues";
-  const showViewTabs = !location.pathname.startsWith("/settings");
+  const activeView = location.pathname.startsWith("/timeline")
+    ? "timeline"
+    : location.pathname.startsWith("/issues")
+      ? "issues"
+      : null;
 
   const selectedOrganisation = useMemo(
     () => organisationsData.find((org) => org.Organisation.id === selectedOrganisationId) ?? null,
@@ -51,12 +54,6 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
     const search = params.toString();
     return `/${view}${search ? `?${search}` : ""}`;
   };
-
-  const issuesHref = buildViewHref("issues");
-  const timelineHref = buildViewHref("timeline");
-  const canViewTimeline = Boolean(
-    selectedOrganisation?.Organisation.features.sprints && selectedOrganisationId,
-  );
 
   useEffect(() => {
     if (selectedOrganisation?.Organisation.features.sprints === false && activeView === "timeline") {
@@ -80,16 +77,18 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
         />
 
         {selectedOrganisationId && <ProjectSelect showLabel />}
-        {showViewTabs && selectedOrganisation?.Organisation.features.sprints && selectedOrganisationId && (
+        {selectedOrganisation?.Organisation.features.sprints && selectedOrganisationId && (
           <Tabs
-            value={activeView}
+            value={activeView ?? ""}
             onValueChange={(value) => {
+              if (value !== "issues" && value !== "timeline") return;
+
               if (value === "timeline") {
                 localStorage.removeItem("selectedIssueNumber");
                 selectIssue(null, { skipUrlUpdate: true });
               }
 
-              navigate(buildViewHref(value as "issues" | "timeline"));
+              navigate(buildViewHref(value));
             }}
           >
             <TabsList>
@@ -140,22 +139,6 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
             <SmallUserDisplay user={user} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild className="flex items-end justify-end">
-              <Link to={issuesHref} className="w-full text-right">
-                Issues
-              </Link>
-            </DropdownMenuItem>
-            {canViewTimeline ? (
-              <DropdownMenuItem asChild className="flex items-end justify-end">
-                <Link to={timelineHref} className="w-full text-right">
-                  Timeline
-                </Link>
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem disabled className="flex items-end justify-end text-muted-foreground">
-                Timeline
-              </DropdownMenuItem>
-            )}
             <DropdownMenuItem asChild className="flex items-end justify-end">
               <Link to="/settings" className="w-full text-right">
                 Settings
