@@ -168,6 +168,23 @@ export const createIssue = async (
     return response.body;
 };
 
+export const updateIssueGitBranch = async (
+    config: CliConfig,
+    input: {
+        id: number;
+        gitBranch: string | null;
+    },
+) => {
+    const response = await apiRequest<IssueRecord>(config, "/issue/update", {
+        method: "POST",
+        auth: true,
+        csrf: true,
+        body: input,
+    });
+    throwIfError(response.status, response.body);
+    return response.body;
+};
+
 export const startCliLogin = async (config: CliConfig) => {
     const response = await apiRequest<{
         deviceCode: string;

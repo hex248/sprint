@@ -1,3 +1,4 @@
+import { updateIssueGitBranch } from "../lib/api";
 import type { CliConfig } from "../lib/config";
 import { resolveIssueByRef } from "../lib/context";
 import { createBranch, getCurrentBranch } from "../lib/git";
@@ -32,4 +33,16 @@ export const runBranchCommand = async (config: CliConfig, issueRefInput?: string
 
     createBranch(branchName, baseBranch);
     console.log(`Created branch: ${branchName} (base: ${baseBranch})`);
+
+    // update issue with branch name
+    try {
+        await updateIssueGitBranch(config, {
+            id: issue.Issue.id,
+            gitBranch: branchName,
+        });
+        console.log(`Linked ${issueTag} to branch`);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`branch created locally, but failed to update issue branch: ${message}`);
+    }
 };
