@@ -26,14 +26,14 @@ export function AddMember({
   onSuccess?: (user: UserResponse) => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const addMember = useAddOrganisationMember();
 
   const reset = () => {
-    setUsername("");
+    setIdentifier("");
     setSubmitAttempted(false);
     setSubmitting(false);
     setError(null);
@@ -51,21 +51,31 @@ export function AddMember({
     setError(null);
     setSubmitAttempted(true);
 
-    if (username.trim() === "") {
+    const normalizedIdentifier = identifier.trim();
+    if (normalizedIdentifier === "") {
       return;
     }
 
-    if (existingMembers.includes(username)) {
+    if (existingMembers.includes(normalizedIdentifier)) {
       setError("user is already a member of this organisation");
       return;
     }
 
     setSubmitting(true);
     try {
-      const { data, error } = await apiClient.userByUsername({ query: { username } });
+      const { data, error } = await apiClient.userByIdentifier({
+        query: { identifier: normalizedIdentifier },
+      });
       if (error) throw new Error(error);
       if (!data) throw new Error("user not found");
       const userData = data as UserResponse;
+
+      if (existingMembers.includes(userData.username)) {
+        setError("user is already a member of this organisation");
+        setSubmitting(false);
+        return;
+      }
+
       const userId = userData.id;
       await addMember.mutateAsync({ organisationId, userId, role: "member" });
       setOpen(false);
@@ -99,12 +109,12 @@ export function AddMember({
         <form onSubmit={handleSubmit}>
           <div className="grid mt-2">
             <Field
-              label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              label="Email or username"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               validate={(v) => (v.trim() === "" ? "Cannot be empty" : undefined)}
               submitAttempted={submitAttempted}
-              placeholder="Enter username"
+              placeholder="Enter email or username"
               error={error || undefined}
             />
 
@@ -114,7 +124,7 @@ export function AddMember({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={submitting || (username.trim() === "" && submitAttempted)}>
+              <Button type="submit" disabled={submitting || (identifier.trim() === "" && submitAttempted)}>
                 {submitting ? "Adding..." : "Add"}
               </Button>
             </div>

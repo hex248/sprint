@@ -348,6 +348,7 @@ const main = async () => {
             "/cli/login/poll": withGlobal(routes.cliLoginPoll),
             "/cli/login/approve": withGlobalAuthed(withAuth(withCSRF(routes.cliLoginApprove))),
 
+            "/user/by-identifier": withGlobalAuthed(withAuth(routes.userByIdentifier)),
             "/user/by-username": withGlobalAuthed(withAuth(routes.userByUsername)),
             "/user/update": withGlobalAuthed(withAuth(withCSRF(routes.userUpdate))),
             "/user/upload-avatar": withGlobal(routes.userUploadAvatar),
