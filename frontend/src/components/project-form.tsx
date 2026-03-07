@@ -231,7 +231,7 @@ export function ProjectForm({
 
           {isEdit && (
             <Field
-              label="Git remote"
+              label="Git remote (only HTTPS for now)"
               value={gitRemote}
               onChange={(e) => setGitRemote(e.target.value)}
               validate={(value) => {
@@ -241,7 +241,7 @@ export function ProjectForm({
                 return undefined;
               }}
               submitAttempted={submitAttempted}
-              placeholder="https://github.com/org/repo.git or git@github.com:org/repo.git"
+              placeholder="https://github.com/org/repo.git"
               maxLength={GIT_REMOTE_MAX_LENGTH}
               showCounter={false}
             />

@@ -1,5 +1,6 @@
 const GIT_REMOTE_VALIDATION_TIMEOUT_MS = 10_000;
 const MAX_VALIDATION_REASON_LENGTH = 300;
+const HTTPS_REMOTE_PREFIX = "https://";
 
 type GitRemoteValidationResult = { ok: true } | { ok: false; reason: string };
 
@@ -12,6 +13,10 @@ export async function validateGitRemote(remote: string): Promise<GitRemoteValida
     const trimmedRemote = remote.trim();
     if (!trimmedRemote) {
         return { ok: false, reason: "git remote cannot be empty" };
+    }
+
+    if (!trimmedRemote.toLowerCase().startsWith(HTTPS_REMOTE_PREFIX)) {
+        return { ok: false, reason: "only https git remotes are supported right now" };
     }
 
     try {
