@@ -399,6 +399,7 @@ export const ProjectUpdateRequestSchema = z.object({
     creatorId: z.number().int().positive().optional(),
     organisationId: z.number().int().positive().optional(),
     defaultSprintAssignment: DefaultSprintAssignmentSchema.optional(),
+    gitRemote: z.string().max(255).nullable().optional(),
 });
 
 export type ProjectUpdateRequest = z.infer<typeof ProjectUpdateRequestSchema>;
@@ -698,6 +699,7 @@ export const ProjectRecordSchema = z.object({
     organisationId: z.number(),
     creatorId: z.number(),
     defaultSprintAssignment: DefaultSprintAssignmentSchema,
+    gitRemote: z.string().nullable(),
 });
 
 export const ProjectResponseSchema = z.object({

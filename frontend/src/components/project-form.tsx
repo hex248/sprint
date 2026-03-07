@@ -1,4 +1,4 @@
-import { PROJECT_NAME_MAX_LENGTH, type ProjectRecord } from "@sprint/shared";
+import { PROJECT_NAME_MAX_LENGTH, type ProjectRecord, type ProjectUpdateRequest } from "@sprint/shared";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuthenticatedSession } from "@/components/session-provider";
@@ -22,6 +22,8 @@ const keyify = (value: string) =>
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "")
     .slice(0, 4);
+
+const GIT_REMOTE_MAX_LENGTH = 255;
 
 export function ProjectForm({
   organisationId,
@@ -51,6 +53,7 @@ export function ProjectForm({
 
   const [name, setName] = useState("");
   const [key, setKey] = useState("");
+  const [gitRemote, setGitRemote] = useState("");
   const [keyManuallyEdited, setKeyManuallyEdited] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -62,6 +65,7 @@ export function ProjectForm({
     if (isEdit && existingProject && open) {
       setName(existingProject.name);
       setKey(existingProject.key);
+      setGitRemote(existingProject.gitRemote ?? "");
       setKeyManuallyEdited(true);
     }
   }, [isEdit, existingProject, open]);
@@ -69,6 +73,7 @@ export function ProjectForm({
   const reset = () => {
     setName("");
     setKey("");
+    setGitRemote("");
     setKeyManuallyEdited(false);
     setSubmitAttempted(false);
     setSubmitting(false);
@@ -87,11 +92,14 @@ export function ProjectForm({
     setError(null);
     setSubmitAttempted(true);
 
+    const normalizedGitRemote = gitRemote.trim();
+
     if (
       name.trim() === "" ||
       name.trim().length > PROJECT_NAME_MAX_LENGTH ||
       key.trim() === "" ||
-      key.length > 4
+      key.length > 4 ||
+      (isEdit && normalizedGitRemote.length > GIT_REMOTE_MAX_LENGTH)
     ) {
       return;
     }
@@ -109,11 +117,33 @@ export function ProjectForm({
     setSubmitting(true);
     try {
       if (isEdit && existingProject) {
-        const proj = await updateProject.mutateAsync({
+        const nextGitRemote = normalizedGitRemote === "" ? null : normalizedGitRemote;
+        const currentGitRemote = existingProject.gitRemote ?? null;
+
+        const updatePayload: ProjectUpdateRequest = {
           id: existingProject.id,
-          key,
-          name,
-        });
+        };
+
+        if (key !== existingProject.key) {
+          updatePayload.key = key;
+        }
+
+        if (name !== existingProject.name) {
+          updatePayload.name = name;
+        }
+
+        if (nextGitRemote !== currentGitRemote) {
+          updatePayload.gitRemote = nextGitRemote;
+        }
+
+        if (Object.keys(updatePayload).length === 1) {
+          setSubmitting(false);
+          setOpen(false);
+          reset();
+          return;
+        }
+
+        const proj = await updateProject.mutateAsync(updatePayload);
         setOpen(false);
         reset();
         toast.success("Project updated");
@@ -199,6 +229,24 @@ export function ProjectForm({
             placeholder="DEMO"
           />
 
+          {isEdit && (
+            <Field
+              label="Git remote"
+              value={gitRemote}
+              onChange={(e) => setGitRemote(e.target.value)}
+              validate={(value) => {
+                if (value.trim().length > GIT_REMOTE_MAX_LENGTH) {
+                  return `Too long (${GIT_REMOTE_MAX_LENGTH} character limit)`;
+                }
+                return undefined;
+              }}
+              submitAttempted={submitAttempted}
+              placeholder="https://github.com/org/repo.git or git@github.com:org/repo.git"
+              maxLength={GIT_REMOTE_MAX_LENGTH}
+              showCounter={false}
+            />
+          )}
+
           <div className="flex items-end justify-end w-full text-xs -mb-2 -mt-2">
             {error ? (
               <Label className="text-destructive text-sm">{error}</Label>
@@ -219,7 +267,8 @@ export function ProjectForm({
                 submitting ||
                 (name.trim() === "" && submitAttempted) ||
                 (name.trim().length > PROJECT_NAME_MAX_LENGTH && submitAttempted) ||
-                ((key.trim() === "" || key.length > 4) && submitAttempted)
+                ((key.trim() === "" || key.length > 4) && submitAttempted) ||
+                (isEdit && gitRemote.trim().length > GIT_REMOTE_MAX_LENGTH && submitAttempted)
               }
             >
               {submitting ? (isEdit ? "Saving..." : "Creating...") : isEdit ? "Save" : "Create"}

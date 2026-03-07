@@ -23,6 +23,7 @@ export async function updateProject(
         creatorId?: number;
         organisationId?: number;
         defaultSprintAssignment?: { mode: "none" | "current" | "specific"; sprintId: number | null };
+        gitRemote?: string | null;
     },
 ) {
     const [project] = await db.update(Project).set(updates).where(eq(Project.id, projectId)).returning();

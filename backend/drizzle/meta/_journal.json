@@ -267,6 +267,13 @@
       "when": 1772838036587,
       "tag": "0037_smiling_king_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1772900851579,
+      "tag": "0038_white_shooting_star",
+      "breakpoints": true
     }
   ]
 }

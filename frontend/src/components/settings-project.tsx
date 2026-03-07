@@ -327,6 +327,11 @@ export function SettingsProject() {
                       <p className="text-sm text-muted-foreground break-all">
                         Creator: {selectedProject.User.name}
                       </p>
+                      {selectedProject.Project.gitRemote && (
+                        <p className="text-sm text-muted-foreground break-all">
+                          Git remote: {selectedProject.Project.gitRemote}
+                        </p>
+                      )}
                     </div>
 
                     {isAdmin && (

@@ -136,6 +136,7 @@ export const Project = pgTable("Project", {
         .$type<DefaultSprintAssignment>()
         .notNull()
         .default(DEFAULT_SPRINT_ASSIGNMENT),
+    gitRemote: varchar({ length: 255 }),
 });
 
 export const Sprint = pgTable("Sprint", {
