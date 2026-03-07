@@ -15,6 +15,7 @@ import Issues from "@/pages/Issues";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
 // import plans from "@/pages/Plans";
+import Settings from "@/pages/Settings";
 import Test from "@/pages/Test";
 import Timeline from "@/pages/Timeline";
 
@@ -62,6 +63,14 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                   element={
                     <RequireAuth>
                       <Timeline />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <RequireAuth>
+                      <Settings />
                     </RequireAuth>
                   }
                 />

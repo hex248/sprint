@@ -1,11 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import Account from "@/components/account";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { IssueForm } from "@/components/issue-form";
 import LogOutButton from "@/components/log-out-button";
 import OrgIcon from "@/components/org-icon";
 import { OrganisationSelect } from "@/components/organisation-select";
-import Organisations from "@/components/organisations";
 import { ProjectSelect } from "@/components/project-select";
 import { useSelection } from "@/components/selection-provider";
 import { useAuthenticatedSession } from "@/components/session-provider";
@@ -33,10 +31,31 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
   const location = useLocation();
   const navigate = useNavigate();
   const activeView = location.pathname.startsWith("/timeline") ? "timeline" : "issues";
+  const showViewTabs = !location.pathname.startsWith("/settings");
 
   const selectedOrganisation = useMemo(
     () => organisationsData.find((org) => org.Organisation.id === selectedOrganisationId) ?? null,
     [organisationsData, selectedOrganisationId],
+  );
+
+  const buildViewHref = (view: "issues" | "timeline") => {
+    const orgSlug = localStorage.getItem("selectedOrganisationSlug")?.trim() ?? "";
+    const projectKey = localStorage.getItem("selectedProjectKey")?.trim() ?? "";
+    const issueNumber = localStorage.getItem("selectedIssueNumber")?.trim() ?? "";
+    const params = new URLSearchParams();
+
+    if (orgSlug) params.set("o", orgSlug.toLowerCase());
+    if (projectKey) params.set("p", projectKey.toLowerCase());
+    if (view === "issues" && issueNumber) params.set("i", issueNumber);
+
+    const search = params.toString();
+    return `/${view}${search ? `?${search}` : ""}`;
+  };
+
+  const issuesHref = buildViewHref("issues");
+  const timelineHref = buildViewHref("timeline");
+  const canViewTimeline = Boolean(
+    selectedOrganisation?.Organisation.features.sprints && selectedOrganisationId,
   );
 
   useEffect(() => {
@@ -61,28 +80,16 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
         />
 
         {selectedOrganisationId && <ProjectSelect showLabel />}
-        {selectedOrganisation?.Organisation.features.sprints && selectedOrganisationId && (
+        {showViewTabs && selectedOrganisation?.Organisation.features.sprints && selectedOrganisationId && (
           <Tabs
             value={activeView}
             onValueChange={(value) => {
-              const orgSlug = localStorage.getItem("selectedOrganisationSlug")?.trim() ?? "";
-              const projectKey = localStorage.getItem("selectedProjectKey")?.trim() ?? "";
-              const issueNumber = localStorage.getItem("selectedIssueNumber")?.trim() ?? "";
-              const params = new URLSearchParams();
-              if (orgSlug) params.set("o", orgSlug.toLowerCase());
-              if (projectKey) params.set("p", projectKey.toLowerCase());
-
-              if (value === "issues" && issueNumber) {
-                params.set("i", issueNumber);
-              }
-
               if (value === "timeline") {
                 localStorage.removeItem("selectedIssueNumber");
                 selectIssue(null, { skipUrlUpdate: true });
               }
 
-              const search = params.toString();
-              navigate(`/${value}${search ? `?${search}` : ""}`);
+              navigate(buildViewHref(value as "issues" | "timeline"));
             }}
           >
             <TabsList>
@@ -134,10 +141,25 @@ export default function TopBar({ showIssueForm = true }: { showIssueForm?: boole
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild className="flex items-end justify-end">
-              <Account />
+              <Link to={issuesHref} className="w-full text-right">
+                Issues
+              </Link>
             </DropdownMenuItem>
+            {canViewTimeline ? (
+              <DropdownMenuItem asChild className="flex items-end justify-end">
+                <Link to={timelineHref} className="w-full text-right">
+                  Timeline
+                </Link>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem disabled className="flex items-end justify-end text-muted-foreground">
+                Timeline
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem asChild className="flex items-end justify-end">
-              <Organisations />
+              <Link to="/settings" className="w-full text-right">
+                Settings
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="flex items-end justify-end p-0 m-0">
