@@ -12,6 +12,7 @@ import {
     setIssueAssignees,
     updateIssue,
 } from "../../db/queries";
+import { listRemoteBranches } from "../../git/list-remote-branches";
 import { broadcastIssueChanged } from "../../realtime";
 import { deleteFromS3 } from "../../s3";
 import { errorResponse, parseJsonBody } from "../../validation";
@@ -20,8 +21,18 @@ export default async function issueUpdate(req: AuthedRequest) {
     const parsed = await parseJsonBody(req, IssueUpdateRequestSchema);
     if ("error" in parsed) return parsed.error;
 
-    const { id, title, description, type, status, assignees, assigneeIds, sprintId, attachmentIds } =
-        parsed.data;
+    const {
+        id,
+        title,
+        description,
+        type,
+        status,
+        gitBranch,
+        assignees,
+        assigneeIds,
+        sprintId,
+        attachmentIds,
+    } = parsed.data;
 
     // check that at least one field is being updated
     if (
@@ -29,6 +40,7 @@ export default async function issueUpdate(req: AuthedRequest) {
         description === undefined &&
         type === undefined &&
         status === undefined &&
+        gitBranch === undefined &&
         assignees === undefined &&
         assigneeIds === undefined &&
         sprintId === undefined &&
@@ -42,7 +54,8 @@ export default async function issueUpdate(req: AuthedRequest) {
         description !== undefined ||
         type !== undefined ||
         status !== undefined ||
-        sprintId !== undefined;
+        sprintId !== undefined ||
+        gitBranch !== undefined;
 
     const existingIssue = await getIssueByID(id);
     if (!existingIssue) {
@@ -69,6 +82,36 @@ export default async function issueUpdate(req: AuthedRequest) {
         }
     }
 
+    let normalizedGitBranch: string | null | undefined;
+    if (gitBranch !== undefined) {
+        if (gitBranch == null) {
+            normalizedGitBranch = null;
+        } else {
+            const trimmedBranch = gitBranch.trim();
+            normalizedGitBranch = trimmedBranch.length > 0 ? trimmedBranch : null;
+        }
+
+        if (normalizedGitBranch) {
+            const gitRemote = project.gitRemote?.trim();
+            if (!gitRemote) {
+                return errorResponse("git remote is not set for this project", "GIT_REMOTE_NOT_SET", 400);
+            }
+
+            const branchResult = await listRemoteBranches(gitRemote);
+            if (!branchResult.ok) {
+                return errorResponse(
+                    `failed to fetch git branches: ${branchResult.reason}`,
+                    "GIT_REMOTE_FETCH_FAILED",
+                    400,
+                );
+            }
+
+            if (!branchResult.branches.includes(normalizedGitBranch)) {
+                return errorResponse(`invalid git branch: ${normalizedGitBranch}`, "INVALID_GIT_BRANCH", 400);
+            }
+        }
+    }
+
     let issue: IssueRecord | undefined = existingIssue;
     if (hasIssueFieldUpdates) {
         [issue] = await updateIssue(id, {
@@ -77,6 +120,7 @@ export default async function issueUpdate(req: AuthedRequest) {
             sprintId,
             type,
             status,
+            gitBranch: normalizedGitBranch,
         });
     }
 

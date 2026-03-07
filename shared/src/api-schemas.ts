@@ -155,6 +155,7 @@ export const IssueUpdateRequestSchema = z.object({
     status: z.string().max(ISSUE_STATUS_MAX_LENGTH).optional(),
     title: z.string().min(1, "Title must be at least 1 character").max(ISSUE_TITLE_MAX_LENGTH).optional(),
     description: z.string().max(ISSUE_DESCRIPTION_MAX_LENGTH).optional(),
+    gitBranch: z.string().max(255).nullable().optional(),
     assignees: z
         .array(
             z.object({
@@ -599,6 +600,7 @@ export const IssueRecordSchema = z.object({
     status: z.string(),
     title: z.string(),
     description: z.string(),
+    gitBranch: z.string().nullable(),
     creatorId: z.number(),
     sprintId: z.number().nullable(),
 });

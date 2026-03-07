@@ -126,6 +126,7 @@ export async function updateIssue(
         sprintId?: number | null;
         type?: string;
         status?: string;
+        gitBranch?: string | null;
     },
 ) {
     return await db.update(Issue).set(updates).where(eq(Issue.id, id)).returning();

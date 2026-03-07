@@ -28,6 +28,7 @@ export function IssueDetailPane() {
     <IssueDetails
       issueData={issueData}
       projectKey={selectedProject.Project.key}
+      projectGitRemote={selectedProject.Project.gitRemote}
       sprints={sprints}
       members={members}
       statuses={statuses}

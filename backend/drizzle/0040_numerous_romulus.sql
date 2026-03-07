@@ -1,0 +1,1 @@
+ALTER TABLE "Issue" ADD COLUMN "gitBranch" varchar(255);

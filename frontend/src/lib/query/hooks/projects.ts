@@ -24,7 +24,7 @@ export function useProjects(organisationId?: number | null) {
   });
 }
 
-export function useProjectBranches(projectId?: number | null) {
+export function useProjectBranches(projectId?: number | null, enabled = true) {
   return useQuery<ProjectBranchesResponse>({
     queryKey: queryKeys.projects.branches(projectId ?? 0),
     queryFn: async () => {
@@ -35,7 +35,7 @@ export function useProjectBranches(projectId?: number | null) {
       if (!data) throw new Error("failed to fetch project branches");
       return data as ProjectBranchesResponse;
     },
-    enabled: Boolean(projectId),
+    enabled: Boolean(projectId && enabled),
   });
 }
 

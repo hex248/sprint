@@ -25,11 +25,12 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import Icon, { type IconName } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
-import { SelectTrigger } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useDeleteIssue,
   useInactiveTimers,
+  useProjectBranches,
   useSelectedOrganisation,
   useTimerState,
   useUpdateIssue,
@@ -91,6 +92,7 @@ export function IssueDetails({
   onClose,
   onDelete,
   showHeader = true,
+  projectGitRemote,
 }: {
   issueData: IssueResponse;
   projectKey: string;
@@ -100,6 +102,7 @@ export function IssueDetails({
   onClose: () => void;
   onDelete?: () => void;
   showHeader?: boolean;
+  projectGitRemote?: string | null;
 }) {
   const { user } = useSession();
   const organisation = useSelectedOrganisation();
@@ -112,6 +115,7 @@ export function IssueDetails({
 
   const [assignees, setAssignees] = useState<AssigneeSelectValue[]>([]);
   const [sprintId, setSprintId] = useState<string>("unassigned");
+  const [gitBranch, setGitBranch] = useState<string>("unassigned");
   const [status, setStatus] = useState<string>("");
   const [type, setType] = useState<string>("");
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -131,6 +135,14 @@ export function IssueDetails({
   const previousIssueIdRef = useRef<number | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
+  const hasProjectGitRemote = Boolean(projectGitRemote?.trim());
+  const {
+    data: projectBranchesData,
+    error: projectBranchesError,
+    isLoading: isProjectBranchesLoading,
+    isFetching: isProjectBranchesFetching,
+  } = useProjectBranches(issueData.Issue.projectId, hasProjectGitRemote);
+
   const issueTypes = (organisation?.Organisation.issueTypes ?? {}) as Record<
     string,
     { icon: string; color: string }
@@ -149,6 +161,7 @@ export function IssueDetails({
     previousIssueIdRef.current = issueData.Issue.id;
 
     setSprintId(issueData.Issue.sprintId?.toString() ?? "unassigned");
+    setGitBranch(issueData.Issue.gitBranch ?? "unassigned");
     setAssignees(assigneesToSelectValues(issueData.Assignees, issueData.AssigneeNotes));
     setStatus(issueData.Issue.status);
     setType(issueData.Issue.type);
@@ -196,6 +209,12 @@ export function IssueDetails({
   const currentWorkTimeMs = getWorkTimeMs(timerState?.timestamps);
   const totalWorkTimeMs = inactiveWorkTimeMs + currentWorkTimeMs;
 
+  const projectBranches = projectBranchesData?.branches ?? [];
+  const missingSavedGitBranch =
+    issueData.Issue.gitBranch && !projectBranches.includes(issueData.Issue.gitBranch)
+      ? issueData.Issue.gitBranch
+      : null;
+
   const handleSprintChange = async (value: string) => {
     setSprintId(value);
     const newSprintId = value === "unassigned" ? null : Number(value);
@@ -236,6 +255,40 @@ export function IssueDetails({
           dismissible: false,
         },
       );
+    }
+  };
+
+  const handleGitBranchChange = async (value: string) => {
+    const previousGitBranch = gitBranch;
+    setGitBranch(value);
+
+    const nextGitBranch = value === "unassigned" ? null : value;
+    const currentGitBranch = issueData.Issue.gitBranch ?? null;
+
+    if (nextGitBranch === currentGitBranch) {
+      return;
+    }
+
+    try {
+      await updateIssue.mutateAsync({
+        id: issueData.Issue.id,
+        gitBranch: nextGitBranch,
+      });
+
+      toast.success(
+        nextGitBranch
+          ? `Updated branch for ${issueID(projectKey, issueData.Issue.number)}`
+          : `Cleared branch for ${issueID(projectKey, issueData.Issue.number)}`,
+        {
+          dismissible: false,
+        },
+      );
+    } catch (error) {
+      console.error("error updating git branch:", error);
+      setGitBranch(previousGitBranch);
+      toast.error(`Error updating branch: ${parseError(error as Error)}`, {
+        dismissible: false,
+      });
     }
   };
 
@@ -716,6 +769,55 @@ export function IssueDetails({
           <div className="flex items-center gap-2">
             <span className="text-sm">Sprint:</span>
             <SprintSelect sprints={sprints} value={sprintId} onChange={handleSprintChange} />
+          </div>
+        )}
+
+        {hasProjectGitRemote && (
+          <div className="flex flex-col gap-1 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm shrink-0">Branch:</span>
+              <div className="min-w-0 flex-1">
+                <Select
+                  value={gitBranch}
+                  onValueChange={(value) => {
+                    void handleGitBranchChange(value);
+                  }}
+                  disabled={updateIssue.isPending || isProjectBranchesLoading || isProjectBranchesFetching}
+                >
+                  <SelectTrigger size="sm" className="w-full max-w-[26rem] min-w-0">
+                    <span className="block min-w-0 truncate text-left">
+                      {gitBranch === "unassigned" ? "None" : gitBranch}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent
+                    side="bottom"
+                    position="popper"
+                    align="start"
+                    className="max-h-64 w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]"
+                  >
+                    <SelectItem value="unassigned">None</SelectItem>
+                    {missingSavedGitBranch && (
+                      <SelectItem value={missingSavedGitBranch} disabled>
+                        {missingSavedGitBranch} (missing)
+                      </SelectItem>
+                    )}
+                    {projectBranches.map((branch) => (
+                      <SelectItem key={branch} value={branch}>
+                        {branch}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {(isProjectBranchesLoading || isProjectBranchesFetching) && (
+              <span className="text-xs text-muted-foreground">loading branches...</span>
+            )}
+            {projectBranchesError && (
+              <span className="text-xs text-destructive/85">
+                Failed to load branches: {parseError(projectBranchesError as Error)}
+              </span>
+            )}
           </div>
         )}
 

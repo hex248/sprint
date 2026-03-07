@@ -207,6 +207,7 @@ export const Issue = pgTable(
         status: varchar({ length: ISSUE_STATUS_MAX_LENGTH }).notNull().default("TO DO"),
         title: varchar({ length: ISSUE_TITLE_MAX_LENGTH }).notNull(),
         description: varchar({ length: ISSUE_DESCRIPTION_MAX_LENGTH }).notNull(),
+        gitBranch: varchar({ length: 255 }),
 
         creatorId: integer()
             .notNull()
