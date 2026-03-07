@@ -52,6 +52,12 @@ export default function Landing() {
             >
               Features
             </a>
+            <a
+              href="/changelog"
+              className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
+            >
+              Changelog
+            </a>
             {/* <a
               href="#pricing"
               className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
