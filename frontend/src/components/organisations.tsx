@@ -366,7 +366,7 @@ function Organisations({ trigger }: { trigger?: ReactNode }) {
     return `${formatDate(sprint.startDate)} - ${formatDate(sprint.endDate)}`;
   };
   const isCurrentSprint = (sprint: SprintRecord) => {
-    if (!sprint.startDate || !sprint.endDate) return false;
+    if (!sprint.open || !sprint.startDate || !sprint.endDate) return false;
     const today = new Date();
     const start = new Date(sprint.startDate);
     const end = new Date(sprint.endDate);
