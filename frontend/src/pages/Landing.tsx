@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Footer from "@/components/footer";
+import Header from "@/components/header";
 import { LoginModal } from "@/components/login-modal";
 import { useSession } from "@/components/session-provider";
-import ThemeToggle from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 
@@ -33,58 +34,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen flex flex-col" id="top">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
-        <div className="w-full flex h-14 items-center justify-between px-2">
-          <div className="flex items-center gap-2">
-            <img src="/favicon.svg" alt="Sprint" className="size-12 -mt-0.5" />
-            <span className="text-3xl font-basteleur font-700 transition-colors -mt-0.5">Sprint</span>
-          </div>
-          <nav className="flex items-center gap-6">
-            <a
-              href="#top"
-              className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
-            >
-              Home
-            </a>
-            <a
-              href="#features"
-              className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="/changelog"
-              className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
-            >
-              Changelog
-            </a>
-            {/* <a
-              href="#pricing"
-              className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
-            >
-              Pricing
-            </a> */}
-            {/* <a
-              href="#faq"
-              className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
-            >
-              FAQ
-            </a> */}
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              {!isLoading && user ? (
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/issues">Open app</Link>
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" onClick={() => setLoginModalOpen(true)}>
-                  Sign in
-                </Button>
-              )}
-            </div>
-          </nav>
-        </div>
-      </header>
+      <Header onSignInClick={() => setLoginModalOpen(true)} />
 
       <main className="flex-1 flex flex-col items-center py-16 pt-14 px-4">
         <div className="max-w-6xl w-full space-y-18">
@@ -302,30 +252,7 @@ export default function Landing() {
 
       <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
 
-      <footer className="flex justify-center items-center gap-12 py-1 border-t">
-        <Link
-          to="/the-boring-stuff"
-          className="text-sm text-muted-foreground hover:text-personality transition-colors"
-        >
-          The boring stuff - Privacy Policy & ToS
-        </Link>
-        <div className="flex justify-center gap-2 items-center">
-          <span className="font-300 text-lg text-muted-foreground">
-            Built by{" "}
-            <a
-              href="https://ob248.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-personality font-700"
-            >
-              Oliver Bryan
-            </a>
-          </span>
-          <a href="https://ob248.com" target="_blank" rel="noopener noreferrer">
-            <img src="oliver-bryan.svg" alt="Oliver Bryan" className="w-4 h-4" />
-          </a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

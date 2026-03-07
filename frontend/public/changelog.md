@@ -12,6 +12,7 @@
 
 - Updated copy and wording across landing and legal pages for clarity.
 - Added an in-app note during sign-up that Sprint is in active development.
+- Consistent header and footer for non-app pages.
 
 ### Fixed
 

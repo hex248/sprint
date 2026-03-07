@@ -1,12 +1,9 @@
-import { Link } from "react-router-dom";
+import Footer from "@/components/footer";
+import Header from "@/components/header";
 export default function BoringStuff() {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="flex justify-center items-center gap-6 py-2 border-b">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-personality transition-colors">
-          Go back home
-        </Link>
-      </header>
+      <Header />
 
       <main className="flex-1 px-4 py-12">
         <div className="max-w-3xl mx-auto space-y-10">
@@ -88,27 +85,7 @@ export default function BoringStuff() {
         </div>
       </main>
 
-      <footer className="flex justify-center items-center gap-6 py-1 border-t">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-personality transition-colors">
-          Go back home
-        </Link>
-        <div className="flex justify-center gap-2 items-center">
-          <span className="font-300 text-lg text-muted-foreground">
-            Built by{" "}
-            <a
-              href="https://ob248.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-personality font-700"
-            >
-              Oliver Bryan
-            </a>
-          </span>
-          <a href="https://ob248.com" target="_blank" rel="noopener noreferrer">
-            <img src="oliver-bryan.svg" alt="Oliver Bryan" className="w-4 h-4" />
-          </a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
