@@ -31,6 +31,15 @@ export async function getUserByEmail(email: string) {
     return user;
 }
 
+export async function getUserByIdentifier(identifier: string) {
+    const byUsername = await getUserByUsername(identifier);
+    if (byUsername) {
+        return byUsername;
+    }
+
+    return getUserByEmail(identifier);
+}
+
 export async function updateById(
     id: number,
     updates: {

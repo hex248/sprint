@@ -562,6 +562,12 @@ export const UserByUsernameQuerySchema = z.object({
 
 export type UserByUsernameQuery = z.infer<typeof UserByUsernameQuerySchema>;
 
+export const UserByIdentifierQuerySchema = z.object({
+    identifier: z.string().min(1, "Identifier is required"),
+});
+
+export type UserByIdentifierQuery = z.infer<typeof UserByIdentifierQuerySchema>;
+
 // response schemas
 
 export const UserResponseSchema = z.object({

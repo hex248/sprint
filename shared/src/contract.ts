@@ -79,6 +79,7 @@ import {
     TimerStateSchema,
     TimerToggleRequestSchema,
     TypeCountResponseSchema,
+    UserByIdentifierQuerySchema,
     UserByUsernameQuerySchema,
     UserResponseSchema,
     UserUpdateRequestSchema,
@@ -205,6 +206,15 @@ export const apiContract = c.router({
         headers: csrfHeaderSchema,
     },
 
+    userByIdentifier: {
+        method: "GET",
+        path: "/user/by-identifier",
+        query: UserByIdentifierQuerySchema,
+        responses: {
+            200: UserResponseSchema,
+            404: ApiErrorSchema,
+        },
+    },
     userByUsername: {
         method: "GET",
         path: "/user/by-username",

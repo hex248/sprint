@@ -65,6 +65,7 @@ import timerGetInactiveGlobal from "./timer/get-inactive-global";
 import timerToggle from "./timer/toggle";
 import timerToggleGlobal from "./timer/toggle-global";
 import timers from "./timers";
+import userByIdentifier from "./user/by-identifier";
 import userByUsername from "./user/by-username";
 import userUpdate from "./user/update";
 import userUploadAvatar from "./user/upload-avatar";
@@ -84,6 +85,7 @@ export const routes = {
     cliLoginPoll,
     cliLoginApprove,
 
+    userByIdentifier,
     userByUsername,
     userUpdate,
     userUploadAvatar,
