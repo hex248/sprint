@@ -11,6 +11,7 @@ export const queryKeys = {
   projects: {
     all: ["projects"] as const,
     byOrganisation: (orgId: number) => [...queryKeys.projects.all, "by-org", orgId] as const,
+    branches: (projectId: number) => [...queryKeys.projects.all, "branches", projectId] as const,
   },
   issues: {
     all: ["issues"] as const,

@@ -395,6 +395,7 @@ const main = async () => {
             "/project/update": withGlobalAuthed(withAuth(withCSRF(routes.projectUpdate))),
             "/project/delete": withGlobalAuthed(withAuth(withCSRF(routes.projectDelete))),
             "/project/with-creator": withGlobalAuthed(withAuth(routes.projectWithCreator)),
+            "/project/branches": withGlobalAuthed(withAuth(routes.projectBranches)),
 
             "/projects/by-creator": withGlobalAuthed(withAuth(routes.projectsByCreator)),
             "/projects/by-organisation": withGlobalAuthed(withAuth(routes.projectsByOrganisation)),

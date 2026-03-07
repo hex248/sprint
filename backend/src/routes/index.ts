@@ -38,6 +38,7 @@ import organisationUpdate from "./organisation/update";
 import organisationUpdateMemberRole from "./organisation/update-member-role";
 import organisationUploadIcon from "./organisation/upload-icon";
 import projectsAll from "./project/all";
+import projectBranches from "./project/branches";
 import projectsByCreator from "./project/by-creator";
 import projectsByOrganisation from "./project/by-organisation";
 import projectCreate from "./project/create";
@@ -127,6 +128,7 @@ export const routes = {
     projectUpdate,
     projectDelete,
     projectWithCreator,
+    projectBranches,
 
     projectsByCreator,
     projectsByOrganisation,

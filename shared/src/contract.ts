@@ -51,6 +51,8 @@ import {
     OrgRemoveMemberRequestSchema,
     OrgUpdateMemberRoleRequestSchema,
     OrgUpdateRequestSchema,
+    ProjectBranchesQuerySchema,
+    ProjectBranchesResponseSchema,
     ProjectByCreatorQuerySchema,
     ProjectByIdQuerySchema,
     ProjectByOrgQuerySchema,
@@ -597,6 +599,17 @@ export const apiContract = c.router({
         query: ProjectByIdQuerySchema,
         responses: {
             200: ProjectWithCreatorResponseSchema,
+            404: ApiErrorSchema,
+        },
+    },
+    projectBranches: {
+        method: "GET",
+        path: "/project/branches",
+        query: ProjectBranchesQuerySchema,
+        responses: {
+            200: ProjectBranchesResponseSchema,
+            400: ApiErrorSchema,
+            403: ApiErrorSchema,
             404: ApiErrorSchema,
         },
     },

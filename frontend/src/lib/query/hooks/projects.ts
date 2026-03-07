@@ -1,4 +1,5 @@
 import type {
+  ProjectBranchesResponse,
   ProjectCreateRequest,
   ProjectRecord,
   ProjectResponse,
@@ -20,6 +21,21 @@ export function useProjects(organisationId?: number | null) {
       return (data ?? []) as ProjectResponse[];
     },
     enabled: Boolean(organisationId),
+  });
+}
+
+export function useProjectBranches(projectId?: number | null) {
+  return useQuery<ProjectBranchesResponse>({
+    queryKey: queryKeys.projects.branches(projectId ?? 0),
+    queryFn: async () => {
+      const { data, error } = await apiClient.projectBranches({
+        query: { projectId: projectId ?? 0 },
+      });
+      if (error) throw new Error(error);
+      if (!data) throw new Error("failed to fetch project branches");
+      return data as ProjectBranchesResponse;
+    },
+    enabled: Boolean(projectId),
   });
 }
 

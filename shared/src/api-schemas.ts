@@ -428,6 +428,12 @@ export const ProjectByCreatorQuerySchema = z.object({
 
 export type ProjectByCreatorQuery = z.infer<typeof ProjectByCreatorQuerySchema>;
 
+export const ProjectBranchesQuerySchema = z.object({
+    projectId: z.coerce.number().int().positive("projectId must be a positive integer"),
+});
+
+export type ProjectBranchesQuery = z.infer<typeof ProjectBranchesQuerySchema>;
+
 // sprint schemas
 
 export const SprintCreateRequestSchema = z
@@ -716,6 +722,13 @@ export const ProjectWithCreatorResponseSchema = z.object({
 });
 
 export type ProjectWithCreatorResponse = z.infer<typeof ProjectWithCreatorResponseSchema>;
+
+export const ProjectBranchesResponseSchema = z.object({
+    projectId: z.number(),
+    branches: z.array(z.string()),
+});
+
+export type ProjectBranchesResponse = z.infer<typeof ProjectBranchesResponseSchema>;
 
 export const SprintRecordSchema = z.object({
     id: z.number(),
