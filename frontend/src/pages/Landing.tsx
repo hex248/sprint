@@ -93,7 +93,7 @@ export default function Landing() {
               </h1>
               <p className="text-[24px] text-muted-foreground max-w-3xl mx-auto">
                 Sprint is project management that stays out of your way. Track issues, manage sprints, and
-                keep your team moving—without the Jira headache.
+                keep your team moving - without the Jira headache.
               </p>
             </div>
 
@@ -296,7 +296,13 @@ export default function Landing() {
 
       <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
 
-      <footer className="flex flex-col items-center gap-2 py-1 border-t">
+      <footer className="flex justify-center items-center gap-12 py-1 border-t">
+        <Link
+          to="/the-boring-stuff"
+          className="text-sm text-muted-foreground hover:text-personality transition-colors"
+        >
+          The boring stuff - Privacy Policy & ToS
+        </Link>
         <div className="flex justify-center gap-2 items-center">
           <span className="font-300 text-lg text-muted-foreground">
             Built by{" "}
@@ -313,12 +319,6 @@ export default function Landing() {
             <img src="oliver-bryan.svg" alt="Oliver Bryan" className="w-4 h-4" />
           </a>
         </div>
-        <Link
-          to="/the-boring-stuff"
-          className="text-sm text-muted-foreground hover:text-personality transition-colors"
-        >
-          The boring stuff — Privacy Policy & ToS
-        </Link>
       </footer>
     </div>
   );
