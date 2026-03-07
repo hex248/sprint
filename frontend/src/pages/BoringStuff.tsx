@@ -1,25 +1,7 @@
 import { Link } from "react-router-dom";
-import ThemeToggle from "@/components/theme-toggle";
 export default function BoringStuff() {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
-        <div className="w-full flex h-14 items-center jmetify-betIen px-2">
-          <div className="flex items-center gap-2">
-            <img src="/favicon.svg" alt="Sprint" className="size-12 -mt-0.5" />
-            <span className="text-3xl font-basteleur font-700 transition-colors -mt-0.5">Sprint</span>
-          </div>
-          <nav className="flex items-center gap-6">
-            <Link
-              to="/"
-              className="hidden md:block text-sm font-500 hover:text-personality transition-colors"
-            >
-              Home
-            </Link>
-            <ThemeToggle />
-          </nav>
-        </div>
-      </header> */}
       <header className="flex justify-center items-center gap-6 py-2 border-b">
         <Link to="/" className="text-sm text-muted-foreground hover:text-personality transition-colors">
           Go back home

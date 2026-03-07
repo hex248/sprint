@@ -9,6 +9,7 @@ import { RequireAuth, SessionProvider } from "@/components/session-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import BoringStuff from "@/pages/BoringStuff";
+import Changelog from "@/pages/Changelog";
 import CliLogin from "@/pages/CliLogin";
 import Font from "@/pages/Font";
 import Issues from "@/pages/Issues";
@@ -29,6 +30,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
               <Routes>
                 {/* public routes */}
                 <Route path="/" element={<Landing />} />
+                <Route path="/changelog" element={<Changelog />} />
                 <Route path="/font" element={<Font />} />
                 <Route path="/the-boring-stuff" element={<BoringStuff />} />
                 <Route path="/cli/login" element={<CliLogin />} />
