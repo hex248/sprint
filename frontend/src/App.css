@@ -256,6 +256,136 @@
   white-space: nowrap !important;
 }
 
+.changelog-markdown {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* "Sprint Changelog" */
+.changelog-markdown h1 {
+  font-size: 2.75rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.changelog-markdown h1 + p {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  margin-bottom: 4rem;
+}
+
+/* dates */
+.changelog-markdown h2 {
+  margin-top: 2rem;
+  margin-bottom: 0rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--personality);
+}
+
+/* Added/Improved/Fixed */
+.changelog-markdown h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.changelog-markdown p {
+  margin-top: 1rem;
+}
+
+.changelog-markdown ul,
+.changelog-markdown ol {
+  margin-top: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.changelog-markdown ul {
+  list-style-type: disc;
+}
+
+.changelog-markdown ol {
+  list-style-type: decimal;
+}
+
+.changelog-markdown li {
+  position: relative;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.changelog-markdown ul li::marker {
+  color: var(--personality);
+}
+
+.changelog-markdown li strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.changelog-markdown a {
+  color: var(--personality);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.changelog-markdown a:hover {
+  border-bottom-color: var(--personality);
+}
+
+.changelog-markdown code {
+  font-family: "Commit Mono", monospace;
+  font-size: 0.875em;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  color: var(--personality);
+}
+
+.changelog-markdown pre {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  padding: 1rem;
+  background-color: var(--muted);
+  border-radius: 8px;
+}
+
+.changelog-markdown pre code {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+}
+
+.changelog-markdown blockquote {
+  border-left: 4px solid var(--personality);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.changelog-markdown table {
+  margin-top: 0.8rem;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.changelog-markdown th,
+.changelog-markdown td {
+  border: 1px dashed var(--border);
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+}
+
 .small-screen-overlay {
   display: none;
 }

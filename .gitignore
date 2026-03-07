@@ -5,3 +5,4 @@
 *.md
 
 !todo.md
+!frontend/public/changelog.md

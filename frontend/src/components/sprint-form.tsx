@@ -348,9 +348,7 @@ export function SprintForm({
 
   // show only open sprints in the calendar and filter out the sprint being edited
   const calendarSprints =
-    isEdit && existingSprint
-      ? openSprints.filter((sprint) => sprint.id !== existingSprint.id)
-      : openSprints;
+    isEdit && existingSprint ? openSprints.filter((sprint) => sprint.id !== existingSprint.id) : openSprints;
 
   const dialogContent = (
     <DialogContent className={cn("w-sm", (error || dateError) && "border-destructive")}>
