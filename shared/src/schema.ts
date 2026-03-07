@@ -122,22 +122,26 @@ export const OrganisationMember = pgTable("OrganisationMember", {
     createdAt: timestamp({ withTimezone: false }).defaultNow(),
 });
 
-export const Project = pgTable("Project", {
-    id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    key: varchar({ length: 4 }).notNull(),
-    name: varchar({ length: PROJECT_NAME_MAX_LENGTH }).notNull(),
-    organisationId: integer()
-        .notNull()
-        .references(() => Organisation.id),
-    creatorId: integer()
-        .notNull()
-        .references(() => User.id),
-    defaultSprintAssignment: json("defaultSprintAssignment")
-        .$type<DefaultSprintAssignment>()
-        .notNull()
-        .default(DEFAULT_SPRINT_ASSIGNMENT),
-    gitRemote: varchar({ length: 255 }),
-});
+export const Project = pgTable(
+    "Project",
+    {
+        id: integer().primaryKey().generatedAlwaysAsIdentity(),
+        key: varchar({ length: 4 }).notNull(),
+        name: varchar({ length: PROJECT_NAME_MAX_LENGTH }).notNull(),
+        organisationId: integer()
+            .notNull()
+            .references(() => Organisation.id),
+        creatorId: integer()
+            .notNull()
+            .references(() => User.id),
+        defaultSprintAssignment: json("defaultSprintAssignment")
+            .$type<DefaultSprintAssignment>()
+            .notNull()
+            .default(DEFAULT_SPRINT_ASSIGNMENT),
+        gitRemote: varchar({ length: 255 }),
+    },
+    (t) => [uniqueIndex("unique_project_key_per_org").on(t.organisationId, t.key)],
+);
 
 export const Sprint = pgTable("Sprint", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),

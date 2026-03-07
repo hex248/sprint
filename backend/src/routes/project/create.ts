@@ -5,7 +5,7 @@ import {
     // FREE_TIER_LIMITS,
     getOrganisationMemberRole,
     // getOrganisationProjectCount,
-    getProjectByKey,
+    getProjectByKeyInOrganisation,
     getUserById,
 } from "../../db/queries";
 import { errorResponse, parseJsonBody } from "../../validation";
@@ -16,8 +16,8 @@ export default async function projectCreate(req: AuthedRequest) {
 
     const { key, name, organisationId } = parsed.data;
 
-    const existingProject = await getProjectByKey(key);
-    if (existingProject?.organisationId === organisationId) {
+    const existingProject = await getProjectByKeyInOrganisation(key, organisationId);
+    if (existingProject) {
         return errorResponse(`project with key ${key} already exists in this organisation`, "KEY_TAKEN", 400);
     }
 

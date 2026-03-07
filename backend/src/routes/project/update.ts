@@ -3,7 +3,7 @@ import type { AuthedRequest } from "../../auth/middleware";
 import {
     getOrganisationMemberRole,
     getProjectByID,
-    getProjectByKey,
+    getProjectByKeyInOrganisation,
     getSprintById,
     getUserById,
     updateProject,
@@ -61,10 +61,17 @@ export default async function projectUpdate(req: AuthedRequest) {
         );
     }
 
-    if (key && key !== existingProject.key) {
-        const projectWithKey = await getProjectByKey(key);
-        if (projectWithKey && projectWithKey.id !== id) {
-            return errorResponse(`a project with key "${key}" already exists`, "KEY_TAKEN", 400);
+    const nextKey = key ?? existingProject.key;
+    const nextOrganisationId = organisationId ?? existingProject.organisationId;
+
+    if (nextKey !== existingProject.key || nextOrganisationId !== existingProject.organisationId) {
+        const projectWithKeyInOrganisation = await getProjectByKeyInOrganisation(nextKey, nextOrganisationId);
+        if (projectWithKeyInOrganisation && projectWithKeyInOrganisation.id !== id) {
+            return errorResponse(
+                `a project with key "${nextKey}" already exists in this organisation`,
+                "KEY_TAKEN",
+                400,
+            );
         }
     }
 

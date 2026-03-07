@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "unique_project_key_per_org" ON "Project" USING btree ("organisationId","key");

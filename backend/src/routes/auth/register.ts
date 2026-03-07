@@ -8,7 +8,6 @@ import {
     createUser,
     createVerificationCode,
     getOrganisationBySlug,
-    getProjectByKey,
     getUserByUsername,
 } from "../../db/queries";
 import { getUserByEmail } from "../../db/queries/users";
@@ -77,13 +76,7 @@ export default async function register(req: BunRequest) {
         const org = await createOrganisationWithOwner(orgName, orgSlug, user.id);
 
         const projectName = `${user.name}'s Project`;
-        let projectKey = generateProjectKey(projectName);
-
-        // check for key collision
-        const existingProject = await getProjectByKey(projectKey);
-        if (existingProject) {
-            projectKey = `${projectKey.slice(0, 2)}${Math.floor(Math.random() * 100)}`.slice(0, 4);
-        }
+        const projectKey = generateProjectKey(projectName);
 
         await createProject(projectKey, projectName, user.id, org.id);
     } catch (error) {

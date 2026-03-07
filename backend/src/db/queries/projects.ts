@@ -1,5 +1,5 @@
 import { Issue, Organisation, Project, Sprint, User } from "@sprint/shared";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../client";
 
 export async function createProject(key: string, name: string, creatorId: number, organisationId: number) {
@@ -46,6 +46,14 @@ export async function getProjectByID(projectId: number) {
 
 export async function getProjectByKey(projectKey: string) {
     const [project] = await db.select().from(Project).where(eq(Project.key, projectKey));
+    return project;
+}
+
+export async function getProjectByKeyInOrganisation(projectKey: string, organisationId: number) {
+    const [project] = await db
+        .select()
+        .from(Project)
+        .where(and(eq(Project.key, projectKey), eq(Project.organisationId, organisationId)));
     return project;
 }
 
