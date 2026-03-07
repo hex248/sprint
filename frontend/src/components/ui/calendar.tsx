@@ -209,7 +209,8 @@ export function CalendarDayButton({
           "!border-r !border-(--current-sprint-color)",
 
         // is selected
-        "data-[selected-single=true]:!bg-(--current-sprint-color)/75 data-[selected-single=true]:hover:!bg-(--current-sprint-color)/60",
+        currentSprint?.colour &&
+          "data-[selected-single=true]:!bg-(--current-sprint-color)/75 data-[selected-single=true]:hover:!bg-(--current-sprint-color)/60",
 
         // is start and after end date (disable)
         !isEnd &&
