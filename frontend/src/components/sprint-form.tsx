@@ -45,7 +45,9 @@ const addDays = (date: Date, days: number) => {
 };
 
 const getDefaultDates = (sprints: SprintRecord[]) => {
-  if (sprints.length === 0) {
+  const openSprints = sprints.filter((sprint) => sprint.open);
+
+  if (openSprints.length === 0) {
     const today = new Date();
     return {
       start: getStartOfDay(today),
@@ -53,7 +55,7 @@ const getDefaultDates = (sprints: SprintRecord[]) => {
     };
   }
 
-  const latest = sprints.reduce((current, sprint) => {
+  const latest = openSprints.reduce((current, sprint) => {
     const currentEnd = new Date(current.endDate).getTime();
     const sprintEnd = new Date(sprint.endDate).getTime();
     if (sprintEnd !== currentEnd) {
@@ -62,7 +64,7 @@ const getDefaultDates = (sprints: SprintRecord[]) => {
     const currentStart = new Date(current.startDate).getTime();
     const sprintStart = new Date(sprint.startDate).getTime();
     return sprintStart > currentStart ? sprint : current;
-  }, sprints[0]);
+  }, openSprints[0]);
 
   const start = getStartOfDay(addDays(new Date(latest.endDate), 1));
   return {
@@ -105,7 +107,8 @@ export function SprintForm({
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? (controlledOnOpenChange ?? (() => {})) : setInternalOpen;
 
-  const defaultDates = useMemo(() => getDefaultDates(sprints), [sprints]);
+  const openSprints = useMemo(() => sprints.filter((sprint) => sprint.open), [sprints]);
+  const defaultDates = useMemo(() => getDefaultDates(openSprints), [openSprints]);
   const [name, setName] = useState("");
   const [colour, setColour] = useState(DEFAULT_SPRINT_COLOUR);
   const [startDate, setStartDate] = useState(defaultDates.start);
@@ -168,8 +171,8 @@ export function SprintForm({
   );
   const statusOptions = useMemo(() => Object.entries(statuses), [statuses]);
   const openHandOffSprints = useMemo(
-    () => sprints.filter((sprint) => sprint.open && sprint.id !== closingSprint?.id),
-    [sprints, closingSprint],
+    () => openSprints.filter((sprint) => sprint.id !== closingSprint?.id),
+    [openSprints, closingSprint],
   );
   const matchingHandOffIssueCount = useMemo(() => {
     if (!closingSprint || handOffStatuses.length === 0) return 0;
@@ -180,7 +183,7 @@ export function SprintForm({
   const canCloseWithoutHandOff = matchingHandOffIssueCount === 0;
 
   const reset = () => {
-    const defaults = getDefaultDates(sprints);
+    const defaults = getDefaultDates(openSprints);
     setName("");
     setColour(DEFAULT_SPRINT_COLOUR);
     setStartDate(defaults.start);
@@ -343,9 +346,11 @@ export function SprintForm({
     }
   };
 
-  // filter out current sprint from the calendar display when editing
+  // show only open sprints in the calendar and filter out the sprint being edited
   const calendarSprints =
-    isEdit && existingSprint ? sprints.filter((s) => s.id !== existingSprint.id) : sprints;
+    isEdit && existingSprint
+      ? openSprints.filter((sprint) => sprint.id !== existingSprint.id)
+      : openSprints;
 
   const dialogContent = (
     <DialogContent className={cn("w-sm", (error || dateError) && "border-destructive")}>
