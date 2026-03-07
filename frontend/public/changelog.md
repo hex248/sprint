@@ -15,9 +15,10 @@
 
 ### Fixed
 
-- “Current sprint” now only considers open sprints.
+- "Current sprint" now only considers open sprints.
 - Sprint calendars and sprint pickers now focus on open sprints.
 - New sprint date suggestions are now based on the latest sprint timeline.
+- Selected day visibility in time export day picker
 
 ## 2026-03-06
 
