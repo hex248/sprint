@@ -132,13 +132,16 @@ export default function LogInForm() {
             error !== "" && "border-destructive",
           )}
         >
-          <span className="text-xl font-basteleur mb-2">{capitalise(mode)}</span>
+          <span className="text-xl font-basteleur mb-1">{capitalise(mode)}</span>
 
           <div
             className={cn("mb-0 flex flex-col", mode === "register" ? "w-full gap-2 px-1" : "items-center")}
           >
             {mode === "register" && (
               <>
+                <div className="rounded border mb-1 border-amber-500/35 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-900 dark:text-amber-200">
+                  Sprint is under active development, so you may run into occasional bugs or rough edges.
+                </div>
                 <UploadAvatar
                   name={name}
                   username={username || undefined}
