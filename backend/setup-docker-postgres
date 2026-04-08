@@ -4,9 +4,9 @@ set -euo pipefail
 
 CONTAINER_NAME="${CONTAINER_NAME:-sprint-postgres}"
 POSTGRES_IMAGE="${POSTGRES_IMAGE:-postgres:16-alpine}"
-POSTGRES_USER="${POSTGRES_USER:-eussi}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-password}"
-POSTGRES_DB="${POSTGRES_DB:-issue}"
+POSTGRES_USER="${POSTGRES_USER:-sprint}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-a}"
+POSTGRES_DB="${POSTGRES_DB:-sprint}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 
 if ! command -v docker >/dev/null 2>&1; then
